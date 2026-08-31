@@ -1,0 +1,10 @@
+# Postgres 首次初始化时执行的 SQL（启用 pgvector 扩展），
+# 通过挂载到 /docker-entrypoint-initdb.d 自动运行。
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: docmind-init-sql
+  namespace: docmind
+data:
+  01-enable-vector.sql: |
+    CREATE EXTENSION IF NOT EXISTS "vector";

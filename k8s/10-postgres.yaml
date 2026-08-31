@@ -1,0 +1,79 @@
+# PostgreSQL + pgvector，用 StatefulSet 保证稳定网络标识与持久化卷。
+# 生产环境更推荐使用托管数据库（Neon / Supabase / Cloud SQL 等）。
+apiVersion: v1
+kind: Service
+metadata:
+  name: docmind-db
+  namespace: docmind
+spec:
+  selector:
+    app: docmind-db
+  ports:
+    - port: 5432
+      targetPort: 5432
+  clusterIP: None # headless，配合 StatefulSet
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: docmind-db
+  namespace: docmind
+spec:
+  serviceName: docmind-db
+  replicas: 1
+  selector:
+    matchLabels:
+      app: docmind-db
+  template:
+    metadata:
+      labels:
+        app: docmind-db
+    spec:
+      containers:
+        - name: postgres
+          image: pgvector/pgvector:pg16
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: "docmind"
+            - name: POSTGRES_PASSWORD
+              value: "docmind"
+            - name: POSTGRES_DB
+              value: "docmind"
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "docmind", "-d", "docmind"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "docmind", "-d", "docmind"]
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "1"
+          volumeMounts:
+            - name: pgdata
+              mountPath: /var/lib/postgresql/data
+            - name: init-sql
+              mountPath: /docker-entrypoint-initdb.d
+      volumes:
+        - name: init-sql
+          configMap:
+            name: docmind-init-sql
+
+  volumeClaimTemplates:
+    - metadata:
+        name: pgdata
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi

@@ -1,0 +1,65 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: docmind-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: docmind
+      POSTGRES_PASSWORD: docmind
+      POSTGRES_DB: docmind
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # 首次初始化时自动启用 pgvector 扩展
+      - ./docker/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U docmind -d docmind"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # 一次性迁移任务：等 db 就绪后执行 prisma migrate deploy
+  migrate:
+    build: .
+    command: ["migrate"]
+    restart: "no"
+    environment:
+      DATABASE_URL: "postgresql://docmind:docmind@db:5432/docmind?schema=public"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: "postgresql://docmind:docmind@db:5432/docmind?schema=public"
+      # 以下从宿主 .env 读取，未设置时用默认值
+      AUTH_SECRET: ${AUTH_SECRET:-docmind-local-dev-secret-please-change}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      AI_BASE_URL: ${AI_BASE_URL:-https://api.openai.com/v1}
+      AI_API_KEY: ${AI_API_KEY:-}
+      CHAT_MODEL: ${CHAT_MODEL:-gpt-4o-mini}
+      EMBEDDING_BASE_URL: ${EMBEDDING_BASE_URL:-https://api.openai.com/v1}
+      EMBEDDING_API_KEY: ${EMBEDDING_API_KEY:-}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-text-embedding-3-small}
+      EMBEDDING_DIM: ${EMBEDDING_DIM:-1536}
+    volumes:
+      # 持久化用户上传的图片（头像/封面/背景图）
+      - uploads:/app/public/uploads
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/health >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+volumes:
+  pgdata:
+  uploads:

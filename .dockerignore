@@ -1,0 +1,25 @@
+# 依赖与构建产物（镜像内重新安装/构建）
+node_modules
+.next
+out
+build
+
+# 密钥与本地环境
+.env
+.env.*
+!.env.example
+
+# 版本控制与 CI
+.git
+.gitignore
+.github
+
+# 不需要打进镜像的文件
+Dockerfile
+.dockerignore
+docker-compose.yml
+k8s
+scripts
+nginx
+*.md
+*.log

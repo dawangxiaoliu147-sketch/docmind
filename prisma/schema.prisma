@@ -1,0 +1,100 @@
+// DocMind 数据模型
+// 说明：Chunk.embedding 使用 PostgreSQL 的 pgvector 扩展存储向量，
+// Prisma 通过 Unsupported 类型透传，实际读写使用原生 SQL。
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id             String          @id @default(cuid())
+  email          String          @unique
+  name           String
+  passwordHash   String          @map("password_hash")
+  avatarUrl      String?         @map("avatar_url")
+  role           String          @default("user") @map("role") // user | admin
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+  knowledgeBases KnowledgeBase[]
+
+  @@map("users")
+}
+
+model KnowledgeBase {
+  id          String     @id @default(cuid())
+  name        String
+  description String?
+  coverImage  String?    @map("cover_image")
+  color       String?    @map("color")
+  userId      String     @map("user_id")
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documents     Document[]
+  conversations Conversation[]
+  createdAt     DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@map("knowledge_bases")
+}
+
+model Document {
+  id         String        @id @default(cuid())
+  kbId       String        @map("kb_id")
+  kb         KnowledgeBase @relation(fields: [kbId], references: [id], onDelete: Cascade)
+  title      String
+  fileName   String        @map("file_name")
+  mimeType   String        @map("mime_type")
+  size       Int
+  status     String        @default("processing") // processing | ready | failed
+  chunkCount Int           @default(0) @map("chunk_count")
+  createdAt  DateTime      @default(now()) @map("created_at")
+  chunks     Chunk[]
+
+  @@index([kbId])
+  @@map("documents")
+}
+
+model Chunk {
+  id         String   @id @default(cuid())
+  docId      String   @map("doc_id")
+  document   Document @relation(fields: [docId], references: [id], onDelete: Cascade)
+  kbId       String   @map("kb_id")
+  chunkIndex Int      @map("chunk_index")
+  content    String
+  embedding  Unsupported("vector(1536)")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([kbId])
+  @@index([docId])
+  @@map("chunks")
+}
+
+model Conversation {
+  id        String        @id @default(cuid())
+  kbId      String        @map("kb_id")
+  kb        KnowledgeBase @relation(fields: [kbId], references: [id], onDelete: Cascade)
+  userId    String        @map("user_id")
+  title     String
+  messages  Message[]
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+
+  @@index([kbId, userId])
+  @@map("conversations")
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String       @map("conversation_id")
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String // user | assistant
+  content        String
+  createdAt      DateTime     @default(now()) @map("created_at")
+
+  @@index([conversationId])
+  @@map("messages")
+}

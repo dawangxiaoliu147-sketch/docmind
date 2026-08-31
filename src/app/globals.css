@@ -1,0 +1,199 @@
+@import "tailwindcss";
+
+/* Tailwind v4 的 class 策略深色模式：<html class="dark"> 时启用 dark: 变体 */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: #fafafa;
+  --foreground: #18181b;
+  /* 主题色（可在运行时通过 JS 覆盖，实现界面个性化） */
+  --accent: #4f46e5;
+  --accent-hover: #4338ca;
+  --accent-soft: #eef2ff;
+  --accent-softer: #e0e7ff;
+  --accent-border: #c7d2fe;
+  --accent-deep: #1e1b4b;
+  /* 自定义背景图（运行时通过 JS 覆盖） */
+  --bg-image: none;
+  --bg-opacity: 0.15;
+  --bg-blur: 0px;
+}
+
+.dark {
+  --background: #09090b;
+  --foreground: #fafafa;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  /* 把 indigo/violet 映射到主题色变量：运行时改 --accent 即可全局换色 */
+  --color-indigo-50: var(--accent-soft);
+  --color-indigo-100: var(--accent-softer);
+  --color-indigo-200: var(--accent-border);
+  --color-indigo-500: var(--accent);
+  --color-indigo-600: var(--accent);
+  --color-indigo-700: var(--accent-hover);
+  --color-indigo-900: var(--accent-deep);
+  --color-indigo-950: var(--accent-deep);
+  --color-violet-600: var(--accent-hover);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+}
+
+/* 自定义背景图：固定全屏、低透明度，垫在内容下方作为壁纸 */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image: var(--bg-image, none);
+  background-size: cover;
+  background-position: center;
+  opacity: var(--bg-opacity, 0.15);
+  filter: blur(var(--bg-blur, 0px));
+  pointer-events: none;
+}
+
+/* 滑块使用主题色 */
+input[type="range"] {
+  accent-color: var(--accent);
+}
+
+/* ============ AI 回答的 Markdown 渲染样式（浅色） ============ */
+.markdown {
+  line-height: 1.7;
+  font-size: 0.875rem;
+}
+.markdown > *:first-child {
+  margin-top: 0;
+}
+.markdown > *:last-child {
+  margin-bottom: 0;
+}
+.markdown h1,
+.markdown h2,
+.markdown h3,
+.markdown h4 {
+  font-weight: 600;
+  margin: 1em 0 0.5em;
+  color: #18181b;
+  line-height: 1.3;
+}
+.markdown h1 {
+  font-size: 1.25em;
+}
+.markdown h2 {
+  font-size: 1.15em;
+}
+.markdown h3 {
+  font-size: 1.05em;
+}
+.markdown p {
+  margin: 0.5em 0;
+}
+.markdown ul,
+.markdown ol {
+  margin: 0.5em 0;
+  padding-left: 1.5em;
+}
+.markdown ul {
+  list-style: disc;
+}
+.markdown ol {
+  list-style: decimal;
+}
+.markdown li {
+  margin: 0.25em 0;
+}
+.markdown a {
+  color: #4f46e5;
+  text-decoration: underline;
+}
+.markdown code {
+  background: #f4f4f5;
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.85em;
+}
+.markdown pre {
+  background: #18181b;
+  color: #fafafa;
+  padding: 1em;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 0.75em 0;
+}
+.markdown pre code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font-size: 0.85em;
+}
+.markdown blockquote {
+  border-left: 3px solid #e4e4e7;
+  padding-left: 1em;
+  color: #71717a;
+  margin: 0.75em 0;
+}
+.markdown table {
+  border-collapse: collapse;
+  margin: 0.75em 0;
+  width: 100%;
+  font-size: 0.85em;
+}
+.markdown th,
+.markdown td {
+  border: 1px solid #e4e4e7;
+  padding: 0.4em 0.6em;
+  text-align: left;
+}
+.markdown th {
+  background: #f4f4f5;
+  font-weight: 600;
+}
+.markdown hr {
+  border: none;
+  border-top: 1px solid #e4e4e7;
+  margin: 1em 0;
+}
+.markdown strong {
+  font-weight: 600;
+}
+
+/* ============ Markdown 深色覆盖 ============ */
+.dark .markdown h1,
+.dark .markdown h2,
+.dark .markdown h3,
+.dark .markdown h4 {
+  color: #fafafa;
+}
+.dark .markdown code {
+  background: #27272a;
+  color: #e4e4e7;
+}
+.dark .markdown pre {
+  background: #09090b;
+  color: #fafafa;
+}
+.dark .markdown blockquote {
+  border-color: #3f3f46;
+  color: #a1a1aa;
+}
+.dark .markdown th,
+.dark .markdown td {
+  border-color: #3f3f46;
+}
+.dark .markdown th {
+  background: #27272a;
+}
+.dark .markdown hr {
+  border-color: #3f3f46;
+}

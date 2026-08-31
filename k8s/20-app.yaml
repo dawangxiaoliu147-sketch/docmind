@@ -1,0 +1,101 @@
+# 应用 Deployment + Service。
+# 说明：initContainer 用同一镜像先跑数据库迁移，成功后才启动应用容器。
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: docmind-app
+  namespace: docmind
+spec:
+  replicas: 2 # 多副本，配合 HPA 自动伸缩
+  selector:
+    matchLabels:
+      app: docmind-app
+  template:
+    metadata:
+      labels:
+        app: docmind-app
+    spec:
+      initContainers:
+        - name: migrate
+          image: ghcr.io/YOUR_GITHUB/docmind:latest # 改成你的镜像地址
+          args: ["migrate"]
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: docmind-secret
+                  key: DATABASE_URL
+      containers:
+        - name: app
+          image: ghcr.io/YOUR_GITHUB/docmind:latest # 改成你的镜像地址
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: docmind-secret
+                  key: DATABASE_URL
+            - name: AUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: docmind-secret
+                  key: AUTH_SECRET
+            - name: AI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: docmind-secret
+                  key: AI_API_KEY
+            - name: AI_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: docmind-config
+                  key: AI_BASE_URL
+            - name: CHAT_MODEL
+              valueFrom:
+                configMapKeyRef:
+                  name: docmind-config
+                  key: CHAT_MODEL
+            - name: EMBEDDING_MODEL
+              valueFrom:
+                configMapKeyRef:
+                  name: docmind-config
+                  key: EMBEDDING_MODEL
+            - name: EMBEDDING_DIM
+              valueFrom:
+                configMapKeyRef:
+                  name: docmind-config
+                  key: EMBEDDING_DIM
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "1"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: docmind-app
+  namespace: docmind
+spec:
+  selector:
+    app: docmind-app
+  ports:
+    - port: 80
+      targetPort: 3000

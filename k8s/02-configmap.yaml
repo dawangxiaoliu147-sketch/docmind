@@ -1,0 +1,11 @@
+# 非敏感配置放 ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: docmind-config
+  namespace: docmind
+data:
+  AI_BASE_URL: "https://api.openai.com/v1"
+  CHAT_MODEL: "gpt-4o-mini"
+  EMBEDDING_MODEL: "text-embedding-3-small"
+  EMBEDDING_DIM: "1536"
