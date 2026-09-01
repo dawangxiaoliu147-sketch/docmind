@@ -58,7 +58,7 @@ export function Footer() {
         </div>
 
         <div className="mt-8 border-t border-zinc-100 pt-6 text-center text-xs text-zinc-400 dark:border-zinc-800 dark:text-zinc-500">
-          © {new Date().getFullYear()} DocMind · 全栈 AI 知识库项目
+          © {new Date().getFullYear()} DocMind · 全栈 AI 知识库项目 · 自动部署 v2
         </div>
       </div>
     </footer>
