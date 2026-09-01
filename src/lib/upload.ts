@@ -30,5 +30,5 @@ export async function saveImage(file: File): Promise<string> {
 
   const buffer = Buffer.from(await file.arrayBuffer());
   await writeFile(path.join(dir, name), buffer);
-  return `/uploads/${name}`;
+  return `/api/uploads/${name}`;
 }
