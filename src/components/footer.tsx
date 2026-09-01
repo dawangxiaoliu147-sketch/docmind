@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from "next/link";
 
 export function Footer() {
   return (
@@ -23,26 +23,17 @@ export function Footer() {
             </h3>
             <ul className="mt-3 space-y-2 text-sm text-zinc-500 dark:text-zinc-400">
               <li>
-                <Link
-                  href="/#features"
-                  className="transition hover:text-zinc-900 dark:hover:text-zinc-100"
-                >
+                <Link href="/#features" className="transition hover:text-zinc-900 dark:hover:text-zinc-100">
                   功能特性
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/#how"
-                  className="transition hover:text-zinc-900 dark:hover:text-zinc-100"
-                >
+                <Link href="/#how" className="transition hover:text-zinc-900 dark:hover:text-zinc-100">
                   如何使用
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/dashboard"
-                  className="transition hover:text-zinc-900 dark:hover:text-zinc-100"
-                >
+                <Link href="/dashboard" className="transition hover:text-zinc-900 dark:hover:text-zinc-100">
                   控制台
                 </Link>
               </li>
@@ -55,17 +46,12 @@ export function Footer() {
             </h3>
             <ul className="mt-3 space-y-2 text-sm text-zinc-500 dark:text-zinc-400">
               <li>
-                <Link
-                  href="/about"
-                  className="transition hover:text-zinc-900 dark:hover:text-zinc-100"
-                >
+                <Link href="/about" className="transition hover:text-zinc-900 dark:hover:text-zinc-100">
                   项目介绍
                 </Link>
               </li>
               <li>
-                <span className="cursor-default">
-                  Next.js + Prisma + pgvector
-                </span>
+                <span className="cursor-default">Next.js + Prisma + pgvector</span>
               </li>
             </ul>
           </div>
