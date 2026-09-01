@@ -15,7 +15,7 @@
   --accent-deep: #1e1b4b;
   /* 自定义背景图（运行时通过 JS 覆盖） */
   --bg-image: none;
-  --bg-opacity: 0.15;
+  --bg-opacity: 1;
   --bg-blur: 0px;
 }
 

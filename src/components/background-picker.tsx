@@ -4,14 +4,14 @@ import { useEffect, useState } from "react";
 
 export function BackgroundPicker() {
   const [url, setUrl] = useState<string | null>(null);
-  const [opacity, setOpacity] = useState(0.15);
+  const [opacity, setOpacity] = useState(1);
   const [blur, setBlur] = useState(0);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const savedUrl = localStorage.getItem("bgImage");
-    const savedOpacity = Number(localStorage.getItem("bgOpacity") ?? 0.15);
+    const savedOpacity = Number(localStorage.getItem("bgOpacity") ?? 1);
     const savedBlur = Number(localStorage.getItem("bgBlur") ?? 0);
     if (savedUrl) {
       setUrl(savedUrl);
@@ -77,9 +77,9 @@ export function BackgroundPicker() {
     localStorage.removeItem("bgImage");
     localStorage.removeItem("bgOpacity");
     localStorage.removeItem("bgBlur");
-    setOpacity(0.15);
+    setOpacity(1);
     setBlur(0);
-    document.documentElement.style.setProperty("--bg-opacity", "0.15");
+    document.documentElement.style.setProperty("--bg-opacity", "1");
     document.documentElement.style.setProperty("--bg-blur", "0px");
   }
 
