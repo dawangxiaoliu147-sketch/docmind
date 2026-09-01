@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/dal";
 import { getJob } from "@/lib/job-store";
 import { ResumeMatch } from "@/components/resume-match";
+import { JobInterview } from "@/components/job-interview";
 
 export default async function JobDetailPage({
   params,
@@ -66,6 +67,8 @@ export default async function JobDetailPage({
       </div>
 
       <ResumeMatch jobId={job.id} />
+
+      <JobInterview jobId={job.id} />
     </div>
   );
 }
