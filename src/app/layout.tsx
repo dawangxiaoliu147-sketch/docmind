@@ -17,6 +17,9 @@ export const metadata: Metadata = {
   description: "基于 RAG 检索增强生成的 AI 智能知识库助手",
 };
 
+// 默认背景图：所有未自定义背景的用户默认看到这张图
+const DEFAULT_BG_IMAGE = "/api/uploads/55963743-1084-43e5-b5f9-8960e2c3e1ca.jpg";
+
 // 在页面渲染前应用主题（深色模式 + 主题色 + 背景图），避免闪烁
 const themeInit = `(function(){
   try{
@@ -33,7 +36,8 @@ const themeInit = `(function(){
       if(c.deep)r.setProperty('--accent-deep',c.deep);
     }
     var b=localStorage.getItem('bgImage');
-    if(b)document.documentElement.style.setProperty('--bg-image','url('+b+')');
+    if(b){document.documentElement.style.setProperty('--bg-image','url('+b+')');}
+    else{document.documentElement.style.setProperty('--bg-image','url(${DEFAULT_BG_IMAGE})');}
     var o=localStorage.getItem('bgOpacity');
     if(o)document.documentElement.style.setProperty('--bg-opacity',o);
     var bl=localStorage.getItem('bgBlur');
