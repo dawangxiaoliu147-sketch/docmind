@@ -3,14 +3,28 @@ import { getCurrentUser, isAdmin } from "@/lib/dal";
 import { logout } from "@/lib/actions/auth";
 import { Avatar } from "@/components/avatar";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { MobileNav, type NavLink } from "@/components/mobile-nav";
 
 export async function Navbar() {
   const user = await getCurrentUser();
 
+  const links: NavLink[] = [
+    { href: "/", label: "首页" },
+    { href: "/dashboard", label: "控制台" },
+    { href: "/workbench", label: "工作台" },
+    { href: "/jobs", label: "职位" },
+    { href: "/settings", label: "设置" },
+    { href: "/achievements", label: "成就" },
+    ...(isAdmin(user)
+      ? [{ href: "/admin", label: "管理后台", highlight: true }]
+      : []),
+  ];
+
   return (
     <header className="sticky top-0 z-10 border-b border-zinc-200 bg-white/90 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/90">
       <nav className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-3 sm:gap-6">
+          <MobileNav links={links} />
           <Link
             href="/dashboard"
             className="flex items-center gap-2 text-base font-semibold"
@@ -21,32 +35,19 @@ export async function Navbar() {
             DocMind
           </Link>
           <div className="hidden items-center gap-4 text-sm font-medium text-zinc-600 sm:flex dark:text-zinc-300">
-            <Link href="/" className="transition hover:text-zinc-900 dark:hover:text-zinc-100">
-              首页
-            </Link>
-            <Link href="/dashboard" className="transition hover:text-zinc-900 dark:hover:text-zinc-100">
-              控制台
-            </Link>
-            <Link href="/workbench" className="transition hover:text-zinc-900 dark:hover:text-zinc-100">
-              工作台
-            </Link>
-            <Link href="/jobs" className="transition hover:text-zinc-900 dark:hover:text-zinc-100">
-              职位
-            </Link>
-            <Link href="/settings" className="transition hover:text-zinc-900 dark:hover:text-zinc-100">
-              设置
-            </Link>
-            <Link href="/achievements" className="transition hover:text-zinc-900 dark:hover:text-zinc-100">
-              成就
-            </Link>
-            {isAdmin(user) && (
+            {links.map((l) => (
               <Link
-                href="/admin"
-                className="font-semibold text-indigo-600 transition hover:text-indigo-700 dark:text-indigo-400"
+                key={l.href}
+                href={l.href}
+                className={
+                  l.highlight
+                    ? "font-semibold text-indigo-600 transition hover:text-indigo-700 dark:text-indigo-400"
+                    : "transition hover:text-zinc-900 dark:hover:text-zinc-100"
+                }
               >
-                管理后台
+                {l.label}
               </Link>
-            )}
+            ))}
           </div>
         </div>
 
