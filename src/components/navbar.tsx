@@ -4,6 +4,7 @@ import { logout } from "@/lib/actions/auth";
 import { Avatar } from "@/components/avatar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { MobileNav, type NavLink } from "@/components/mobile-nav";
+import { CommandPalette } from "@/components/command-palette";
 
 export async function Navbar() {
   const user = await getCurrentUser();
@@ -52,6 +53,7 @@ export async function Navbar() {
         </div>
 
         <div className="flex items-center gap-3">
+          <CommandPalette />
           <ThemeToggle />
           <Link
             href="/settings"

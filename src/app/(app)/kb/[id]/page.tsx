@@ -2,12 +2,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/dal";
 import { prisma } from "@/lib/db";
-import { deleteDocument } from "@/lib/actions/kb";
+import { deleteDocument, toggleShare } from "@/lib/actions/kb";
 import { UploadForm } from "@/components/upload-form";
 import { KbCover } from "@/components/kb-cover";
 import { CoverUpload } from "@/components/cover-upload";
 import { KbEditForm } from "@/components/kb-edit-form";
 import { KbSummary } from "@/components/kb-summary";
+import { KbGraph } from "@/components/kb-graph";
+import { ShareLink } from "@/components/share-link";
 
 const STATUS_LABEL: Record<string, { text: string; className: string }> = {
   processing: { text: "处理中", className: "bg-amber-50 text-amber-600 dark:bg-amber-950 dark:text-amber-400" },
@@ -94,6 +96,42 @@ export default async function KbPage({
             description={kb.description}
             color={kb.color}
           />
+        </div>
+      </details>
+
+      {/* AI 知识图谱 */}
+      <details className="rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <summary className="cursor-pointer select-none px-5 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:text-zinc-200 dark:hover:bg-zinc-800/50">
+          🗺️ 知识图谱（AI 自动梳理知识结构）
+        </summary>
+        <div className="border-t border-zinc-100 p-5 dark:border-zinc-800">
+          <KbGraph kbId={kb.id} />
+        </div>
+      </details>
+
+      {/* 分享知识库 */}
+      <details className="rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <summary className="cursor-pointer select-none px-5 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:text-zinc-200 dark:hover:bg-zinc-800/50">
+          🔗 分享知识库（生成只读链接）
+        </summary>
+        <div className="border-t border-zinc-100 p-5 dark:border-zinc-800">
+          <form action={toggleShare}>
+            <input type="hidden" name="id" value={kb.id} />
+            <button
+              type="submit"
+              className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700"
+            >
+              {kb.shared ? "🔒 取消分享" : "🔗 开启分享"}
+            </button>
+          </form>
+          {kb.shared && (
+            <div className="mt-4">
+              <p className="mb-2 text-xs text-zinc-500 dark:text-zinc-400">
+                分享链接（任何人打开都能只读查看，无需登录）：
+              </p>
+              <ShareLink path={`/s/${kb.id}`} />
+            </div>
+          )}
         </div>
       </details>
 

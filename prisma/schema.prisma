@@ -30,6 +30,7 @@ model KnowledgeBase {
   description String?
   coverImage  String?    @map("cover_image")
   color       String?    @map("color")
+  shared      Boolean    @default(false) @map("shared")
   userId      String     @map("user_id")
   user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   documents     Document[]

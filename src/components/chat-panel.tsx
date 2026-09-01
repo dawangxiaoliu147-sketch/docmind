@@ -8,7 +8,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 type TextPart = { type: string; text?: string };
-type Source = { id: string; content: string; similarity: number };
+type Source = { id: string; docId?: string; content: string; similarity: number };
 
 const GENERIC_QUESTIONS = [
   "总结这个知识库的核心内容",
@@ -111,6 +111,15 @@ export function ChatPanel({
     URL.revokeObjectURL(url);
   }
 
+  function speak(text: string) {
+    if (typeof window === "undefined" || !window.speechSynthesis) return;
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "zh-CN";
+    u.rate = 1;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(u);
+  }
+
   return (
     <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
       {/* 顶栏 */}
@@ -173,6 +182,13 @@ export function ChatPanel({
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
                       {text}
                     </ReactMarkdown>
+                    <button
+                      onClick={() => speak(text)}
+                      className="mt-2 text-xs text-zinc-400 transition hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
+                      title="朗读这段回答"
+                    >
+                      🔊 朗读
+                    </button>
                   </div>
                 )}
               </div>
@@ -201,8 +217,18 @@ export function ChatPanel({
           <div className="space-y-2">
             {sources.map((s, i) => (
               <details key={s.id} className="rounded-lg bg-zinc-50 px-3 py-2 dark:bg-zinc-800/50">
-                <summary className="cursor-pointer text-xs font-medium text-zinc-600 dark:text-zinc-300">
-                  片段 {i + 1} · 相似度 {(s.similarity * 100).toFixed(0)}%
+                <summary className="flex cursor-pointer items-center gap-2 text-xs font-medium text-zinc-600 dark:text-zinc-300">
+                  <span>片段 {i + 1} · 相似度 {(s.similarity * 100).toFixed(0)}%</span>
+                  {s.docId && (
+                    <a
+                      href={`/kb/${kbId}/docs/${s.docId}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-indigo-600 hover:underline dark:text-indigo-400"
+                    >
+                      查看原文 ↗
+                    </a>
+                  )}
                 </summary>
                 <p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
                   {s.content}

@@ -86,3 +86,22 @@ export async function updateKnowledgeBase(formData: FormData): Promise<void> {
   revalidatePath(`/kb/${id}`);
   revalidatePath("/dashboard");
 }
+
+// 切换知识库分享状态（开启/关闭只读分享链接）
+export async function toggleShare(formData: FormData): Promise<void> {
+  const user = await requireUser();
+  const id = String(formData.get("id") ?? "");
+
+  const kb = await prisma.knowledgeBase.findFirst({
+    where: { id, userId: user.id },
+  });
+  if (!kb) {
+    throw new Error("知识库不存在或无权操作");
+  }
+
+  await prisma.knowledgeBase.update({
+    where: { id },
+    data: { shared: !kb.shared },
+  });
+  revalidatePath(`/kb/${id}`);
+}

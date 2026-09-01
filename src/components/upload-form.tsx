@@ -1,72 +1,108 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 export function UploadForm({ kbId }: { kbId: string }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const [progress, setProgress] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const form = e.currentTarget;
-    const data = new FormData(form);
-    const file = data.get("file");
-
-    if (!(file instanceof File) || file.size === 0) {
-      setError("请先选择要上传的文件");
-      return;
-    }
-
+  async function uploadFiles(files: File[]) {
+    if (files.length === 0) return;
     setPending(true);
     setError(null);
     setSuccess(null);
 
-    try {
-      const res = await fetch(`/api/kb/${kbId}/documents`, {
-        method: "POST",
-        body: data,
-      });
-      const json = await res.json();
-      if (!res.ok) {
-        setError(json.error ?? "上传失败");
-      } else {
-        setSuccess(
-          `「${json.document.title}」上传成功，已切分为 ${json.document.chunkCount} 个片段`,
-        );
-        form.reset();
+    const ok: string[] = [];
+    const failed: string[] = [];
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      setProgress(`正在解析 ${i + 1}/${files.length}：${file.name}`);
+      try {
+        const data = new FormData();
+        data.append("file", file);
+        const res = await fetch(`/api/kb/${kbId}/documents`, {
+          method: "POST",
+          body: data,
+        });
+        const json = await res.json();
+        if (!res.ok) {
+          failed.push(`${file.name}（${json.error ?? "失败"}）`);
+        } else {
+          ok.push(file.name);
+        }
+      } catch {
+        failed.push(`${file.name}（网络错误）`);
       }
-      router.refresh();
-    } catch {
-      setError("网络错误，请重试");
-    } finally {
-      setPending(false);
     }
+
+    setProgress(null);
+    if (ok.length > 0) {
+      setSuccess(`✅ 成功上传 ${ok.length} 个文档：${ok.join("、")}`);
+    }
+    if (failed.length > 0) {
+      setError(`❌ 失败 ${failed.length} 个：${failed.join("；")}`);
+    }
+    setPending(false);
+    router.refresh();
+  }
+
+  function onDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setDragging(false);
+    if (pending) return;
+    uploadFiles(Array.from(e.dataTransfer.files));
+  }
+
+  function onSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    uploadFiles(files);
+    e.target.value = "";
   }
 
   return (
     <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
       <h2 className="mb-3 text-sm font-semibold dark:text-zinc-100">上传文档</h2>
-      <form onSubmit={onSubmit} className="flex flex-col gap-3 sm:flex-row">
+
+      <div
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragging(true);
+        }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={onDrop}
+        onClick={() => inputRef.current?.click()}
+        className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed px-4 py-8 text-center transition ${
+          dragging
+            ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-950/40"
+            : "border-zinc-300 hover:border-indigo-400 dark:border-zinc-700"
+        }`}
+      >
+        <div className="text-3xl">{pending ? "⏳" : "📂"}</div>
+        <p className="mt-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">
+          {pending
+            ? (progress ?? "上传中…")
+            : "点击选择文件，或把文件拖到这里"}
+        </p>
+        <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">
+          支持多文件批量上传 · PDF / Word / Markdown / TXT / HTML / CSV · 单个 ≤ 50MB
+        </p>
         <input
+          ref={inputRef}
           type="file"
-          name="file"
+          multiple
           accept=".pdf,.md,.txt,.markdown,.docx,.html,.htm,.csv,application/pdf,text/plain,text/markdown,text/html,text/csv,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-          className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-600 file:mr-3 file:rounded-md file:border-0 file:bg-zinc-100 file:px-3 file:py-1.5 file:text-sm file:font-medium dark:border-zinc-700 dark:text-zinc-400 dark:file:bg-zinc-800 dark:file:text-zinc-200"
-        />
-        <button
-          type="submit"
+          className="hidden"
+          onChange={onSelect}
           disabled={pending}
-          className="rounded-lg bg-zinc-900 px-5 py-2 text-sm font-semibold text-white transition hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
-        >
-          {pending ? "解析中…" : "上传并解析"}
-        </button>
-      </form>
-      <p className="mt-2 text-xs text-zinc-400 dark:text-zinc-500">
-        支持 PDF / Word / Markdown / TXT / HTML / CSV，单个文件不超过 50MB，会自动解析、分块并向量化
-      </p>
+        />
+      </div>
 
       {error && (
         <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 dark:bg-red-950 dark:text-red-400">
