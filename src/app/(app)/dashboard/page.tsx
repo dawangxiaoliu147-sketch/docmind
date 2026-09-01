@@ -3,6 +3,7 @@ import { requireUser } from "@/lib/dal";
 import { prisma } from "@/lib/db";
 import { createKnowledgeBase, deleteKnowledgeBase } from "@/lib/actions/kb";
 import { KbCover } from "@/components/kb-cover";
+import { GlobalSearch } from "@/components/global-search";
 
 export default async function DashboardPage() {
   const user = await requireUser();
@@ -51,6 +52,9 @@ export default async function DashboardPage() {
           </div>
         ))}
       </div>
+
+      {/* 跨知识库搜索 */}
+      <GlobalSearch />
 
       {/* 创建知识库 */}
       <form

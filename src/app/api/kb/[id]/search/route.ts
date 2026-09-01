@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import { verifySession } from "@/lib/dal";
 import { embedText } from "@/lib/ai";
-import { searchChunks } from "@/lib/vector";
+import { hybridSearch } from "@/lib/vector";
 
 // 语义检索接口：给定问题，返回知识库中最相关的片段（用于「参考来源」展示）
 export async function GET(
@@ -28,6 +28,6 @@ export async function GET(
   }
 
   const embedding = await embedText(q);
-  const chunks = await searchChunks(id, embedding, 4);
+  const chunks = await hybridSearch(id, embedding, q, 4);
   return Response.json({ chunks });
 }

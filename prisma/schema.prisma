@@ -17,6 +17,7 @@ model User {
   passwordHash   String          @map("password_hash")
   avatarUrl      String?         @map("avatar_url")
   role           String          @default("user") @map("role") // user | admin
+  preferences    String?         @map("preferences") // JSON 字符串：AI 记住的用户偏好
   createdAt      DateTime        @default(now()) @map("created_at")
   updatedAt      DateTime        @updatedAt @map("updated_at")
   knowledgeBases KnowledgeBase[]
@@ -52,6 +53,7 @@ model Document {
   size       Int
   status     String        @default("processing") // processing | ready | failed
   chunkCount Int           @default(0) @map("chunk_count")
+  tags       String[]      @default([]) @map("tags")
   createdAt  DateTime      @default(now()) @map("created_at")
   chunks     Chunk[]
 

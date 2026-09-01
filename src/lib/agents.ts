@@ -21,7 +21,7 @@ const TOOLS_HINT =
 // 根据模式返回对应的系统提示词
 export function getAgentSystemPrompt(modeId: string): string {
   const base =
-    "你是 DocMind 的知识库智能助手（Agent），拥有工具访问用户的私有知识库。";
+    "你是 DocMind 的知识库智能助手（Agent），拥有工具访问用户的私有知识库。若用户的问题含糊不清、缺少关键信息（如没说明针对哪个文档、哪方面、想要什么形式），请先礼貌地追问澄清，再给出答案。";
 
   switch (modeId) {
     case "summarizer":

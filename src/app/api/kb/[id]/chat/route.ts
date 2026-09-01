@@ -8,7 +8,7 @@ import {
 import type { UIMessage } from "ai";
 import { z } from "zod";
 import { chatModel, embedText } from "@/lib/ai";
-import { searchChunks } from "@/lib/vector";
+import { hybridSearch } from "@/lib/vector";
 import { prisma } from "@/lib/db";
 import { verifySession } from "@/lib/dal";
 import { getAgentSystemPrompt } from "@/lib/agents";
@@ -98,6 +98,12 @@ export async function POST(
   // 当前 Agent 角色
   const agentMode = url.searchParams.get("agent") ?? "assistant";
 
+  // 用户偏好（AI 记忆），注入系统提示词
+  const userPref = await prisma.user.findUnique({
+    where: { id: session.userId },
+    select: { preferences: true },
+  });
+
   // 5. Agent 工具箱：模型可自主决定调用哪些工具、调用几次
   const tools = {
     searchKnowledgeBase: tool({
@@ -108,7 +114,7 @@ export async function POST(
       }),
       execute: async ({ query: q }) => {
         const embedding = await embedText(q);
-        const chunks = await searchChunks(id, embedding, 4);
+        const chunks = await hybridSearch(id, embedding, q, 4);
         if (chunks.length === 0) {
           return "知识库中没有检索到相关内容。";
         }
@@ -206,7 +212,7 @@ export async function POST(
   // 6. Agent 流式生成：允许最多 8 步（含多次工具调用）
   const result = streamText({
     model: chatModel,
-    system: getAgentSystemPrompt(agentMode),
+    system: `${getAgentSystemPrompt(agentMode)}${userPref?.preferences ? `\n\n用户偏好（请据此调整回答风格与重点）：${userPref.preferences}` : ""}`,
     messages: modelMessages,
     tools,
     stopWhen: isStepCount(8),

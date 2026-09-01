@@ -58,6 +58,7 @@ export function ChatPanel({
   const [suggestions, setSuggestions] = useState(() =>
     shuffled(buildPool(docTitles)).slice(0, 4),
   );
+  const [listening, setListening] = useState(false);
 
   const { messages, sendMessage, status, error } = useChat({
     transport: new DefaultChatTransport({
@@ -118,6 +119,31 @@ export function ChatPanel({
     u.rate = 1;
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(u);
+  }
+
+  function startVoice() {
+    const w = window as unknown as {
+      SpeechRecognition?: new () => {
+        lang: string;
+        interimResults: boolean;
+        onstart: () => void;
+        onend: () => void;
+        onresult: (e: { results: Array<Array<{ transcript: string }>> }) => void;
+        onerror: () => void;
+        start: () => void;
+      };
+      webkitSpeechRecognition?: new () => unknown;
+    };
+    const SR = w.SpeechRecognition ?? (w.webkitSpeechRecognition as never);
+    if (!SR) return;
+    const rec = new SR();
+    rec.lang = "zh-CN";
+    rec.interimResults = false;
+    rec.onstart = () => setListening(true);
+    rec.onend = () => setListening(false);
+    rec.onresult = (e) => setInput(e.results[0][0].transcript);
+    rec.onerror = () => setListening(false);
+    rec.start();
   }
 
   return (
@@ -247,8 +273,20 @@ export function ChatPanel({
 
       <form
         onSubmit={onSubmit}
-        className="flex items-center gap-3 border-t border-zinc-200 p-4 dark:border-zinc-800"
+        className="flex items-center gap-2 border-t border-zinc-200 p-4 dark:border-zinc-800"
       >
+        <button
+          type="button"
+          onClick={startVoice}
+          title="语音输入"
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border text-lg transition ${
+            listening
+              ? "border-red-400 bg-red-50 dark:bg-red-950/40"
+              : "border-zinc-300 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+          }`}
+        >
+          {listening ? "🎙️" : "🎤"}
+        </button>
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}

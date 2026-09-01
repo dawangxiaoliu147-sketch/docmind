@@ -10,6 +10,7 @@ import { KbEditForm } from "@/components/kb-edit-form";
 import { KbSummary } from "@/components/kb-summary";
 import { KbGraph } from "@/components/kb-graph";
 import { ShareLink } from "@/components/share-link";
+import { AiTools } from "@/components/ai-tools";
 
 const STATUS_LABEL: Record<string, { text: string; className: string }> = {
   processing: { text: "处理中", className: "bg-amber-50 text-amber-600 dark:bg-amber-950 dark:text-amber-400" },
@@ -109,6 +110,16 @@ export default async function KbPage({
         </div>
       </details>
 
+      {/* AI 工具箱 */}
+      <details className="rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <summary className="cursor-pointer select-none px-5 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:text-zinc-200 dark:hover:bg-zinc-800/50">
+          🧰 AI 工具箱（闪卡 / 闯关 / 学习计划 / 每日一问 / 主题色）
+        </summary>
+        <div className="border-t border-zinc-100 p-5 dark:border-zinc-800">
+          <AiTools kbId={kb.id} />
+        </div>
+      </details>
+
       {/* 分享知识库 */}
       <details className="rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
         <summary className="cursor-pointer select-none px-5 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:text-zinc-200 dark:hover:bg-zinc-800/50">
@@ -167,6 +178,18 @@ export default async function KbPage({
                         {doc.fileName} · {formatSize(doc.size)}
                         {doc.status === "ready" && ` · ${doc.chunkCount} 片段`}
                       </p>
+                      {doc.tags.length > 0 && (
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {doc.tags.map((t) => (
+                            <span
+                              key={t}
+                              className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400"
+                            >
+                              {t}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-3">

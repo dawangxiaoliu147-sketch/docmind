@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 import { verifySession } from "@/lib/dal";
 import { ingestDocument } from "@/lib/ingest";
+import { generateDocTags } from "@/lib/tag";
 import { isSupported } from "@/lib/parse";
 
 const MAX_SIZE = 50 * 1024 * 1024; // 50MB（可自行调整；要支持更大文件需改造为异步处理）
@@ -65,9 +66,11 @@ export async function POST(
       mimeType: file.type,
     });
 
+    const tags = await generateDocTags(doc.id);
+
     await prisma.document.update({
       where: { id: doc.id },
-      data: { status: "ready", chunkCount },
+      data: { status: "ready", chunkCount, tags },
     });
 
     return Response.json({

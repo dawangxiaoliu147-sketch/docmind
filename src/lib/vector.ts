@@ -54,6 +54,56 @@ export async function searchChunks(
   `;
 }
 
+// 关键词检索（子串匹配），补充语义检索，实现「混合检索」
+export async function searchChunksByKeyword(
+  kbId: string,
+  query: string,
+  topK: number = 4,
+): Promise<ChunkRow[]> {
+  const terms = query
+    .split(/[\s,，。、；;！!？?]+/)
+    .map((t) => t.trim())
+    .filter((t) => t.length > 1);
+  if (terms.length === 0) return [];
+
+  const chunks = await prisma.chunk.findMany({
+    where: {
+      kbId,
+      OR: terms.map((t) => ({ content: { contains: t, mode: "insensitive" } })),
+    },
+    take: topK,
+    select: { id: true, docId: true, content: true },
+  });
+  return chunks.map((c) => ({
+    id: c.id,
+    docId: c.docId,
+    content: c.content,
+    similarity: 1,
+  }));
+}
+
+// 混合检索：语义 + 关键词，去重合并（语义结果优先）
+export async function hybridSearch(
+  kbId: string,
+  embedding: number[],
+  query: string,
+  topK: number = 4,
+): Promise<ChunkRow[]> {
+  const [semantic, keyword] = await Promise.all([
+    searchChunks(kbId, embedding, topK),
+    searchChunksByKeyword(kbId, query, topK),
+  ]);
+  const seen = new Set<string>();
+  const merged: ChunkRow[] = [];
+  for (const c of [...semantic, ...keyword]) {
+    if (seen.has(c.id)) continue;
+    seen.add(c.id);
+    merged.push(c);
+    if (merged.length >= topK + 2) break;
+  }
+  return merged;
+}
+
 // 删除某个文档的所有 chunk（先删 chunk 再删 document）
 export async function deleteChunksByDoc(docId: string): Promise<void> {
   await prisma.chunk.deleteMany({ where: { docId } });
