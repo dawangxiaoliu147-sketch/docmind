@@ -2,7 +2,7 @@ import { generateText } from "ai";
 import { chatModel } from "@/lib/ai";
 import { verifySession } from "@/lib/dal";
 import { isSupported, extractTextFromFile } from "@/lib/parse";
-import { JOBS } from "@/lib/jobs";
+import { getAllJobs } from "@/lib/job-store";
 
 const MAX_SIZE = 10 * 1024 * 1024; // 10MB
 
@@ -43,10 +43,13 @@ export async function POST(req: Request) {
     return Response.json({ error: "未能从简历中提取到文本" }, { status: 400 });
   }
 
-  const jobList = JOBS.map(
-    (j) =>
-      `- id: ${j.id}, 职位: ${j.title}, 公司: ${j.company}, 标签: ${j.tags.join("/")}, 要求: ${j.requirements.join("；")}`,
-  ).join("\n");
+  const jobs = await getAllJobs();
+  const jobList = jobs
+    .map(
+      (j) =>
+        `- id: ${j.id}, 职位: ${j.title}, 公司: ${j.company}, 标签: ${j.tags.join("/")}, 要求: ${j.requirements.join("；")}`,
+    )
+    .join("\n");
 
   const result = await generateText({
     model: chatModel,
@@ -63,7 +66,7 @@ export async function POST(req: Request) {
 
   const matches = picked
     .map((p) => {
-      const job = JOBS.find((j) => j.id === p.id);
+      const job = jobs.find((j) => j.id === p.id);
       return job ? { job, reason: p.reason } : null;
     })
     .filter(Boolean);

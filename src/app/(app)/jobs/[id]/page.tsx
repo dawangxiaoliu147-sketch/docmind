@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/dal";
-import { getJob } from "@/lib/jobs";
+import { getJob } from "@/lib/job-store";
 import { ResumeMatch } from "@/components/resume-match";
 
 export default async function JobDetailPage({
@@ -12,7 +12,7 @@ export default async function JobDetailPage({
   const { id } = await params;
   await requireUser();
 
-  const job = getJob(id);
+  const job = await getJob(id);
   if (!job) notFound();
 
   return (

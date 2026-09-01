@@ -2,7 +2,7 @@ import { generateText } from "ai";
 import { chatModel } from "@/lib/ai";
 import { verifySession } from "@/lib/dal";
 import { isSupported, extractTextFromFile } from "@/lib/parse";
-import { getJob } from "@/lib/jobs";
+import { getJob } from "@/lib/job-store";
 
 const MAX_SIZE = 10 * 1024 * 1024; // 10MB
 
@@ -18,7 +18,7 @@ export async function POST(
     return Response.json({ error: "未登录" }, { status: 401 });
   }
 
-  const job = getJob(id);
+  const job = await getJob(id);
   if (!job) {
     return Response.json({ error: "职位不存在" }, { status: 404 });
   }

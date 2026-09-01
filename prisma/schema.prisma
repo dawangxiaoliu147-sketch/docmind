@@ -98,3 +98,17 @@ model Message {
   @@index([conversationId])
   @@map("messages")
 }
+
+model Job {
+  id           String   @id @default(cuid())
+  title        String
+  company      String
+  location     String
+  salary       String
+  tags         String[]
+  description  String
+  requirements String[]
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("jobs")
+}
