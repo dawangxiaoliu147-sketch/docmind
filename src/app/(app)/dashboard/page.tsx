@@ -26,9 +26,10 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold dark:text-zinc-50">我的知识库</h1>
-        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-600 p-6 text-white">
+        <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
+        <h1 className="text-2xl font-bold">📚 我的知识库</h1>
+        <p className="mt-1 text-sm text-indigo-100">
           创建知识库 → 上传文档 → 向 AI 提问，三步构建你的专属问答助手
         </p>
       </div>

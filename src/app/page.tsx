@@ -123,6 +123,25 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* 亮点数据 */}
+        <section className="border-y border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900/60">
+          <div className="mx-auto grid max-w-6xl grid-cols-2 gap-6 px-4 py-8 text-center md:grid-cols-4">
+            {[
+              { v: "12+", l: "AI 工作 Agent" },
+              { v: "6", l: "知识库角色" },
+              { v: "混合", l: "语义+关键词检索" },
+              { v: "100%", l: "引用可溯源" },
+            ].map((s) => (
+              <div key={s.l}>
+                <p className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-3xl font-bold text-transparent">
+                  {s.v}
+                </p>
+                <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{s.l}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
         {/* 功能特性 */}
         <section id="features" className="mx-auto max-w-6xl px-4 py-20">
           <div className="text-center">
