@@ -254,8 +254,8 @@ export function ResumeStudio() {
               <div className="space-y-4 p-6">
                 {resume.education && resume.education.length > 0 && (
                   <section>
-                    <h4 className="mb-1 border-b pb-1 text-sm font-bold"
-                    style={{ borderColor: c, color: c }}>教育背景</h4>
+                    <h4 className="mb-1 pb-1 text-sm font-bold"
+                    style={{ color: c, borderBottom: `2px solid ${c}` }}>教育背景</h4>
                     {resume.education.map((e, i) => (
                       <div key={i} className="text-sm">
                         <span className="font-medium text-zinc-800 dark:text-zinc-200">{e.school}</span>
@@ -267,8 +267,8 @@ export function ResumeStudio() {
 
                 {resume.experience && resume.experience.length > 0 && (
                   <section>
-                    <h4 className="mb-1 border-b pb-1 text-sm font-bold"
-                    style={{ borderColor: c, color: c }}>实习经历</h4>
+                    <h4 className="mb-1 pb-1 text-sm font-bold"
+                    style={{ color: c, borderBottom: `2px solid ${c}` }}>实习经历</h4>
                     {resume.experience.map((e, i) => (
                       <div key={i} className="mb-2">
                         <div className="flex items-center justify-between text-sm">
@@ -285,8 +285,8 @@ export function ResumeStudio() {
 
                 {resume.projects && resume.projects.length > 0 && (
                   <section>
-                    <h4 className="mb-1 border-b pb-1 text-sm font-bold"
-                    style={{ borderColor: c, color: c }}>项目经历</h4>
+                    <h4 className="mb-1 pb-1 text-sm font-bold"
+                    style={{ color: c, borderBottom: `2px solid ${c}` }}>项目经历</h4>
                     {resume.projects.map((p, i) => (
                       <div key={i} className="mb-2">
                         <div className="flex items-center justify-between text-sm">
@@ -303,8 +303,8 @@ export function ResumeStudio() {
 
                 {resume.skills && resume.skills.length > 0 && (
                   <section>
-                    <h4 className="mb-1 border-b pb-1 text-sm font-bold"
-                    style={{ borderColor: c, color: c }}>证书技能</h4>
+                    <h4 className="mb-1 pb-1 text-sm font-bold"
+                    style={{ color: c, borderBottom: `2px solid ${c}` }}>证书技能</h4>
                     <ul className="list-disc pl-4 text-sm text-zinc-600 dark:text-zinc-400">
                       {resume.skills.map((s, i) => <li key={i}><strong>{s.name}：</strong>{s.detail}</li>)}
                     </ul>
@@ -313,8 +313,8 @@ export function ResumeStudio() {
 
                 {resume.strengths && resume.strengths.length > 0 && (
                   <section>
-                    <h4 className="mb-1 border-b pb-1 text-sm font-bold"
-                    style={{ borderColor: c, color: c }}>个人优势</h4>
+                    <h4 className="mb-1 pb-1 text-sm font-bold"
+                    style={{ color: c, borderBottom: `2px solid ${c}` }}>个人优势</h4>
                     <ol className="list-decimal pl-4 text-sm text-zinc-600 dark:text-zinc-400">
                       {resume.strengths.map((s, i) => <li key={i}>{s}</li>)}
                     </ol>
