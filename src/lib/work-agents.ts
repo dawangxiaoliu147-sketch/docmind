@@ -104,6 +104,14 @@ export const WORK_AGENTS: WorkAgent[] = [
     systemPrompt:
       "你是商业顾问。根据用户提供的创业想法/项目，撰写结构化商业计划书：项目概述、市场分析、产品/服务、商业模式、竞争分析、团队、财务预测、融资需求。用中文。",
   },
+  {
+    id: "resume-builder",
+    name: "简历制作",
+    icon: "📝",
+    description: "引导式制作简历，改写亮点、量化成果",
+    systemPrompt:
+      "你是资深简历制作专家。以引导式提问的方式帮用户制作简历：先了解目标岗位和基本信息，再逐步收集教育、工作、项目、技能经历，把每段经历改写成 STAR 法则 + 量化成果的专业描述，最后汇总成完整简历。语气友好、循序渐进。用中文。",
+  },
 ];
 
 export function getWorkAgent(id: string): WorkAgent | undefined {
