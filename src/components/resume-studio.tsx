@@ -90,7 +90,7 @@ export function ResumeStudio() {
     if (resume.skills?.length)
       body += sec("技能", `<p style="margin:0;">${resume.skills.join(" ／ ")}</p>`);
 
-    return `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><title>${resume.name} 简历</title></head><body style="font-family:'Microsoft YaHei',sans-serif;max-width:800px;margin:0 auto;padding:40px;color:#333;"><div style="background:${c};color:#fff;padding:28px;border-radius:8px;"><h1 style="margin:0;font-size:26px;">${resume.name}</h1><p style="margin:6px 0 0;font-size:16px;">${resume.title}</p><p style="margin:10px 0 0;font-size:13px;opacity:.85;">${contact}</p></div><div style="padding:24px;">${body}</div></body></html>`;
+    return `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><title>${resume.name} 简历</title></head><body style="font-family:'Microsoft YaHei',sans-serif;max-width:800px;margin:0 auto;padding:40px;color:#333;"><div style="border-bottom:3px solid ${c};padding-bottom:16px;margin-bottom:20px;"><h1 style="margin:0;font-size:26px;color:#111;">${resume.name}</h1><p style="margin:6px 0 0;font-size:16px;color:#444;">${resume.title}</p><p style="margin:8px 0 0;font-size:13px;color:#666;">${contact}</p></div><div style="padding:0;">${body}</div></body></html>`;
   }
 
   function buildMarkdown(): string {
@@ -233,10 +233,10 @@ export function ResumeStudio() {
           ) : (
             <div className="overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-700">
               {/* 简历头部 */}
-              <div className="p-6 text-white" style={{ backgroundColor: c }}>
-                <h3 className="text-2xl font-bold">{resume.name}</h3>
-                <p className="mt-0.5 text-sm opacity-90">{resume.title}</p>
-                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs opacity-80">
+              <div className="p-6" style={{ borderBottom: `3px solid ${c}` }}>
+                <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">{resume.name}</h3>
+                <p className="mt-0.5 text-sm text-zinc-600 dark:text-zinc-300">{resume.title}</p>
+                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-500 dark:text-zinc-400">
                   {[resume.contact?.phone, resume.contact?.email, resume.contact?.location]
                     .filter(Boolean)
                     .map((x, i) => (
