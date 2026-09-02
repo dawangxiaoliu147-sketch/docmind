@@ -10,7 +10,7 @@ export function LandingNav() {
           <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-base font-bold text-white">
             D
           </span>
-          DocMind
+          文档生活助手
         </Link>
 
         <div className="hidden items-center gap-6 text-sm font-medium text-zinc-600 sm:flex dark:text-zinc-300">

@@ -35,7 +35,7 @@ export default async function SharePage({
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
-      <div className="mb-2 text-sm font-medium text-indigo-500">🔗 DocMind 知识库分享</div>
+      <div className="mb-2 text-sm font-medium text-indigo-500">🔗 文档生活助手 知识库分享</div>
       <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">{kb.name}</h1>
       {kb.description && (
         <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">{kb.description}</p>
@@ -73,7 +73,7 @@ export default async function SharePage({
 
       <div className="mt-10 border-t border-zinc-200 pt-6 text-center dark:border-zinc-800">
         <p className="text-xs text-zinc-400 dark:text-zinc-500">
-          由 DocMind 提供 · 基于 RAG 的 AI 智能知识库
+          由 文档生活助手 提供 · 基于 RAG 的 AI 智能知识库
         </p>
         <Link
           href="/"

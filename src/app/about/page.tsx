@@ -1,9 +1,9 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { LandingNav } from "@/components/landing-nav";
 import { Footer } from "@/components/footer";
 
 export const metadata: Metadata = {
-  title: "关于 · DocMind",
+  title: "关于 · 文档生活助手",
 };
 
 export default function AboutPage() {
@@ -13,7 +13,7 @@ export default function AboutPage() {
       <main className="flex-1">
         <div className="mx-auto max-w-3xl px-4 py-16">
           <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">
-            关于 DocMind
+            关于 文档生活助手
           </h1>
           <p className="mt-3 text-zinc-500 dark:text-zinc-400">
             一个用于学习与实践 RAG（检索增强生成）技术的全栈 AI 知识库项目。
@@ -26,7 +26,7 @@ export default function AboutPage() {
               </h2>
               <p className="mt-2 leading-relaxed text-zinc-600 dark:text-zinc-400">
                 通用大模型只能回答训练数据里已有的知识，无法访问你的私有文档，且容易"幻觉"。
-                DocMind 通过检索增强生成技术，让大模型基于你上传的文档作答，
+                文档生活助手 通过检索增强生成技术，让大模型基于你上传的文档作答，
                 每条回答都能追溯到具体片段，从而把大模型变成真正可用的私有知识助手。
               </p>
             </section>

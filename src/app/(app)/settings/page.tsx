@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { requireUser } from "@/lib/dal";
 import { Avatar } from "@/components/avatar";
 import { AvatarUpload } from "@/components/avatar-upload";
@@ -6,7 +6,7 @@ import { AccentPicker } from "@/components/accent-picker";
 import { BackgroundPicker } from "@/components/background-picker";
 
 export const metadata: Metadata = {
-  title: "设置 · DocMind",
+  title: "设置 · 文档生活助手",
 };
 
 export default async function SettingsPage() {

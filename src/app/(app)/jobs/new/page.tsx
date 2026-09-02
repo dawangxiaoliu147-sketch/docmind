@@ -1,11 +1,11 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
 import { requireUser } from "@/lib/dal";
 import { addJob } from "@/lib/actions/job";
 import { JobImport } from "@/components/job-import";
 
 export const metadata: Metadata = {
-  title: "添加职位 · DocMind",
+  title: "添加职位 · 文档生活助手",
 };
 
 const inputCls =

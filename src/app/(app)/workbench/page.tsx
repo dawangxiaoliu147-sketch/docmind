@@ -1,10 +1,10 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
 import { requireUser } from "@/lib/dal";
 import { WORK_AGENTS } from "@/lib/work-agents";
 
 export const metadata: Metadata = {
-  title: "工作台 · DocMind",
+  title: "工作台 · 文档生活助手",
 };
 
 export default async function WorkbenchPage() {

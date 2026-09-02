@@ -3,7 +3,7 @@ import Link from "next/link";
 import { LoginForm } from "./login-form";
 
 export const metadata: Metadata = {
-  title: "登录 · DocMind",
+  title: "登录 · 文档生活助手",
 };
 
 const FEATURES = [
@@ -26,7 +26,7 @@ export default function LoginPage() {
             <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 text-lg backdrop-blur">
               D
             </span>
-            DocMind
+            文档生活助手
           </div>
 
           <div>
@@ -51,7 +51,7 @@ export default function LoginPage() {
           </div>
 
           <p className="text-xs text-indigo-200">
-            © {new Date().getFullYear()} DocMind · AI 智能知识库
+            © {new Date().getFullYear()} 文档生活助手 · AI 智能知识库
           </p>
         </div>
 
@@ -61,7 +61,7 @@ export default function LoginPage() {
             <div className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-xl font-bold text-white">
               D
             </div>
-            <h1 className="text-2xl font-semibold dark:text-zinc-50">登录 DocMind</h1>
+            <h1 className="text-2xl font-semibold dark:text-zinc-50">登录 文档生活助手</h1>
           </div>
 
           <h2 className="text-xl font-semibold dark:text-zinc-50">欢迎回来 👋</h2>

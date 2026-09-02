@@ -5,40 +5,55 @@ import { Footer } from "@/components/footer";
 const FEATURES = [
   {
     icon: "📄",
-    title: "文档解析入库",
-    desc: "上传 PDF / Markdown / TXT，自动提取文本、智能分块、向量化存储。",
+    title: "RAG 知识库问答",
+    desc: "上传文档，AI 严格基于你的资料回答，引用可溯源、不瞎编。",
+  },
+  {
+    icon: "🧠",
+    title: "多角色 Agent",
+    desc: "知识库 6 角色 + 工作台 12 个 Agent，模型自主调用工具多步推理。",
   },
   {
     icon: "🔍",
-    title: "语义检索",
-    desc: "基于 pgvector 余弦相似度，从海量文档中精准找到最相关的片段。",
+    title: "混合检索",
+    desc: "语义 + 关键词双重检索，答案更精准，支持跨知识库搜索。",
   },
   {
-    icon: "💬",
-    title: "流式 AI 问答",
-    desc: "针对你的知识库提问，大模型基于事实逐字流式作答。",
+    icon: "📝",
+    title: "简历工坊",
+    desc: "16 套精美模板，AI 一键生成结构化简历，还有简历评分与求职信。",
   },
   {
-    icon: "📌",
-    title: "引用溯源",
-    desc: "每条回答都标注引用片段，能追溯答案依据，拒绝瞎编。",
+    icon: "💼",
+    title: "求职助手",
+    desc: "职位库 + 简历匹配 + 职位推荐 + 模拟面试，求职全链路。",
   },
   {
-    icon: "🗂️",
-    title: "多知识库隔离",
-    desc: "按主题创建多个知识库，文档相互隔离、权限归属校验。",
+    icon: "🎮",
+    title: "AI 学习玩法",
+    desc: "知识闪卡、闯关答题、学习计划、每日一问，边学边玩。",
+  },
+  {
+    icon: "🗺️",
+    title: "知识图谱",
+    desc: "AI 自动梳理知识结构，生成层级思维导图，一眼看清脉络。",
+  },
+  {
+    icon: "🎨",
+    title: "个性化定制",
+    desc: "主题色、背景图、深色模式自由切换，界面随你心意。",
   },
   {
     icon: "☁️",
     title: "云原生部署",
-    desc: "Docker 容器化 + Kubernetes 编排 + CI/CD，一键部署。",
+    desc: "Docker + Kubernetes + CI/CD，代码提交即自动部署上线。",
   },
 ];
 
 const STEPS = [
-  { num: "01", title: "创建知识库", desc: "注册账号，按主题创建你的知识库，可上传封面图。" },
-  { num: "02", title: "上传文档", desc: "把 PDF、Markdown 或 TXT 拖进来，自动解析并向量化。" },
-  { num: "03", title: "提问获取答案", desc: "针对文档提问，AI 检索相关内容并流式回答，附引用来源。" },
+  { num: "01", title: "创建知识库", desc: "注册账号，按主题创建知识库，上传封面图、设置主题色。" },
+  { num: "02", title: "拖拽上传文档", desc: "把 PDF、Word、Markdown 等拖进来，自动解析、打标签、向量化。" },
+  { num: "03", title: "提问 + 玩转 AI", desc: "向 AI 提问，或使用闪卡、闯关、知识图谱、简历工坊等丰富玩法。" },
 ];
 
 const TECH_STACK = [
@@ -74,7 +89,7 @@ export default function LandingPage() {
                 </span>
               </h1>
               <p className="mt-5 max-w-lg text-lg leading-relaxed text-zinc-600 dark:text-zinc-400">
-                上传你的 PDF、Markdown、TXT，DocMind 自动解析并向量化，让你用自然语言向自己的知识库提问，回答可溯源、不瞎编。
+                文档生活助手——上传你的资料，AI 自动解析并向量化，让你用自然语言提问、回答可溯源；更有简历工坊、求职助手、知识闪卡等丰富 AI 玩法。
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link

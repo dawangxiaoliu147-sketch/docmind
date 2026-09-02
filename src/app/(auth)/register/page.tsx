@@ -1,9 +1,9 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
 import { RegisterForm } from "./register-form";
 
 export const metadata: Metadata = {
-  title: "注册 · DocMind",
+  title: "注册 · 文档生活助手",
 };
 
 export default function RegisterPage() {

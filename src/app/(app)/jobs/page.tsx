@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
 import { requireUser } from "@/lib/dal";
 import { getAllJobs } from "@/lib/job-store";
@@ -6,7 +6,7 @@ import { ResumeRecommend } from "@/components/resume-recommend";
 import { JobsBrowser } from "@/components/jobs-browser";
 
 export const metadata: Metadata = {
-  title: "职位库 · DocMind",
+  title: "职位库 · 文档生活助手",
 };
 
 export default async function JobsPage() {

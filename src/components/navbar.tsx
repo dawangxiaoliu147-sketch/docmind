@@ -34,7 +34,7 @@ export async function Navbar() {
             <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-sm font-bold text-white">
               D
             </span>
-            DocMind
+            文档生活助手
           </Link>
           <div className="hidden items-center gap-4 text-sm font-medium text-zinc-600 sm:flex dark:text-zinc-300">
             {links.map((l) => (

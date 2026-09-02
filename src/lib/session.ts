@@ -1,11 +1,11 @@
-import "server-only";
+﻿import "server-only";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
 // 无状态会话：把最小必要信息（仅 userId）签进 JWT，存进 HttpOnly Cookie。
 // 不在 Cookie 里放邮箱等个人敏感信息。
 const secretKey =
-  process.env.AUTH_SECRET || "docmind-insecure-default-secret-change-me";
+  process.env.AUTH_SECRET || "文档生活助手-insecure-default-secret-change-me";
 const key = new TextEncoder().encode(secretKey);
 
 export interface SessionPayload {
