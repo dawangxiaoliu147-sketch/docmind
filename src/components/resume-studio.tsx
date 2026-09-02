@@ -15,6 +15,7 @@ type ResumeData = {
 
 export function ResumeStudio() {
   const [selected, setSelected] = useState(RESUME_TEMPLATES[0]);
+  const [accent, setAccent] = useState(RESUME_TEMPLATES[0].color);
   const [name, setName] = useState("");
   const [target, setTarget] = useState("");
   const [info, setInfo] = useState("");
@@ -152,7 +153,7 @@ export function ResumeStudio() {
 
   const inputCls =
     "w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none transition focus:border-indigo-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100";
-  const c = selected.color;
+  const c = accent;
 
   return (
     <div className="space-y-8">
@@ -165,7 +166,10 @@ export function ResumeStudio() {
           {RESUME_TEMPLATES.map((t) => (
             <button
               key={t.id}
-              onClick={() => setSelected(t)}
+              onClick={() => {
+                setSelected(t);
+                setAccent(t.color);
+              }}
               className={`group overflow-hidden rounded-2xl border text-left transition hover:-translate-y-1 hover:shadow-lg ${
                 selected.id === t.id
                   ? "border-indigo-500 ring-2 ring-indigo-200 dark:ring-indigo-900"
@@ -190,6 +194,53 @@ export function ResumeStudio() {
               </div>
             </button>
           ))}
+        </div>
+      </div>
+
+      {/* 强调色选择 */}
+      <div className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <p className="mb-2 text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+          🎨 强调色（默认用模板色，可自定义）
+        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          {[
+            "#111827",
+            "#1e40af",
+            "#0f766e",
+            "#9a3412",
+            "#6d28d9",
+            "#be185d",
+            "#03700f",
+            "#a16207",
+            "#1e3a5f",
+          ].map((col) => (
+            <button
+              key={col}
+              type="button"
+              onClick={() => setAccent(col)}
+              className={`h-7 w-7 rounded-full border-2 transition ${
+                accent === col
+                  ? "scale-110 border-indigo-500"
+                  : "border-transparent hover:scale-105"
+              }`}
+              style={{ backgroundColor: col }}
+            />
+          ))}
+          <label className="flex h-7 w-7 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-zinc-300 text-xs text-zinc-400 transition hover:border-indigo-400 dark:border-zinc-700 dark:text-zinc-500">
+            <span>🧬</span>
+            <input
+              type="color"
+              value={accent}
+              onChange={(e) => setAccent(e.target.value)}
+              className="absolute opacity-0"
+            />
+          </label>
+          <span
+            className="ml-2 rounded-full px-3 py-1 text-xs font-medium text-white"
+            style={{ backgroundColor: accent }}
+          >
+            {accent}
+          </span>
         </div>
       </div>
 
