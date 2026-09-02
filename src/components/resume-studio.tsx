@@ -75,7 +75,7 @@ export function ResumeStudio() {
     return `<table style="width:100%;border-collapse:collapse;margin:8px 0 2px;"><tr><td style="font-size:13px;color:#111;">${left}</td><td style="text-align:right;font-size:13px;color:#555;">${right}</td></tr></table>`;
   }
   function section(title: string, inner: string): string {
-    return `<div style="margin:14px 0 0;"><h2 style="margin:0 0 6px;font-size:16px;color:#111;border-bottom:1.5px solid #ddd;padding-bottom:3px;">${title}</h2>${inner}</div>`;
+    return `<div style="margin:14px 0 0;"><h2 style="margin:0 0 6px;font-size:16px;color:${c};border-bottom:2px solid ${c};padding-bottom:3px;">${title}</h2>${inner}</div>`;
   }
   function ulItems(items: string[]): string {
     return `<ul style="margin:2px 0 8px;padding-left:18px;">${items
@@ -99,7 +99,7 @@ export function ResumeStudio() {
       body += section("证书技能", ulItems(resume.skills.map((s) => `${s.name}：${s.detail}`)));
     if (resume.strengths?.length)
       body += section("个人优势", `<ol style="margin:2px 0 8px;padding-left:18px;">${resume.strengths.map((s) => `<li style="font-size:12.5px;line-height:1.7;color:#333;">${s}</li>`).join("")}</ol>`);
-    return `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><title>${resume.name} 简历</title></head><body style="font-family:'Microsoft YaHei',sans-serif;max-width:800px;margin:0 auto;padding:40px;color:#333;"><div style="border-bottom:2px solid #111;padding-bottom:10px;margin-bottom:14px;"><h1 style="margin:0;font-size:26px;color:#111;">${resume.name}</h1><p style="margin:6px 0 0;font-size:13px;color:#555;">${contact}</p></div>${body}</body></html>`;
+    return `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><title>${resume.name} 简历</title></head><body style="font-family:'Microsoft YaHei',sans-serif;max-width:800px;margin:0 auto;padding:40px;color:#333;"><div style="border-bottom:2px solid ${c};padding-bottom:10px;margin-bottom:14px;"><h1 style="margin:0;font-size:26px;color:#111;">${resume.name}</h1><p style="margin:6px 0 0;font-size:13px;color:#555;">${contact}</p></div>${body}</body></html>`;
   }
 
   function buildMarkdown(): string {
@@ -254,7 +254,8 @@ export function ResumeStudio() {
               <div className="space-y-4 p-6">
                 {resume.education && resume.education.length > 0 && (
                   <section>
-                    <h4 className="mb-1 border-b border-zinc-200 pb-1 text-sm font-bold text-zinc-900 dark:border-zinc-700 dark:text-zinc-100">教育背景</h4>
+                    <h4 className="mb-1 border-b pb-1 text-sm font-bold"
+                    style={{ borderColor: c, color: c }}>教育背景</h4>
                     {resume.education.map((e, i) => (
                       <div key={i} className="text-sm">
                         <span className="font-medium text-zinc-800 dark:text-zinc-200">{e.school}</span>
@@ -266,7 +267,8 @@ export function ResumeStudio() {
 
                 {resume.experience && resume.experience.length > 0 && (
                   <section>
-                    <h4 className="mb-1 border-b border-zinc-200 pb-1 text-sm font-bold text-zinc-900 dark:border-zinc-700 dark:text-zinc-100">实习经历</h4>
+                    <h4 className="mb-1 border-b pb-1 text-sm font-bold"
+                    style={{ borderColor: c, color: c }}>实习经历</h4>
                     {resume.experience.map((e, i) => (
                       <div key={i} className="mb-2">
                         <div className="flex items-center justify-between text-sm">
@@ -283,7 +285,8 @@ export function ResumeStudio() {
 
                 {resume.projects && resume.projects.length > 0 && (
                   <section>
-                    <h4 className="mb-1 border-b border-zinc-200 pb-1 text-sm font-bold text-zinc-900 dark:border-zinc-700 dark:text-zinc-100">项目经历</h4>
+                    <h4 className="mb-1 border-b pb-1 text-sm font-bold"
+                    style={{ borderColor: c, color: c }}>项目经历</h4>
                     {resume.projects.map((p, i) => (
                       <div key={i} className="mb-2">
                         <div className="flex items-center justify-between text-sm">
@@ -300,7 +303,8 @@ export function ResumeStudio() {
 
                 {resume.skills && resume.skills.length > 0 && (
                   <section>
-                    <h4 className="mb-1 border-b border-zinc-200 pb-1 text-sm font-bold text-zinc-900 dark:border-zinc-700 dark:text-zinc-100">证书技能</h4>
+                    <h4 className="mb-1 border-b pb-1 text-sm font-bold"
+                    style={{ borderColor: c, color: c }}>证书技能</h4>
                     <ul className="list-disc pl-4 text-sm text-zinc-600 dark:text-zinc-400">
                       {resume.skills.map((s, i) => <li key={i}><strong>{s.name}：</strong>{s.detail}</li>)}
                     </ul>
@@ -309,7 +313,8 @@ export function ResumeStudio() {
 
                 {resume.strengths && resume.strengths.length > 0 && (
                   <section>
-                    <h4 className="mb-1 border-b border-zinc-200 pb-1 text-sm font-bold text-zinc-900 dark:border-zinc-700 dark:text-zinc-100">个人优势</h4>
+                    <h4 className="mb-1 border-b pb-1 text-sm font-bold"
+                    style={{ borderColor: c, color: c }}>个人优势</h4>
                     <ol className="list-decimal pl-4 text-sm text-zinc-600 dark:text-zinc-400">
                       {resume.strengths.map((s, i) => <li key={i}>{s}</li>)}
                     </ol>
