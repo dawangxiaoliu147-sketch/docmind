@@ -69,6 +69,80 @@ export function ResumeStudio() {
     navigator.clipboard.writeText(lines.join("\n"));
   }
 
+  function buildHtml(): string {
+    if (!resume) return "";
+    const c = selected.color;
+    const contact = [resume.contact?.phone, resume.contact?.email, resume.contact?.location]
+      .filter(Boolean)
+      .join(" ｜ ");
+    const sec = (title: string, inner: string) =>
+      `<h3 style="margin:18px 0 8px;font-size:15px;color:${c};border-bottom:2px solid ${c};padding-bottom:4px;">${title}</h3>${inner}`;
+
+    let body = "";
+    if (resume.summary)
+      body += sec("自我评价", `<p style="margin:0;line-height:1.7;">${resume.summary}</p>`);
+    if (resume.education?.length)
+      body += sec("教育经历", resume.education.map((e) => `<p style="margin:4px 0;"><strong>${e.school}</strong> · ${e.degree} · ${e.time}</p>`).join(""));
+    if (resume.experience?.length)
+      body += sec("工作经历", resume.experience.map((e) => `<p style="margin:8px 0 2px;"><strong>${e.company}</strong> · ${e.role} · ${e.time}</p><ul style="margin:0 0 8px;padding-left:20px;">${e.points.map((p) => `<li style="line-height:1.7;">${p}</li>`).join("")}</ul>`).join(""));
+    if (resume.projects?.length)
+      body += sec("项目经历", resume.projects.map((p) => `<p style="margin:8px 0 2px;"><strong>${p.name}</strong></p><ul style="margin:0 0 8px;padding-left:20px;">${p.points.map((pt) => `<li style="line-height:1.7;">${pt}</li>`).join("")}</ul>`).join(""));
+    if (resume.skills?.length)
+      body += sec("技能", `<p style="margin:0;">${resume.skills.join(" ／ ")}</p>`);
+
+    return `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><title>${resume.name} 简历</title></head><body style="font-family:'Microsoft YaHei',sans-serif;max-width:800px;margin:0 auto;padding:40px;color:#333;"><div style="background:${c};color:#fff;padding:28px;border-radius:8px;"><h1 style="margin:0;font-size:26px;">${resume.name}</h1><p style="margin:6px 0 0;font-size:16px;">${resume.title}</p><p style="margin:10px 0 0;font-size:13px;opacity:.85;">${contact}</p></div><div style="padding:24px;">${body}</div></body></html>`;
+  }
+
+  function buildMarkdown(): string {
+    if (!resume) return "";
+    const L: string[] = [`# ${resume.name} · ${resume.title}`, ""];
+    const c = [resume.contact?.phone, resume.contact?.email, resume.contact?.location]
+      .filter(Boolean)
+      .join(" | ");
+    if (c) L.push(c, "");
+    if (resume.summary) L.push("## 自我评价", resume.summary, "");
+    if (resume.education?.length)
+      L.push("## 教育经历", ...resume.education.map((e) => `- ${e.school} · ${e.degree} · ${e.time}`), "");
+    if (resume.experience?.length)
+      L.push("## 工作经历", ...resume.experience.flatMap((e) => [`### ${e.company} · ${e.role} · ${e.time}`, ...e.points.map((p) => `- ${p}`), ""]));
+    if (resume.projects?.length)
+      L.push("## 项目经历", ...resume.projects.flatMap((p) => [`### ${p.name}`, ...p.points.map((pt) => `- ${pt}`), ""]));
+    if (resume.skills?.length) L.push("## 技能", resume.skills.join(" / "), "");
+    return L.join("\n");
+  }
+
+  function download(filename: string, content: string, type: string) {
+    const blob = new Blob(["\ufeff" + content], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function downloadWord() {
+    if (!resume) return;
+    download(`${resume.name}简历.doc`, buildHtml(), "application/msword;charset=utf-8");
+  }
+
+  function downloadMarkdown() {
+    if (!resume) return;
+    download(`${resume.name}简历.md`, buildMarkdown(), "text/markdown;charset=utf-8");
+  }
+
+  function downloadPdf() {
+    if (!resume) return;
+    const w = window.open("", "_blank");
+    if (!w) return;
+    w.document.write(buildHtml());
+    w.document.close();
+    setTimeout(() => {
+      w.focus();
+      w.print();
+    }, 500);
+  }
+
   const inputCls =
     "w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none transition focus:border-indigo-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100";
   const c = selected.color;
@@ -243,9 +317,28 @@ export function ResumeStudio() {
           )}
 
           {resume && (
-            <button onClick={copyText} className="mt-3 w-full rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300">
-              📋 复制简历文本
-            </button>
+            <div className="mt-4">
+              <p className="mb-2 text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+                💾 下载简历
+              </p>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <button onClick={downloadWord} className="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-indigo-700">
+                  📄 Word
+                </button>
+                <button onClick={downloadPdf} className="rounded-lg bg-red-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-red-700">
+                  📕 PDF
+                </button>
+                <button onClick={downloadMarkdown} className="rounded-lg bg-zinc-800 px-3 py-2 text-xs font-semibold text-white transition hover:bg-zinc-700">
+                  📝 Markdown
+                </button>
+                <button onClick={copyText} className="rounded-lg border border-zinc-300 px-3 py-2 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800">
+                  📋 复制
+                </button>
+              </div>
+              <p className="mt-2 text-[10px] text-zinc-400 dark:text-zinc-500">
+                Word 用 Word 打开即可 · PDF 会打开打印对话框，选「另存为 PDF」
+              </p>
+            </div>
           )}
         </div>
       </div>
