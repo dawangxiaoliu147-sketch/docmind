@@ -5,13 +5,12 @@ import { RESUME_TEMPLATES } from "@/lib/resume-templates";
 
 type ResumeData = {
   name: string;
-  title: string;
-  contact?: { phone?: string; email?: string; location?: string };
-  summary?: string;
-  education?: Array<{ school: string; degree: string; time: string }>;
+  contact?: { age?: string; city?: string; phone?: string; email?: string };
+  education?: Array<{ school: string; major: string; degree: string; time: string }>;
   experience?: Array<{ company: string; role: string; time: string; points: string[] }>;
-  projects?: Array<{ name: string; points: string[] }>;
-  skills?: string[];
+  projects?: Array<{ name: string; role: string; time: string; points: string[] }>;
+  skills?: Array<{ name: string; detail: string }>;
+  strengths?: string[];
 };
 
 export function ResumeStudio() {
@@ -46,68 +45,76 @@ export function ResumeStudio() {
 
   function copyText() {
     if (!resume) return;
-    const lines: string[] = [
-      `${resume.name} · ${resume.title}`,
-      [resume.contact?.phone, resume.contact?.email, resume.contact?.location]
+    const L: string[] = [
+      `${resume.name}`,
+      [resume.contact?.age, resume.contact?.city, resume.contact?.phone, resume.contact?.email]
         .filter(Boolean)
-        .join(" | "),
+        .join(" ｜ "),
       "",
-      resume.summary ?? "",
-      "",
-      "教育经历",
-      ...(resume.education ?? []).map((e) => `${e.school} · ${e.degree} · ${e.time}`),
-      "",
-      "工作经历",
-      ...(resume.experience ?? []).flatMap((e) => [
-        `${e.company} · ${e.role} · ${e.time}`,
-        ...e.points.map((p) => `- ${p}`),
-      ]),
-      "",
-      "技能",
-      (resume.skills ?? []).join(" / "),
     ];
-    navigator.clipboard.writeText(lines.join("\n"));
+    if (resume.education?.length)
+      L.push("教育背景", ...resume.education.map((e) => `${e.school} · ${e.major} · ${e.degree} · ${e.time}`), "");
+    if (resume.experience?.length)
+      L.push("实习经历", ...resume.experience.flatMap((e) => [`${e.company} · ${e.role} · ${e.time}`, ...e.points.map((p) => `- ${p}`), ""]));
+    if (resume.projects?.length)
+      L.push("项目经历", ...resume.projects.flatMap((p) => [`${p.name} · ${p.role} · ${p.time}`, ...p.points.map((pt) => `- ${pt}`), ""]));
+    if (resume.skills?.length)
+      L.push("证书技能", ...resume.skills.map((s) => `- ${s.name}：${s.detail}`), "");
+    if (resume.strengths?.length)
+      L.push("个人优势", ...resume.strengths.map((s, i) => `${i + 1}. ${s}`), "");
+    navigator.clipboard.writeText(L.join("\n"));
+  }
+
+  function boldLead(text: string): string {
+    const fi = text.indexOf("：");
+    const idx = fi >= 0 ? fi : text.indexOf(":");
+    if (idx > 0 && idx < 30) return `<strong>${text.slice(0, idx + 1)}</strong>${text.slice(idx + 1)}`;
+    return text;
+  }
+  function entryRow(left: string, right: string): string {
+    return `<table style="width:100%;border-collapse:collapse;margin:8px 0 2px;"><tr><td style="font-size:13px;color:#111;">${left}</td><td style="text-align:right;font-size:13px;color:#555;">${right}</td></tr></table>`;
+  }
+  function section(title: string, inner: string): string {
+    return `<div style="margin:14px 0 0;"><h2 style="margin:0 0 6px;font-size:16px;color:#111;border-bottom:1.5px solid #ddd;padding-bottom:3px;">${title}</h2>${inner}</div>`;
+  }
+  function ulItems(items: string[]): string {
+    return `<ul style="margin:2px 0 8px;padding-left:18px;">${items
+      .map((i) => `<li style="font-size:12.5px;line-height:1.7;color:#333;">${boldLead(i)}</li>`)
+      .join("")}</ul>`;
   }
 
   function buildHtml(): string {
     if (!resume) return "";
-    const c = selected.color;
-    const contact = [resume.contact?.phone, resume.contact?.email, resume.contact?.location]
+    const contact = [resume.contact?.age, resume.contact?.city, resume.contact?.phone, resume.contact?.email]
       .filter(Boolean)
       .join(" ｜ ");
-    const sec = (title: string, inner: string) =>
-      `<h3 style="margin:18px 0 8px;font-size:15px;color:${c};border-bottom:2px solid ${c};padding-bottom:4px;">${title}</h3>${inner}`;
-
     let body = "";
-    if (resume.summary)
-      body += sec("自我评价", `<p style="margin:0;line-height:1.7;">${resume.summary}</p>`);
     if (resume.education?.length)
-      body += sec("教育经历", resume.education.map((e) => `<p style="margin:4px 0;"><strong>${e.school}</strong> · ${e.degree} · ${e.time}</p>`).join(""));
+      body += section("教育背景", resume.education.map((e) => entryRow(`${e.school} · ${e.major} · ${e.degree}`, e.time)).join(""));
     if (resume.experience?.length)
-      body += sec("工作经历", resume.experience.map((e) => `<p style="margin:8px 0 2px;"><strong>${e.company}</strong> · ${e.role} · ${e.time}</p><ul style="margin:0 0 8px;padding-left:20px;">${e.points.map((p) => `<li style="line-height:1.7;">${p}</li>`).join("")}</ul>`).join(""));
+      body += section("实习经历", resume.experience.map((e) => entryRow(`<strong>${e.company}</strong>`, `${e.role} · ${e.time}`) + ulItems(e.points)).join(""));
     if (resume.projects?.length)
-      body += sec("项目经历", resume.projects.map((p) => `<p style="margin:8px 0 2px;"><strong>${p.name}</strong></p><ul style="margin:0 0 8px;padding-left:20px;">${p.points.map((pt) => `<li style="line-height:1.7;">${pt}</li>`).join("")}</ul>`).join(""));
+      body += section("项目经历", resume.projects.map((p) => entryRow(`<strong>${p.name}</strong>`, `${p.role} · ${p.time}`) + ulItems(p.points)).join(""));
     if (resume.skills?.length)
-      body += sec("技能", `<p style="margin:0;">${resume.skills.join(" ／ ")}</p>`);
-
-    return `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><title>${resume.name} 简历</title></head><body style="font-family:'Microsoft YaHei',sans-serif;max-width:800px;margin:0 auto;padding:40px;color:#333;"><div style="border-bottom:3px solid ${c};padding-bottom:16px;margin-bottom:20px;"><h1 style="margin:0;font-size:26px;color:#111;">${resume.name}</h1><p style="margin:6px 0 0;font-size:16px;color:#444;">${resume.title}</p><p style="margin:8px 0 0;font-size:13px;color:#666;">${contact}</p></div><div style="padding:0;">${body}</div></body></html>`;
+      body += section("证书技能", ulItems(resume.skills.map((s) => `${s.name}：${s.detail}`)));
+    if (resume.strengths?.length)
+      body += section("个人优势", `<ol style="margin:2px 0 8px;padding-left:18px;">${resume.strengths.map((s) => `<li style="font-size:12.5px;line-height:1.7;color:#333;">${s}</li>`).join("")}</ol>`);
+    return `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><title>${resume.name} 简历</title></head><body style="font-family:'Microsoft YaHei',sans-serif;max-width:800px;margin:0 auto;padding:40px;color:#333;"><div style="border-bottom:2px solid #111;padding-bottom:10px;margin-bottom:14px;"><h1 style="margin:0;font-size:26px;color:#111;">${resume.name}</h1><p style="margin:6px 0 0;font-size:13px;color:#555;">${contact}</p></div>${body}</body></html>`;
   }
 
   function buildMarkdown(): string {
     if (!resume) return "";
-    const L: string[] = [`# ${resume.name} · ${resume.title}`, ""];
-    const c = [resume.contact?.phone, resume.contact?.email, resume.contact?.location]
-      .filter(Boolean)
-      .join(" | ");
-    if (c) L.push(c, "");
-    if (resume.summary) L.push("## 自我评价", resume.summary, "");
+    const L: string[] = [`# ${resume.name}`, [resume.contact?.age, resume.contact?.city, resume.contact?.phone, resume.contact?.email].filter(Boolean).join(" | "), ""];
     if (resume.education?.length)
-      L.push("## 教育经历", ...resume.education.map((e) => `- ${e.school} · ${e.degree} · ${e.time}`), "");
+      L.push("## 教育背景", ...resume.education.map((e) => `- ${e.school} · ${e.major} · ${e.degree} · ${e.time}`), "");
     if (resume.experience?.length)
-      L.push("## 工作经历", ...resume.experience.flatMap((e) => [`### ${e.company} · ${e.role} · ${e.time}`, ...e.points.map((p) => `- ${p}`), ""]));
+      L.push("## 实习经历", ...resume.experience.flatMap((e) => [`### ${e.company} · ${e.role} · ${e.time}`, ...e.points.map((p) => `- ${p}`), ""]));
     if (resume.projects?.length)
-      L.push("## 项目经历", ...resume.projects.flatMap((p) => [`### ${p.name}`, ...p.points.map((pt) => `- ${pt}`), ""]));
-    if (resume.skills?.length) L.push("## 技能", resume.skills.join(" / "), "");
+      L.push("## 项目经历", ...resume.projects.flatMap((p) => [`### ${p.name} · ${p.role} · ${p.time}`, ...p.points.map((pt) => `- ${pt}`), ""]));
+    if (resume.skills?.length)
+      L.push("## 证书技能", ...resume.skills.map((s) => `- **${s.name}：**${s.detail}`), "");
+    if (resume.strengths?.length)
+      L.push("## 个人优势", ...resume.strengths.map((s, i) => `${i + 1}. ${s}`), "");
     return L.join("\n");
   }
 
@@ -235,9 +242,8 @@ export function ResumeStudio() {
               {/* 简历头部 */}
               <div className="p-6" style={{ borderBottom: `3px solid ${c}` }}>
                 <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">{resume.name}</h3>
-                <p className="mt-0.5 text-sm text-zinc-600 dark:text-zinc-300">{resume.title}</p>
                 <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-500 dark:text-zinc-400">
-                  {[resume.contact?.phone, resume.contact?.email, resume.contact?.location]
+                  {[resume.contact?.age, resume.contact?.city, resume.contact?.phone, resume.contact?.email]
                     .filter(Boolean)
                     .map((x, i) => (
                       <span key={i}>{x}</span>
@@ -246,20 +252,13 @@ export function ResumeStudio() {
               </div>
 
               <div className="space-y-4 p-6">
-                {resume.summary && (
-                  <section>
-                    <h4 className="mb-1 text-sm font-bold" style={{ color: c }}>自我评价</h4>
-                    <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{resume.summary}</p>
-                  </section>
-                )}
-
                 {resume.education && resume.education.length > 0 && (
                   <section>
-                    <h4 className="mb-1 text-sm font-bold" style={{ color: c }}>教育经历</h4>
+                    <h4 className="mb-1 border-b border-zinc-200 pb-1 text-sm font-bold text-zinc-900 dark:border-zinc-700 dark:text-zinc-100">教育背景</h4>
                     {resume.education.map((e, i) => (
                       <div key={i} className="text-sm">
                         <span className="font-medium text-zinc-800 dark:text-zinc-200">{e.school}</span>
-                        <span className="text-zinc-500 dark:text-zinc-400"> · {e.degree} · {e.time}</span>
+                        <span className="text-zinc-500 dark:text-zinc-400"> · {e.major} · {e.degree} · {e.time}</span>
                       </div>
                     ))}
                   </section>
@@ -267,17 +266,15 @@ export function ResumeStudio() {
 
                 {resume.experience && resume.experience.length > 0 && (
                   <section>
-                    <h4 className="mb-1 text-sm font-bold" style={{ color: c }}>工作经历</h4>
+                    <h4 className="mb-1 border-b border-zinc-200 pb-1 text-sm font-bold text-zinc-900 dark:border-zinc-700 dark:text-zinc-100">实习经历</h4>
                     {resume.experience.map((e, i) => (
                       <div key={i} className="mb-2">
-                        <div className="text-sm">
+                        <div className="flex items-center justify-between text-sm">
                           <span className="font-medium text-zinc-800 dark:text-zinc-200">{e.company}</span>
-                          <span className="text-zinc-500 dark:text-zinc-400"> · {e.role} · {e.time}</span>
+                          <span className="text-xs text-zinc-500 dark:text-zinc-400">{e.role} · {e.time}</span>
                         </div>
                         <ul className="mt-1 list-disc pl-4 text-sm text-zinc-600 dark:text-zinc-400">
-                          {e.points.map((p, j) => (
-                            <li key={j}>{p}</li>
-                          ))}
+                          {e.points.map((p, j) => <li key={j}>{p}</li>)}
                         </ul>
                       </div>
                     ))}
@@ -286,14 +283,15 @@ export function ResumeStudio() {
 
                 {resume.projects && resume.projects.length > 0 && (
                   <section>
-                    <h4 className="mb-1 text-sm font-bold" style={{ color: c }}>项目经历</h4>
+                    <h4 className="mb-1 border-b border-zinc-200 pb-1 text-sm font-bold text-zinc-900 dark:border-zinc-700 dark:text-zinc-100">项目经历</h4>
                     {resume.projects.map((p, i) => (
                       <div key={i} className="mb-2">
-                        <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">{p.name}</p>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="font-medium text-zinc-800 dark:text-zinc-200">{p.name}</span>
+                          <span className="text-xs text-zinc-500 dark:text-zinc-400">{p.role} · {p.time}</span>
+                        </div>
                         <ul className="mt-1 list-disc pl-4 text-sm text-zinc-600 dark:text-zinc-400">
-                          {p.points.map((pt, j) => (
-                            <li key={j}>{pt}</li>
-                          ))}
+                          {p.points.map((pt, j) => <li key={j}>{pt}</li>)}
                         </ul>
                       </div>
                     ))}
@@ -302,14 +300,19 @@ export function ResumeStudio() {
 
                 {resume.skills && resume.skills.length > 0 && (
                   <section>
-                    <h4 className="mb-2 text-sm font-bold" style={{ color: c }}>技能</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {resume.skills.map((s, i) => (
-                        <span key={i} className="rounded-full px-3 py-1 text-xs font-medium" style={{ backgroundColor: c + "18", color: c }}>
-                          {s}
-                        </span>
-                      ))}
-                    </div>
+                    <h4 className="mb-1 border-b border-zinc-200 pb-1 text-sm font-bold text-zinc-900 dark:border-zinc-700 dark:text-zinc-100">证书技能</h4>
+                    <ul className="list-disc pl-4 text-sm text-zinc-600 dark:text-zinc-400">
+                      {resume.skills.map((s, i) => <li key={i}><strong>{s.name}：</strong>{s.detail}</li>)}
+                    </ul>
+                  </section>
+                )}
+
+                {resume.strengths && resume.strengths.length > 0 && (
+                  <section>
+                    <h4 className="mb-1 border-b border-zinc-200 pb-1 text-sm font-bold text-zinc-900 dark:border-zinc-700 dark:text-zinc-100">个人优势</h4>
+                    <ol className="list-decimal pl-4 text-sm text-zinc-600 dark:text-zinc-400">
+                      {resume.strengths.map((s, i) => <li key={i}>{s}</li>)}
+                    </ol>
                   </section>
                 )}
               </div>
