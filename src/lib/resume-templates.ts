@@ -4,6 +4,7 @@ export type ResumeTemplate = {
   name: string;
   style: string;
   color: string;
+  layout?: "single" | "two" | "timeline";
   description: string;
   suitable: string[];
 };
@@ -158,6 +159,7 @@ export const RESUME_TEMPLATES: ResumeTemplate[] = [
     name: "时间轴",
     style: "经历可视化",
     color: "#b91c1c",
+    layout: "timeline",
     description: "以时间轴展示教育、工作经历，适合经历丰富的求职者。",
     suitable: ["管理", "销售", "资深"],
   },
@@ -166,6 +168,7 @@ export const RESUME_TEMPLATES: ResumeTemplate[] = [
     name: "双栏侧边",
     style: "左右分栏",
     color: "#1f2937",
+    layout: "two",
     description: "左侧技能/联系方式，右侧经历主体，信息密度高。",
     suitable: ["通用", "技术", "设计"],
   },

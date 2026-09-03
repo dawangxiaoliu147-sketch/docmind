@@ -86,20 +86,21 @@ export function ResumeStudio() {
 
   function buildHtml(): string {
     if (!resume) return "";
+    const layout = selected.layout ?? "single";
     const contact = [resume.contact?.age, resume.contact?.city, resume.contact?.phone, resume.contact?.email]
       .filter(Boolean)
       .join(" ｜ ");
+    const edu = resume.education?.length ? section("教育背景", resume.education.map((e) => entryRow(`${e.school} · ${e.major} · ${e.degree}`, e.time)).join("")) : "";
+    const exp = resume.experience?.length ? section("实习经历", resume.experience.map((e) => entryRow(`<strong>${e.company}</strong>`, `${e.role} · ${e.time}`) + ulItems(e.points)).join("")) : "";
+    const proj = resume.projects?.length ? section("项目经历", resume.projects.map((p) => entryRow(`<strong>${p.name}</strong>`, `${p.role} · ${p.time}`) + ulItems(p.points)).join("")) : "";
+    const skill = resume.skills?.length ? section("证书技能", ulItems(resume.skills.map((s) => `${s.name}：${s.detail}`))) : "";
+    const str = resume.strengths?.length ? section("个人优势", `<ol style="margin:2px 0 8px;padding-left:18px;">${resume.strengths.map((s) => `<li style="font-size:12.5px;line-height:1.7;color:#333;">${s}</li>`).join("")}</ol>`) : "";
     let body = "";
-    if (resume.education?.length)
-      body += section("教育背景", resume.education.map((e) => entryRow(`${e.school} · ${e.major} · ${e.degree}`, e.time)).join(""));
-    if (resume.experience?.length)
-      body += section("实习经历", resume.experience.map((e) => entryRow(`<strong>${e.company}</strong>`, `${e.role} · ${e.time}`) + ulItems(e.points)).join(""));
-    if (resume.projects?.length)
-      body += section("项目经历", resume.projects.map((p) => entryRow(`<strong>${p.name}</strong>`, `${p.role} · ${p.time}`) + ulItems(p.points)).join(""));
-    if (resume.skills?.length)
-      body += section("证书技能", ulItems(resume.skills.map((s) => `${s.name}：${s.detail}`)));
-    if (resume.strengths?.length)
-      body += section("个人优势", `<ol style="margin:2px 0 8px;padding-left:18px;">${resume.strengths.map((s) => `<li style="font-size:12.5px;line-height:1.7;color:#333;">${s}</li>`).join("")}</ol>`);
+    if (layout === "two") {
+      body = `<table style="width:100%;border-collapse:collapse;margin-top:6px;"><tr><td style="width:32%;vertical-align:top;padding-right:18px;border-right:1.5px solid #e5e7eb;">${section("联系方式", `<p style="margin:0;font-size:12.5px;color:#555;line-height:1.8;">${contact.replace(/ ｜ /g, "<br>")}</p>`)}${skill}</td><td style="vertical-align:top;padding-left:0;">${edu}${exp}${proj}${str}</td></tr></table>`;
+    } else {
+      body = `${edu}${exp}${proj}${skill}${str}`;
+    }
     return `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><title>${resume.name} 简历</title></head><body style="font-family:'Microsoft YaHei',sans-serif;max-width:800px;margin:0 auto;padding:40px;color:#333;"><div style="border-bottom:2px solid ${c};padding-bottom:10px;margin-bottom:14px;"><h1 style="margin:0;font-size:26px;color:#111;">${resume.name}</h1><p style="margin:6px 0 0;font-size:13px;color:#555;">${contact}</p></div>${body}</body></html>`;
   }
 
