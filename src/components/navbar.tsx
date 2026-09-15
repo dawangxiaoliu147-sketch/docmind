@@ -11,20 +11,18 @@ export async function Navbar() {
   const user = await getCurrentUser();
 
   const links: NavLink[] = [
-    { href: "/", label: "首页" },
     { href: "/dashboard", label: "控制台" },
     { href: "/workbench", label: "工作台" },
     { href: "/jobs", label: "职位" },
     { href: "/resume", label: "简历" },
     { href: "/settings", label: "设置" },
-    { href: "/achievements", label: "成就" },
     ...(isAdmin(user)
       ? [{ href: "/admin", label: "管理后台", highlight: true }]
       : []),
   ];
 
   return (
-    <header className="sticky top-0 z-10 border-b border-zinc-200 bg-white/90 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/90">
+    <header className="sticky top-0 z-10 border-b border-zinc-200/70 bg-white/80 shadow-[0_1px_14px_-10px_rgba(16,24,40,0.35)] backdrop-blur-xl dark:border-zinc-800/70 dark:bg-zinc-950/80">
       <nav className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
         <div className="flex items-center gap-3 sm:gap-6">
           <MobileNav links={links} />

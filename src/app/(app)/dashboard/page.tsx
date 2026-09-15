@@ -5,6 +5,15 @@ import { createKnowledgeBase, deleteKnowledgeBase } from "@/lib/actions/kb";
 import { KbCover } from "@/components/kb-cover";
 import { GlobalSearch } from "@/components/global-search";
 
+const FEATURES = [
+  { href: "/agent", icon: "🤖", name: "智能体", desc: "自主调用工具完成任务" },
+  { href: "/workbench", icon: "🧰", name: "工作台", desc: "12 个 AI 工作助手" },
+  { href: "/jobs", icon: "💼", name: "职位库", desc: "职位匹配 · 模拟面试" },
+  { href: "/resume", icon: "📝", name: "简历工坊", desc: "8 套模板 · 智能体改简历" },
+  { href: "/achievements", icon: "🏆", name: "成就", desc: "查看你的使用成就" },
+  { href: "/settings", icon: "⚙️", name: "设置", desc: "个性化与 AI 偏好" },
+];
+
 export default async function DashboardPage() {
   const user = await requireUser();
 
@@ -52,6 +61,34 @@ export default async function DashboardPage() {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* 功能总览 */}
+      <div>
+        <h2 className="mb-3 text-sm font-semibold text-zinc-500 dark:text-zinc-400">
+          🧭 功能总览
+        </h2>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {FEATURES.map((f) => (
+            <Link
+              key={f.href}
+              href={f.href}
+              className="group flex items-start gap-3 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-indigo-800"
+            >
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-xl transition group-hover:scale-110 dark:bg-indigo-950">
+                {f.icon}
+              </span>
+              <div className="min-w-0">
+                <p className="font-semibold text-zinc-900 dark:text-zinc-100">
+                  {f.name}
+                </p>
+                <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+                  {f.desc}
+                </p>
+              </div>
+            </Link>
+          ))}
+        </div>
       </div>
 
       {/* 跨知识库搜索 */}
