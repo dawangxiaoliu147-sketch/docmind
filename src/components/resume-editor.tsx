@@ -42,6 +42,7 @@ const SWATCHES = ["#1f4e79", "#2f6f5e", "#8a3b3b", "#3b3f46", "#2e75b6", "#7c3ae
 
 export function ResumeEditor() {
   const bodyRef = useRef<HTMLDivElement>(null);
+  const photoRef = useRef<HTMLInputElement>(null);
   const [accent, setAccent] = useState("#1f4e79");
   const [tpl, setTpl] = useState<string>("ribbon");
   const [editing, setEditing] = useState(false);
@@ -52,6 +53,30 @@ export function ResumeEditor() {
 
   function currentHtml(): string {
     return bodyRef.current?.innerHTML ?? "";
+  }
+
+  // 点照片框 → 选图 → 内联到简历里
+  function onPageClick(e: React.MouseEvent<HTMLElement>) {
+    const hit = (e.target as HTMLElement).closest(".rh-photo");
+    if (hit) photoRef.current?.click();
+  }
+
+  function onPhoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const photo = bodyRef.current?.querySelector<HTMLElement>(".rh-photo");
+      if (!photo) return;
+      photo.style.backgroundImage = `url(${reader.result})`;
+      photo.style.backgroundSize = "cover";
+      photo.style.backgroundPosition = "center";
+      photo.style.backgroundRepeat = "no-repeat";
+      photo.style.borderColor = "transparent";
+      photo.textContent = "";
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
   }
 
   function exportHtml() {
@@ -74,13 +99,15 @@ export function ResumeEditor() {
       const res = await fetch("/api/resume/agent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ html: currentHtml(), prompt: text }),
+        body: JSON.stringify({ html: currentHtml(), prompt: text, tpl, accent }),
       });
       const json = await res.json();
       if (!res.ok) {
         setMsg(json.error ?? "修改失败");
       } else if (bodyRef.current) {
         bodyRef.current.innerHTML = json.html;
+        if (json.tpl) setTpl(json.tpl);
+        if (json.accent) setAccent(json.accent);
         setMsg("✅ 已按你的要求修改");
         setPrompt("");
       }
@@ -165,8 +192,10 @@ export function ResumeEditor() {
           contentEditable={editing}
           suppressContentEditableWarning
           spellCheck={false}
+          onClick={onPageClick}
           dangerouslySetInnerHTML={{ __html: DEFAULT_HTML }}
         />
+        <input ref={photoRef} type="file" accept="image/*" className="hidden" onChange={onPhoto} />
       </div>
 
       {/* 智能体小窗口 */}
@@ -266,8 +295,15 @@ function pageCss(accent: string): string {
   .tpl-center .rh { flex-direction: column; align-items: center; text-align: center; }
   .tpl-center .rh-grid { width: 100%; text-align: left; margin-top: 4px; }
   @media print {
-    body { margin: 0; }
-    .page { width: auto; min-height: 0; margin: 0; padding: 12mm 14mm; }
+    /* 只打印简历本身：隐藏工具栏、智能体窗口、导航等所有界面 */
+    body * { visibility: hidden !important; }
+    .page, .page * { visibility: visible !important; }
+    .page {
+      position: absolute !important; left: 0 !important; top: 0 !important;
+      width: 210mm !important; min-height: 0 !important;
+      margin: 0 !important; padding: 12mm 14mm !important;
+      box-shadow: none !important; outline: none !important; border: 0 !important;
+    }
   }
   `;
 }
