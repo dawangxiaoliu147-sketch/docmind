@@ -50,6 +50,9 @@ export function ResumeEditor() {
   const [prompt, setPrompt] = useState("");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [srcName, setSrcName] = useState<string | null>(null);
+  const [srcText, setSrcText] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   function currentHtml(): string {
     return bodyRef.current?.innerHTML ?? "";
@@ -90,6 +93,31 @@ export function ResumeEditor() {
     URL.revokeObjectURL(url);
   }
 
+  async function onUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setMsg(null);
+    try {
+      const data = new FormData();
+      data.append("file", file);
+      const res = await fetch("/api/assistant/upload", { method: "POST", body: data });
+      const json = await res.json();
+      if (!res.ok) {
+        setMsg(json.error ?? "解析失败");
+      } else {
+        setSrcName(json.fileName);
+        setSrcText(json.text);
+        setMsg("📎 资料已读取，说说你想怎么用");
+      }
+    } catch {
+      setMsg("解析失败，请重试");
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  }
+
   async function askAgent() {
     const text = prompt.trim();
     if (!text || busy) return;
@@ -99,7 +127,13 @@ export function ResumeEditor() {
       const res = await fetch("/api/resume/agent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ html: currentHtml(), prompt: text, tpl, accent }),
+        body: JSON.stringify({
+          html: currentHtml(),
+          prompt: text,
+          tpl,
+          accent,
+          source: srcText ?? "",
+        }),
       });
       const json = await res.json();
       if (!res.ok) {
@@ -207,8 +241,34 @@ export function ResumeEditor() {
           </div>
           <div className="p-3">
             <p className="mb-2 text-xs text-zinc-500 dark:text-zinc-400">
-              说说你想怎么改，智能体会自动改在简历上👇
+              上传资料或直接说需求，智能体会自动改在简历上👇
             </p>
+
+            {srcName && (
+              <div className="mb-2 flex items-center justify-between rounded-lg bg-zinc-100 px-2 py-1.5 text-xs dark:bg-zinc-800">
+                <span className="truncate text-zinc-600 dark:text-zinc-300">📎 {srcName}</span>
+                <button
+                  onClick={() => {
+                    setSrcName(null);
+                    setSrcText(null);
+                  }}
+                  className="ml-2 shrink-0 text-zinc-400 hover:text-red-500"
+                >
+                  移除
+                </button>
+              </div>
+            )}
+
+            <label className="mb-2 flex cursor-pointer items-center justify-center gap-1 rounded-lg border border-dashed border-zinc-300 py-2 text-xs text-zinc-500 transition hover:border-violet-400 hover:text-violet-600 dark:border-zinc-700 dark:text-zinc-400">
+              {uploading ? "解析中…" : "📎 上传简历 / 经历资料（可选）"}
+              <input
+                type="file"
+                accept=".pdf,.docx,.md,.txt,.markdown,.html,.htm,.csv,application/pdf,text/plain,text/markdown,text/html,text/csv,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                className="hidden"
+                onChange={onUpload}
+                disabled={uploading}
+              />
+            </label>
             <textarea
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
