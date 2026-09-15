@@ -13,7 +13,6 @@ export async function Navbar() {
   const links: NavLink[] = [
     { href: "/", label: "首页" },
     { href: "/dashboard", label: "控制台" },
-    { href: "/agent", label: "智能体" },
     { href: "/workbench", label: "工作台" },
     { href: "/jobs", label: "职位" },
     { href: "/resume", label: "简历" },

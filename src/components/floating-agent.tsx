@@ -12,6 +12,7 @@ export function FloatingAgent() {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState({ x: 0, y: 0 });
   const [ready, setReady] = useState(false);
+  const [dragging, setDragging] = useState(false);
   const posRef = useRef({ x: 0, y: 0 });
   const drag = useRef({ active: false, moved: false, sx: 0, sy: 0, ox: 0, oy: 0 });
 
@@ -38,6 +39,21 @@ export function FloatingAgent() {
     setReady(true);
   }, []);
 
+  // 桌面宠物：自己不定期走到屏幕上的随机位置（面板打开/拖动时暂停）
+  useEffect(() => {
+    if (!ready || open) return;
+    const id = window.setInterval(() => {
+      if (drag.current.active) return;
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const x = PAD + Math.random() * Math.max(w - SIZE - PAD * 2, 1);
+      const y = PAD + Math.random() * Math.max(h - SIZE - PAD * 2, 1);
+      posRef.current = { x, y };
+      setPos({ x, y });
+    }, 7000);
+    return () => window.clearInterval(id);
+  }, [ready, open]);
+
   function onPointerDown(e: React.PointerEvent<HTMLButtonElement>) {
     drag.current = {
       active: true,
@@ -47,6 +63,7 @@ export function FloatingAgent() {
       ox: posRef.current.x,
       oy: posRef.current.y,
     };
+    setDragging(true);
     e.currentTarget.setPointerCapture(e.pointerId);
   }
 
@@ -64,6 +81,7 @@ export function FloatingAgent() {
   function onPointerUp() {
     if (!drag.current.active) return;
     drag.current.active = false;
+    setDragging(false);
     if (drag.current.moved) {
       localStorage.setItem("agentFabPos", JSON.stringify(posRef.current));
     } else {
@@ -80,7 +98,13 @@ export function FloatingAgent() {
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
-        style={{ left: pos.x, top: pos.y, width: SIZE, height: SIZE }}
+        style={{
+          left: pos.x,
+          top: pos.y,
+          width: SIZE,
+          height: SIZE,
+          transition: dragging ? "none" : "left 2.5s ease-in-out, top 2.5s ease-in-out",
+        }}
         aria-label="打开知行智能体（可拖动）"
         title="点击打开智能体 · 可拖动移动"
         className="pet-float group fixed z-40 flex cursor-grab touch-none items-center justify-center transition-transform hover:scale-110 active:cursor-grabbing"
