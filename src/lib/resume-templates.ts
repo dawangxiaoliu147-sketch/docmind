@@ -4,7 +4,7 @@ export type ResumeTemplate = {
   name: string;
   style: string;
   color: string;
-  layout?: "single" | "two" | "timeline";
+  layout?: "single" | "two" | "timeline" | "skillbar" | "icon";
   description: string;
   suitable: string[];
 };
@@ -143,6 +143,7 @@ export const RESUME_TEMPLATES: ResumeTemplate[] = [
     name: "图标风",
     style: "简洁有辨识度",
     color: "#7c3aed",
+    layout: "icon",
     description: "用图标强调板块，现代清爽，适合设计师、产品。",
     suitable: ["设计", "产品", "市场"],
   },
@@ -151,6 +152,7 @@ export const RESUME_TEMPLATES: ResumeTemplate[] = [
     name: "技能条",
     style: "可视化技能",
     color: "#0e7490",
+    layout: "skillbar",
     description: "用进度条展示技能熟练度，适合技术、运营岗。",
     suitable: ["开发", "运营", "数据"],
   },

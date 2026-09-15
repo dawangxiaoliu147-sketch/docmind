@@ -19,7 +19,7 @@ export type ResumeData = {
   strengths?: string[];
 };
 
-export type ResumeLayout = "single" | "two" | "timeline";
+export type ResumeLayout = "single" | "two" | "timeline" | "skillbar" | "icon";
 
 export type PrintOptions = {
   /** 主题色，非法值会回退到默认藏青 */
@@ -144,8 +144,21 @@ function renderProjects(resume: ResumeData, layout: ResumeLayout): string {
   return section("项目经历", items.join(""));
 }
 
-function renderSkills(resume: ResumeData): string {
+function renderSkills(resume: ResumeData, layout: ResumeLayout = "single", accent = "#1f2937"): string {
   if (!resume.skills?.length) return "";
+  if (layout === "skillbar") {
+    const bars = resume.skills
+      .map(
+        (s) =>
+          `<div style="margin:7px 0;"><div style="font-size:12.5px;color:#111;"><strong>${escapeHtml(
+            s.name,
+          )}</strong></div><div style="background:#eceff3;border-radius:4px;height:6px;margin:3px 0;"><div style="background:${accent};width:82%;height:6px;border-radius:4px;"></div></div><div style="font-size:12px;color:#555;">${escapeHtml(
+            s.detail,
+          )}</div></div>`,
+      )
+      .join("");
+    return section("证书技能", bars);
+  }
   const items = resume.skills
     .map((s) => `<li><strong>${escapeHtml(s.name)}：</strong>${escapeHtml(s.detail)}</li>`)
     .join("");
@@ -169,24 +182,35 @@ function renderHead(resume: ResumeData, opts: PrintOptions): string {
 /** 渲染一页简历的正文（不含 .page / WordSection 外壳） */
 export function renderResumeBody(resume: ResumeData, opts: PrintOptions = {}): string {
   const layout = opts.layout ?? "single";
+  const accent = safeColor(opts.accent);
 
   if (layout === "two") {
     const side =
       section("联系方式", `<p class="side-line">${contactList(resume).map(escapeHtml).join("<br>")}</p>`) +
-      renderSkills(resume) +
+      renderSkills(resume, layout, accent) +
       renderStrengths(resume);
     const main = renderEducation(resume, layout) + renderExperience(resume, layout) + renderProjects(resume, layout);
     return `${renderHead(resume, opts)}<table class="cols"><tr><td class="col-side">${side}</td><td class="col-main">${main}</td></tr></table>`;
   }
 
-  return (
+  let body =
     renderHead(resume, opts) +
     renderEducation(resume, layout) +
     renderExperience(resume, layout) +
     renderProjects(resume, layout) +
-    renderSkills(resume) +
-    renderStrengths(resume)
-  );
+    renderSkills(resume, layout, accent) +
+    renderStrengths(resume);
+
+  // 图标式：给板块标题加图标
+  if (layout === "icon") {
+    body = body
+      .replace("<h2>教育背景</h2>", "<h2>🎓 教育背景</h2>")
+      .replace("<h2>实习经历</h2>", "<h2>💼 实习经历</h2>")
+      .replace("<h2>项目经历</h2>", "<h2>🗂️ 项目经历</h2>")
+      .replace("<h2>证书技能</h2>", "<h2>📜 证书技能</h2>")
+      .replace("<h2>个人优势</h2>", "<h2>⭐ 个人优势</h2>");
+  }
+  return body;
 }
 
 /* ------------------------------------------------------------------ 样式 */

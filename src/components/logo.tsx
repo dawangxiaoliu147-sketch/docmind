@@ -1,4 +1,4 @@
-// 「知行」品牌 Logo：抽象知识图谱标记（渐变方块 + 三个相连节点）
+// 「知行」品牌 Logo：一本打开的书（知识）+ 星芒（AI），渐变底
 export function Logo({ className = "h-8 w-8" }: { className?: string }) {
   return (
     <svg viewBox="0 0 32 32" className={className} aria-hidden="true">
@@ -10,17 +10,17 @@ export function Logo({ className = "h-8 w-8" }: { className?: string }) {
         </linearGradient>
       </defs>
       <rect width="32" height="32" rx="9" fill="url(#zx-logo-grad)" />
-      {/* 知识图谱：三个节点 + 连线 */}
+      {/* 打开的书 */}
       <path
-        d="M10.5 11.5 L21.5 11.5 M10.5 11.5 L16 21 M21.5 11.5 L16 21"
-        stroke="#ffffff"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        opacity="0.55"
+        d="M16 11.6c-2.1-1.5-4.8-1.9-7.2-1.1v10.9c2.4-.8 5.1-.4 7.2 1.1 2.1-1.5 4.8-1.9 7.2-1.1V10.5c-2.4-.8-5.1-.4-7.2 1.1z"
+        fill="#ffffff"
       />
-      <circle cx="10.5" cy="11.5" r="3.1" fill="#ffffff" />
-      <circle cx="21.5" cy="11.5" r="3.1" fill="#ffffff" opacity="0.9" />
-      <circle cx="16" cy="21" r="3.4" fill="#ffffff" />
+      <path d="M16 11.6v10.9" stroke="#7c3aed" strokeWidth="1.1" opacity="0.5" />
+      {/* AI 星芒 */}
+      <path
+        d="M23.5 6.2l.8 2.1 2.1.8-2.1.8-.8 2.1-.8-2.1-2.1-.8 2.1-.8z"
+        fill="#ffffff"
+      />
     </svg>
   );
 }

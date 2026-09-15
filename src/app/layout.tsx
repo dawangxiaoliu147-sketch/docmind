@@ -14,7 +14,34 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "知行 · AI 智能知识库",
-  description: "基于 RAG 检索增强生成的 AI 智能知识库助手",
+  description:
+    "知行合一 · 基于 RAG 的 AI 智能知识库与求职助手：上传文档即可向 AI 提问，支持多角色 Agent、知识图谱、简历工坊、职位匹配等 20+ 项 AI 功能。",
+  keywords: [
+    "AI 知识库",
+    "RAG",
+    "检索增强生成",
+    "智能问答",
+    "AI Agent",
+    "简历制作",
+    "求职助手",
+    "知识图谱",
+    "Next.js",
+    "pgvector",
+  ],
+  authors: [{ name: "知行" }],
+  openGraph: {
+    title: "知行 · AI 智能知识库",
+    description:
+      "上传文档即可向 AI 提问，回答可溯源；更有多角色 Agent、知识图谱、简历工坊、职位匹配等丰富 AI 功能。",
+    siteName: "知行",
+    type: "website",
+    locale: "zh_CN",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "知行 · AI 智能知识库",
+    description: "上传文档即可向 AI 提问，回答可溯源；20+ AI 功能一站式体验。",
+  },
 };
 
 // 默认背景图：所有未自定义背景的用户默认看到这张图
