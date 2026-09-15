@@ -102,12 +102,12 @@ export function ChatPanel({
       const text = messageText(m);
       return `## ${m.role === "user" ? "🙋 用户" : "🤖 AI"}\n\n${text}`;
     });
-    const md = `# 文档生活助手 对话记录\n\n> 导出时间：${new Date().toLocaleString()}\n\n${lines.join("\n\n")}`;
+    const md = `# 知行 对话记录\n\n> 导出时间：${new Date().toLocaleString()}\n\n${lines.join("\n\n")}`;
     const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `文档生活助手对话-${new Date().toISOString().slice(0, 10)}.md`;
+    a.download = `知行对话-${new Date().toISOString().slice(0, 10)}.md`;
     a.click();
     URL.revokeObjectURL(url);
   }

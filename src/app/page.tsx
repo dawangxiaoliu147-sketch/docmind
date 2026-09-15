@@ -89,7 +89,7 @@ export default function LandingPage() {
                 </span>
               </h1>
               <p className="mt-5 max-w-lg text-lg leading-relaxed text-zinc-600 dark:text-zinc-400">
-                文档生活助手——上传你的资料，AI 自动解析并向量化，让你用自然语言提问、回答可溯源；更有简历工坊、求职助手、知识闪卡等丰富 AI 玩法。
+                知行——上传你的资料，AI 自动解析并向量化，让你用自然语言提问、回答可溯源；更有简历工坊、求职助手、知识闪卡等丰富 AI 玩法。
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link

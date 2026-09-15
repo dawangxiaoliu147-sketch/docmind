@@ -4,7 +4,7 @@ import { requireUser } from "@/lib/dal";
 import { WORK_AGENTS } from "@/lib/work-agents";
 
 export const metadata: Metadata = {
-  title: "工作台 · 文档生活助手",
+  title: "工作台 · 知行",
 };
 
 export default async function WorkbenchPage() {

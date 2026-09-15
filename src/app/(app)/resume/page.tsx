@@ -3,7 +3,7 @@ import { requireUser } from "@/lib/dal";
 import { ResumeStudio } from "@/components/resume-studio";
 
 export const metadata: Metadata = {
-  title: "简历工坊 · 文档生活助手",
+  title: "简历工坊 · 知行",
 };
 
 export default async function ResumePage() {

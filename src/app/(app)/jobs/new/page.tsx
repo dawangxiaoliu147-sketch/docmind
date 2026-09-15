@@ -5,7 +5,7 @@ import { addJob } from "@/lib/actions/job";
 import { JobImport } from "@/components/job-import";
 
 export const metadata: Metadata = {
-  title: "添加职位 · 文档生活助手",
+  title: "添加职位 · 知行",
 };
 
 const inputCls =

@@ -6,7 +6,7 @@ import { AccentPicker } from "@/components/accent-picker";
 import { BackgroundPicker } from "@/components/background-picker";
 
 export const metadata: Metadata = {
-  title: "设置 · 文档生活助手",
+  title: "设置 · 知行",
 };
 
 export default async function SettingsPage() {

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { RegisterForm } from "./register-form";
 
 export const metadata: Metadata = {
-  title: "注册 · 文档生活助手",
+  title: "注册 · 知行",
 };
 
 export default function RegisterPage() {

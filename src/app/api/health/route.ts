@@ -4,7 +4,7 @@
 export async function GET() {
   return NextResponse.json({
     status: "ok",
-    service: "文档生活助手",
+    service: "知行",
     time: new Date().toISOString(),
   });
 }

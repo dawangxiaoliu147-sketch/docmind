@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "文档生活助手 · AI 智能知识库",
+  title: "知行 · AI 智能知识库",
   description: "基于 RAG 检索增强生成的 AI 智能知识库助手",
 };
 

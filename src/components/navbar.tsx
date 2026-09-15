@@ -5,6 +5,7 @@ import { Avatar } from "@/components/avatar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { MobileNav, type NavLink } from "@/components/mobile-nav";
 import { CommandPalette } from "@/components/command-palette";
+import { Logo } from "@/components/logo";
 
 export async function Navbar() {
   const user = await getCurrentUser();
@@ -31,10 +32,8 @@ export async function Navbar() {
             href="/dashboard"
             className="flex items-center gap-2 text-base font-semibold"
           >
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-sm font-bold text-white">
-              D
-            </span>
-            文档生活助手
+            <Logo className="h-7 w-7" />
+            知行
           </Link>
           <div className="hidden items-center gap-4 text-sm font-medium text-zinc-600 sm:flex dark:text-zinc-300">
             {links.map((l) => (

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Logo } from "@/components/logo";
 
 export function Footer() {
   return (
@@ -7,10 +8,8 @@ export function Footer() {
         <div className="grid gap-8 sm:grid-cols-3">
           <div>
             <div className="flex items-center gap-2 text-base font-bold">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-sm font-bold text-white">
-                D
-              </span>
-              文档生活助手
+              <Logo className="h-7 w-7" />
+              知行
             </div>
             <p className="mt-3 text-sm text-zinc-500 dark:text-zinc-400">
               基于 RAG 的 AI 智能知识库，让你的文档可被 AI 检索与问答。
@@ -58,7 +57,7 @@ export function Footer() {
         </div>
 
         <div className="mt-8 border-t border-zinc-100 pt-6 text-center text-xs text-zinc-400 dark:border-zinc-800 dark:text-zinc-500">
-          © {new Date().getFullYear()} 文档生活助手 · 全栈 AI 知识库项目 · v1.0
+          © {new Date().getFullYear()} 知行 · 全栈 AI 知识库项目 · v1.0
         </div>
       </div>
     </footer>

@@ -6,7 +6,7 @@ import { ResumeRecommend } from "@/components/resume-recommend";
 import { JobsBrowser } from "@/components/jobs-browser";
 
 export const metadata: Metadata = {
-  title: "职位库 · 文档生活助手",
+  title: "职位库 · 知行",
 };
 
 export default async function JobsPage() {

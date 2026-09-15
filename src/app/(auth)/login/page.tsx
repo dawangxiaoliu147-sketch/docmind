@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LoginForm } from "./login-form";
+import { Logo } from "@/components/logo";
 
 export const metadata: Metadata = {
-  title: "登录 · 文档生活助手",
+  title: "登录 · 知行",
 };
 
 const FEATURES = [
@@ -23,10 +24,8 @@ export default function LoginPage() {
         {/* 左侧品牌区（桌面端） */}
         <div className="hidden flex-col justify-between bg-gradient-to-br from-indigo-600 via-indigo-500 to-violet-600 p-10 text-white lg:flex">
           <div className="flex items-center gap-2 text-xl font-bold">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 text-lg backdrop-blur">
-              D
-            </span>
-            文档生活助手
+            <Logo className="h-10 w-10" />
+            知行
           </div>
 
           <div>
@@ -51,17 +50,17 @@ export default function LoginPage() {
           </div>
 
           <p className="text-xs text-indigo-200">
-            © {new Date().getFullYear()} 文档生活助手 · AI 智能知识库
+            © {new Date().getFullYear()} 知行 · AI 智能知识库
           </p>
         </div>
 
         {/* 右侧表单 */}
         <div className="p-8 sm:p-10">
           <div className="mb-8 lg:hidden">
-            <div className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-xl font-bold text-white">
-              D
+            <div className="mb-3">
+              <Logo className="h-12 w-12" />
             </div>
-            <h1 className="text-2xl font-semibold dark:text-zinc-50">登录 文档生活助手</h1>
+            <h1 className="text-2xl font-semibold dark:text-zinc-50">登录 知行</h1>
           </div>
 
           <h2 className="text-xl font-semibold dark:text-zinc-50">欢迎回来 👋</h2>
