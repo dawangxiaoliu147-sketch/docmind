@@ -58,6 +58,10 @@ export function ResumeEditor() {
   const abortRef = useRef<AbortController | null>(null);
   const [imageData, setImageData] = useState<string | null>(null);
   const [imageName, setImageName] = useState<string | null>(null);
+  const [saved, setSaved] = useState<{ id: string; title: string }[]>([]);
+  const [curId, setCurId] = useState<string | null>(null);
+  const [libOpen, setLibOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   function currentHtml(): string {
     return bodyRef.current?.innerHTML ?? "";
@@ -137,6 +141,11 @@ export function ResumeEditor() {
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tpl, zoom]);
+
+  useEffect(() => {
+    loadList();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function onUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -221,6 +230,80 @@ export function ResumeEditor() {
     e.target.value = "";
   }
 
+  /* ---------- 简历库 ---------- */
+  async function loadList() {
+    try {
+      const res = await fetch("/api/resumes");
+      const json = await res.json();
+      setSaved(Array.isArray(json.resumes) ? json.resumes : []);
+    } catch {
+      setSaved([]);
+    }
+  }
+
+  async function saveResume() {
+    const el = bodyRef.current;
+    if (!el || saving) return;
+    const title = window.prompt("简历名称", "我的简历");
+    if (!title || !title.trim()) return;
+    setSaving(true);
+    try {
+      const payload = { title: title.trim(), html: el.innerHTML, tpl, accent };
+      const res = await fetch(curId ? `/api/resumes/${curId}` : "/api/resumes", {
+        method: curId ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        setMsg(json.error ?? "保存失败");
+      } else {
+        if (!curId && json.id) setCurId(json.id);
+        setMsg("💾 已保存到简历库");
+        loadList();
+      }
+    } catch {
+      setMsg("保存失败");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function openResume(id: string) {
+    setLibOpen(false);
+    try {
+      const res = await fetch(`/api/resumes/${id}`);
+      const json = await res.json();
+      if (!res.ok) {
+        setMsg(json.error ?? "读取失败");
+        return;
+      }
+      if (bodyRef.current) bodyRef.current.innerHTML = json.resume.html;
+      setTpl(json.resume.tpl);
+      setAccent(json.resume.accent);
+      setCurId(id);
+      setMsg(`📂 已打开：${json.resume.title}`);
+      setTimeout(measurePages, 120);
+    } catch {
+      setMsg("读取失败");
+    }
+  }
+
+  function newResume() {
+    if (bodyRef.current) bodyRef.current.innerHTML = DEFAULT_HTML;
+    setTpl("ribbon");
+    setAccent("#1f4e79");
+    setCurId(null);
+    setLibOpen(false);
+    setMsg("🆕 已新建空白简历");
+  }
+
+  async function delResume(id: string) {
+    await fetch(`/api/resumes/${id}`, { method: "DELETE" });
+    if (curId === id) setCurId(null);
+    loadList();
+  }
+
   return (
     <div>
       {/* 工具条 */}
@@ -287,6 +370,60 @@ export function ResumeEditor() {
         <span className={`text-xs font-medium ${pages > 1 ? "text-amber-600" : "text-emerald-600"}`}>
           {pages > 1 ? `⚠ 约 ${pages} 页` : "✓ 1 页 A4"}
         </span>
+        <div className="relative">
+          <button
+            onClick={saveResume}
+            disabled={saving}
+            className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-60"
+          >
+            {saving ? "保存中…" : "💾 保存"}
+          </button>
+          <button
+            onClick={() => {
+              setLibOpen((v) => !v);
+              loadList();
+            }}
+            className="ml-1 rounded-lg border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+          >
+            📚 简历库
+          </button>
+          {libOpen && (
+            <div className="absolute left-0 top-full z-30 mt-1 w-64 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-xl dark:border-zinc-800 dark:bg-zinc-900">
+              <button
+                onClick={newResume}
+                className="block w-full px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
+              >
+                🆕 新建空白简历
+              </button>
+              <div className="max-h-64 overflow-y-auto border-t border-zinc-100 dark:border-zinc-800">
+                {saved.length === 0 ? (
+                  <p className="px-3 py-2 text-xs text-zinc-400">还没有保存的简历</p>
+                ) : (
+                  saved.map((r) => (
+                    <div
+                      key={r.id}
+                      className="flex items-center gap-1 border-b border-zinc-50 px-2 py-1.5 last:border-0 dark:border-zinc-800/60"
+                    >
+                      <button
+                        onClick={() => openResume(r.id)}
+                        className="min-w-0 flex-1 truncate rounded px-1 py-1 text-left text-sm text-zinc-700 hover:text-indigo-600 dark:text-zinc-200"
+                      >
+                        {r.title}
+                      </button>
+                      <button
+                        onClick={() => delResume(r.id)}
+                        className="shrink-0 px-1 text-xs text-zinc-300 hover:text-red-500"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
         <button onClick={() => setAgentOpen((v) => !v)} className="ml-auto rounded-lg bg-violet-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-violet-700">
           {agentOpen ? "收起智能体" : "🤖 智能体改简历"}
         </button>

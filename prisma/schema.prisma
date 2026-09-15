@@ -115,3 +115,17 @@ model Job {
 
   @@map("jobs")
 }
+
+model Resume {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  title     String
+  html      String
+  tpl       String   @default("ribbon")
+  accent    String   @default("#1f4e79")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@map("resumes")
+}
