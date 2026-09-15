@@ -43,6 +43,7 @@ services:
       AI_BASE_URL: ${AI_BASE_URL:-https://api.openai.com/v1}
       AI_API_KEY: ${AI_API_KEY:-}
       CHAT_MODEL: ${CHAT_MODEL:-gpt-4o-mini}
+      VISION_MODEL: ${VISION_MODEL:-deepseek-v4-flash-vision-exp}
       EMBEDDING_BASE_URL: ${EMBEDDING_BASE_URL:-https://api.openai.com/v1}
       EMBEDDING_API_KEY: ${EMBEDDING_API_KEY:-}
       EMBEDDING_MODEL: ${EMBEDDING_MODEL:-text-embedding-3-small}

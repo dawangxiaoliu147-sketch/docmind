@@ -15,6 +15,12 @@ export const chatModel = chatProvider.chat(
   process.env.CHAT_MODEL || "gpt-4o-mini",
 );
 
+// ---- 视觉模型（支持图片输入，用于「识图」，如简历智能体）----
+// 不配置则回退到对话模型；DeepSeek 的视觉模型：deepseek-v4-flash-vision-exp
+export const visionModel = chatProvider.chat(
+  process.env.VISION_MODEL || "deepseek-v4-flash-vision-exp",
+);
+
 // ---- 嵌入模型（可独立配置，不填则复用对话模型的地址与密钥）----
 const embedBaseURL = process.env.EMBEDDING_BASE_URL || chatBaseURL;
 const embedApiKey = process.env.EMBEDDING_API_KEY || chatApiKey;

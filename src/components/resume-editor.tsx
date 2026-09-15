@@ -55,6 +55,9 @@ export function ResumeEditor() {
   const [uploading, setUploading] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [pages, setPages] = useState(1);
+  const abortRef = useRef<AbortController | null>(null);
+  const [imageData, setImageData] = useState<string | null>(null);
+  const [imageName, setImageName] = useState<string | null>(null);
 
   function currentHtml(): string {
     return bodyRef.current?.innerHTML ?? "";
@@ -73,12 +76,11 @@ export function ResumeEditor() {
     reader.onload = () => {
       const photo = bodyRef.current?.querySelector<HTMLElement>(".rh-photo");
       if (!photo) return;
-      photo.style.backgroundImage = `url(${reader.result})`;
-      photo.style.backgroundSize = "cover";
-      photo.style.backgroundPosition = "center";
-      photo.style.backgroundRepeat = "no-repeat";
+      // 用 <img> 而不是背景图：打印/导出 PDF 更可靠
+      photo.innerHTML = `<img src="${reader.result}" alt="照片" style="width:100%;height:100%;object-fit:cover;display:block;" />`;
+      photo.style.padding = "0";
       photo.style.borderColor = "transparent";
-      photo.textContent = "";
+      photo.style.background = "none";
     };
     reader.readAsDataURL(file);
     e.target.value = "";
@@ -166,6 +168,8 @@ export function ResumeEditor() {
     if (!text || busy) return;
     setBusy(true);
     setMsg(null);
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
     try {
       const res = await fetch("/api/resume/agent", {
         method: "POST",
@@ -176,7 +180,9 @@ export function ResumeEditor() {
           tpl,
           accent,
           source: srcText ?? "",
+          image: imageData ?? "",
         }),
+        signal: ctrl.signal,
       });
       const json = await res.json();
       if (!res.ok) {
@@ -188,11 +194,31 @@ export function ResumeEditor() {
         setMsg("✅ 已按你的要求修改");
         setPrompt("");
       }
-    } catch {
-      setMsg("修改失败，请重试");
+    } catch (err) {
+      if ((err as Error)?.name === "AbortError") setMsg("⏹ 已停止修改");
+      else setMsg("修改失败，请重试");
     } finally {
       setBusy(false);
+      abortRef.current = null;
+      setTimeout(measurePages, 80);
     }
+  }
+
+  function stopAgent() {
+    abortRef.current?.abort();
+  }
+
+  function onImage(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImageData(reader.result as string);
+      setImageName(file.name);
+      setMsg("🖼️ 图片已读入，说说你要从中提炼什么");
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
   }
 
   return (
@@ -326,13 +352,43 @@ export function ResumeEditor() {
               placeholder="例如：把工作经历改成 3 年经验的产品经理，多加 2 条量化成果"
               className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-xs outline-none focus:border-violet-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
             />
-            <button
-              onClick={askAgent}
-              disabled={busy || !prompt.trim()}
-              className="mt-2 w-full rounded-lg bg-violet-600 px-3 py-2 text-sm font-semibold text-white hover:bg-violet-700 disabled:opacity-50"
-            >
-              {busy ? "🪄 修改中…" : "🪄 让智能体修改"}
-            </button>
+            {imageName && (
+              <div className="mb-2 flex items-center justify-between rounded-lg bg-zinc-100 px-2 py-1.5 text-xs dark:bg-zinc-800">
+                <span className="truncate text-zinc-600 dark:text-zinc-300">🖼️ {imageName}</span>
+                <button
+                  onClick={() => {
+                    setImageData(null);
+                    setImageName(null);
+                  }}
+                  className="ml-2 shrink-0 text-zinc-400 hover:text-red-500"
+                >
+                  移除
+                </button>
+              </div>
+            )}
+
+            <label className="mb-2 flex cursor-pointer items-center justify-center gap-1 rounded-lg border border-dashed border-zinc-300 py-2 text-xs text-zinc-500 transition hover:border-violet-400 hover:text-violet-600 dark:border-zinc-700 dark:text-zinc-400">
+              🖼️ 上传图片（识图，可选）
+              <input type="file" accept="image/*" className="hidden" onChange={onImage} />
+            </label>
+
+            <div className="mt-2 flex gap-2">
+              <button
+                onClick={askAgent}
+                disabled={busy || !prompt.trim()}
+                className="flex-1 rounded-lg bg-violet-600 px-3 py-2 text-sm font-semibold text-white hover:bg-violet-700 disabled:opacity-50"
+              >
+                {busy ? "🪄 修改中…" : "🪄 让智能体修改"}
+              </button>
+              {busy && (
+                <button
+                  onClick={stopAgent}
+                  className="rounded-lg border border-red-300 px-3 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950"
+                >
+                  ⏹ 停止
+                </button>
+              )}
+            </div>
             {msg && <p className="mt-2 text-xs text-emerald-600 dark:text-emerald-400">{msg}</p>}
           </div>
         </div>
@@ -351,14 +407,17 @@ function pageCss(accent: string): string {
     background: #fff; color: #1a1a1a; line-height: 1.5;
     font-family: "PingFang SC","Microsoft YaHei","Source Han Sans SC",system-ui,sans-serif;
     font-size: 10.5pt;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
   .page.editing { outline: 2px dashed #c7d2fe; outline-offset: 4px; }
   .rh { display: flex; gap: 14px; align-items: flex-start; }
   .rh-photo {
     width: 26mm; min-height: 32mm; flex: 0 0 auto; border: 1px solid #d8dee6; border-radius: 2px;
     display: flex; align-items: center; justify-content: center; text-align: center;
-    color: #b9c2cd; font-size: 8pt; background: #fafbfc;
+    color: #b9c2cd; font-size: 8pt; background: #fafbfc; overflow: hidden;
   }
+  .rh-photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
   .rh-main { flex: 1 1 auto; min-width: 0; }
   .rh-name { margin: 0; font-size: 22pt; font-weight: 700; color: ${accent}; letter-spacing: 3px; }
   .rh-sub { margin: 2px 0 6px; font-size: 10pt; color: #3c4652; }
@@ -405,16 +464,19 @@ function pageCss(accent: string): string {
   .tpl-center .rh { flex-direction: column; align-items: center; text-align: center; }
   .tpl-center .rh-grid { width: 100%; text-align: left; margin-top: 4px; }
   @media print {
-    html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; }
+    html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; height: auto !important; }
     /* 只打印简历本身：隐藏工具栏、智能体窗口、导航等所有界面 */
     body * { visibility: hidden !important; }
     .page, .page * { visibility: visible !important; }
     .page {
-      position: absolute !important; left: 0 !important; top: 0 !important;
-      width: 210mm !important; min-height: 0 !important;
-      margin: 0 !important; padding: 10mm 13mm !important;
+      position: fixed !important; left: 0 !important; top: 0 !important; right: auto !important; bottom: auto !important;
+      width: 210mm !important; min-height: 0 !important; max-height: none !important;
+      margin: 0 !important; padding: 8mm 13mm !important;
       box-shadow: none !important; outline: none !important; border: 0 !important;
+      overflow: visible !important; background: #fff !important;
     }
+    /* 页头不要多余外边距 */
+    .page .rh { margin-top: 0 !important; }
   }
   `;
 }
