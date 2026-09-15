@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 // 默认简历内容（对齐参考模板：照片 + 姓名标题 + 蓝色横幅 + 信息网格 + 蓝色分区标签）
 const DEFAULT_HTML = `
@@ -53,6 +53,8 @@ export function ResumeEditor() {
   const [srcName, setSrcName] = useState<string | null>(null);
   const [srcText, setSrcText] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [zoom, setZoom] = useState(1);
+  const [pages, setPages] = useState(1);
 
   function currentHtml(): string {
     return bodyRef.current?.innerHTML ?? "";
@@ -92,6 +94,47 @@ export function ResumeEditor() {
     a.click();
     URL.revokeObjectURL(url);
   }
+
+  // 估算页数 + 自动缩到一页（A4 内容高度约 1122px @96dpi）
+  const A4_PX = 1100;
+
+  function measurePages(): number {
+    const el = bodyRef.current;
+    if (!el) return 1;
+    const prev = el.style.minHeight;
+    el.style.minHeight = "0";
+    const h = el.scrollHeight;
+    el.style.minHeight = prev;
+    const n = Math.max(1, Math.ceil(h / A4_PX - 0.02));
+    setPages(n);
+    return n;
+  }
+
+  function fitOnePage() {
+    const el = bodyRef.current;
+    if (!el) return;
+    setZoom(1);
+    requestAnimationFrame(() => {
+      const target = bodyRef.current;
+      if (!target) return;
+      const prev = target.style.minHeight;
+      target.style.minHeight = "0";
+      const h = target.scrollHeight;
+      target.style.minHeight = prev;
+      if (h > A4_PX) {
+        setZoom(Math.max(0.62, Number((A4_PX / h).toFixed(3))));
+      }
+      setMsg("📏 已自动适配到一页");
+      setTimeout(measurePages, 60);
+    });
+  }
+
+  // 挂载/切模板/缩放变化时，自动校验页数
+  useEffect(() => {
+    const t = setTimeout(measurePages, 150);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tpl, zoom]);
 
   async function onUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -153,7 +196,7 @@ export function ResumeEditor() {
   }
 
   return (
-    <div className="relative">
+    <div>
       {/* 工具条 */}
       <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-zinc-200 bg-white p-2.5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
         <button
@@ -212,6 +255,12 @@ export function ResumeEditor() {
         <button onClick={() => window.print()} className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800">
           导出 PDF
         </button>
+        <button onClick={fitOnePage} className="rounded-lg border border-emerald-300 px-3 py-1.5 text-sm font-medium text-emerald-700 hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-400 dark:hover:bg-emerald-950">
+          📏 适配一页
+        </button>
+        <span className={`text-xs font-medium ${pages > 1 ? "text-amber-600" : "text-emerald-600"}`}>
+          {pages > 1 ? `⚠ 约 ${pages} 页` : "✓ 1 页 A4"}
+        </span>
         <button onClick={() => setAgentOpen((v) => !v)} className="ml-auto rounded-lg bg-violet-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-violet-700">
           {agentOpen ? "收起智能体" : "🤖 智能体改简历"}
         </button>
@@ -223,6 +272,7 @@ export function ResumeEditor() {
         <main
           ref={bodyRef}
           className={`page tpl-${tpl} ${editing ? "editing" : ""}`}
+          style={{ zoom }}
           contentEditable={editing}
           suppressContentEditableWarning
           spellCheck={false}
@@ -355,13 +405,14 @@ function pageCss(accent: string): string {
   .tpl-center .rh { flex-direction: column; align-items: center; text-align: center; }
   .tpl-center .rh-grid { width: 100%; text-align: left; margin-top: 4px; }
   @media print {
+    html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; }
     /* 只打印简历本身：隐藏工具栏、智能体窗口、导航等所有界面 */
     body * { visibility: hidden !important; }
     .page, .page * { visibility: visible !important; }
     .page {
       position: absolute !important; left: 0 !important; top: 0 !important;
       width: 210mm !important; min-height: 0 !important;
-      margin: 0 !important; padding: 12mm 14mm !important;
+      margin: 0 !important; padding: 10mm 13mm !important;
       box-shadow: none !important; outline: none !important; border: 0 !important;
     }
   }
