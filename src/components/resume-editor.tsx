@@ -43,6 +43,7 @@ const SWATCHES = ["#1f4e79", "#2f6f5e", "#8a3b3b", "#3b3f46", "#2e75b6", "#7c3ae
 export function ResumeEditor() {
   const bodyRef = useRef<HTMLDivElement>(null);
   const [accent, setAccent] = useState("#1f4e79");
+  const [tpl, setTpl] = useState<string>("ribbon");
   const [editing, setEditing] = useState(false);
   const [agentOpen, setAgentOpen] = useState(true);
   const [prompt, setPrompt] = useState("");
@@ -102,6 +103,30 @@ export function ResumeEditor() {
         >
           {editing ? "✓ 完成编辑" : "✎ 编辑"}
         </button>
+        <span className="text-xs text-zinc-400">模板</span>
+        {([
+          ["ribbon", "缎带标签"],
+          ["bar", "蓝底标签"],
+          ["gray", "灰底标签"],
+          ["underline", "下划线"],
+          ["dark", "深色头部"],
+          ["topbar", "顶部色条"],
+          ["right", "照片在右"],
+          ["center", "居中标题"],
+        ] as const).map(([id, label]) => (
+          <button
+            key={id}
+            onClick={() => setTpl(id)}
+            className={`rounded-lg px-2.5 py-1.5 text-xs font-medium transition ${
+              tpl === id
+                ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
+                : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+        <span className="mx-1 h-4 w-px bg-zinc-200 dark:bg-zinc-700" />
         <span className="text-xs text-zinc-400">主题色</span>
         {SWATCHES.map((c) => (
           <button
@@ -136,7 +161,7 @@ export function ResumeEditor() {
         <style dangerouslySetInnerHTML={{ __html: pageCss(accent) }} />
         <main
           ref={bodyRef}
-          className={`page ${editing ? "editing" : ""}`}
+          className={`page tpl-${tpl} ${editing ? "editing" : ""}`}
           contentEditable={editing}
           suppressContentEditableWarning
           spellCheck={false}
@@ -217,6 +242,29 @@ function pageCss(accent: string): string {
   .rdot > li { position: relative; padding-left: 13px; margin: 2px 0; font-size: 10.5pt; color: #2b2b2b; }
   .rdot > li::before { content: ""; position: absolute; left: 2px; top: 0.62em; width: 4px; height: 4px; border-radius: 50%; background: ${accent}; }
   .rk { font-weight: 700; }
+
+  /* ---- 模板：蓝底整条标签 ---- */
+  .tpl-bar .rsechead::after { display: none; }
+  .tpl-bar .rsechead h2 { background: ${accent}; color: #fff; clip-path: none; display: block; width: 100%; padding: 3px 10px; }
+  /* ---- 模板：灰底标签 ---- */
+  .tpl-gray .rsechead::after { display: none; }
+  .tpl-gray .rsechead h2 { background: #eef1f5; color: #2b2b2b; clip-path: none; display: block; width: 100%; padding: 3px 10px; }
+  /* ---- 模板：下划线标题 ---- */
+  .tpl-underline .rsechead::after { display: none; }
+  .tpl-underline .rsechead h2 { background: none; color: ${accent}; clip-path: none; padding: 2px 0 3px; border-bottom: 2px solid ${accent}; }
+  /* ---- 模板：深色头部 ---- */
+  .tpl-dark .rh { background: ${accent}; padding: 12px; border-radius: 4px; border-bottom: 0; }
+  .tpl-dark .rh-name { color: #fff; }
+  .tpl-dark .rh-sub, .tpl-dark .rh-grid { color: rgba(255,255,255,.92); }
+  .tpl-dark .rh-grid b { color: rgba(255,255,255,.72); }
+  .tpl-dark .rh-photo { border-color: rgba(255,255,255,.45); background: rgba(255,255,255,.12); color: rgba(255,255,255,.75); }
+  /* ---- 模板：顶部色条 ---- */
+  .tpl-topbar .rh { border-top: 10px solid ${accent}; }
+  /* ---- 模板：照片在右 ---- */
+  .tpl-right .rh { flex-direction: row-reverse; }
+  /* ---- 模板：居中标题（只居中顶部标题，分区保持正常） ---- */
+  .tpl-center .rh { flex-direction: column; align-items: center; text-align: center; }
+  .tpl-center .rh-grid { width: 100%; text-align: left; margin-top: 4px; }
   @media print {
     body { margin: 0; }
     .page { width: auto; min-height: 0; margin: 0; padding: 12mm 14mm; }
