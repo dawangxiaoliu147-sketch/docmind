@@ -66,6 +66,35 @@ input[type="range"] {
   accent-color: var(--accent);
 }
 
+/* ============ 桌面宠物：浮动 + 眨眼动画 ============ */
+@keyframes pet-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+.pet-float {
+  animation: pet-float 2.6s ease-in-out infinite;
+}
+@keyframes pet-blink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+  95% {
+    transform: scaleY(0.12);
+  }
+}
+.pet-eye {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pet-blink 4.5s ease-in-out infinite;
+}
+
 /* ============ AI 回答的 Markdown 渲染样式（浅色） ============ */
 .markdown {
   line-height: 1.7;

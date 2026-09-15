@@ -5,6 +5,7 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { AgentMascot } from "@/components/agent-mascot";
 
 type TextPart = { type: string; text?: string };
 function msgText(m: { parts: TextPart[] }): string {
@@ -34,7 +35,10 @@ export function AgentPanel() {
   return (
     <div className="flex h-[calc(100vh-10rem)] flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
       <div className="border-b border-zinc-100 px-5 py-3 dark:border-zinc-800">
-        <span className="text-sm font-semibold dark:text-zinc-100">🤖 知行智能体</span>
+        <span className="flex items-center gap-2 text-sm font-semibold dark:text-zinc-100">
+          <AgentMascot className="h-6 w-6" />
+          知行智能体
+        </span>
         <span className="ml-2 text-xs text-zinc-400 dark:text-zinc-500">
           可自主调用工具完成任务
         </span>
@@ -43,7 +47,9 @@ export function AgentPanel() {
       <div className="flex-1 space-y-5 overflow-y-auto p-5">
         {messages.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center text-center">
-            <div className="mb-3 text-4xl">🤖</div>
+            <div className="mb-3">
+              <AgentMascot className="h-16 w-16" />
+            </div>
             <p className="text-lg font-medium text-zinc-700 dark:text-zinc-200">
               你好，我是知行智能体
             </p>
