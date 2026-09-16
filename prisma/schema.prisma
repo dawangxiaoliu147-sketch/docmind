@@ -17,11 +17,19 @@ model User {
   passwordHash   String          @map("password_hash")
   avatarUrl      String?         @map("avatar_url")
   role           String          @default("user") @map("role") // user | admin
+  // 访问审批：pending 待审核 | approved 已通过 | rejected 已拒绝
+  // 默认写 approved 是为了「老数据迁移后不被锁住」；新注册由代码显式写 pending
+  status         String          @default("approved") @map("status")
+  // 管理员打的「信任」标签：为 true 则免申请，始终可登录
+  trusted        Boolean         @default(false) @map("trusted")
+  // 注册时填的申请说明，供管理员审核时参考
+  note           String?         @map("note")
   preferences    String?         @map("preferences") // JSON 字符串：AI 记住的用户偏好
   createdAt      DateTime        @default(now()) @map("created_at")
   updatedAt      DateTime        @updatedAt @map("updated_at")
   knowledgeBases KnowledgeBase[]
 
+  @@index([status])
   @@map("users")
 }
 

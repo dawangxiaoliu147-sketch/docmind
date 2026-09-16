@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 const LINKS = [
   { href: "/admin", label: "📊 总览" },
+  { href: "/admin/requests", label: "🔔 访问申请" },
   { href: "/admin/users", label: "👤 用户" },
   { href: "/admin/knowledge-bases", label: "🗂️ 知识库" },
   { href: "/admin/documents", label: "📄 文档" },

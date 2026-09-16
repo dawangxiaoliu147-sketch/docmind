@@ -5,8 +5,8 @@ import { redirect } from "next/navigation";
 import { prisma } from "../db";
 import { createSession, deleteSession } from "../session";
 
-// 注册邀请码：在 .env 里配置 INVITE_CODE 后，注册必须填对才能通过。
-// 不配置则保持开放注册（本地开发方便）。
+// 邀请码 = 管理员发的「信任凭证」：填对即可免申请直接开通。
+// 不配置则所有人都走申请流程（等管理员审核）。
 const INVITE_CODE = (process.env.INVITE_CODE ?? "").trim();
 
 export type AuthState = {
@@ -25,14 +25,7 @@ export async function register(
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
   const invite = String(formData.get("invite") ?? "").trim();
-
-  // 邀请码就是注册的唯一门槛：配了就必须填对，没配则开放注册。
-  // 刻意不做频率限制 —— 邀请码不对的人在到达 bcrypt 之前就被挡掉了，不会消耗 CPU。
-
-  // 邀请码校验：只有配置了 INVITE_CODE 才启用
-  if (INVITE_CODE && invite !== INVITE_CODE) {
-    return { errors: { invite: "邀请码不正确" } };
-  }
+  const note = String(formData.get("note") ?? "").trim().slice(0, 200);
 
   if (name.length < 2) return { errors: { name: "昵称至少 2 个字符" } };
   if (!EMAIL_RE.test(email)) return { errors: { email: "请输入有效的邮箱地址" } };
@@ -41,10 +34,34 @@ export async function register(
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) return { errors: { email: "该邮箱已被注册" } };
 
+  // 谁能免申请直接开通：
+  //   1) 管理员本人 —— 否则管理员注册自己也会被拦在门外
+  //   2) 填对邀请码的人 —— 邀请码就是管理员发的信任凭证
+  // 其他人都进入「待审核」，等管理员在后台 /admin/requests 通过。
+  // 注意：邀请码填错不报错，只是按「没有邀请码」处理走申请流程，
+  // 这样接口不会变成"猜邀请码"的探测器。
+  const adminEmail = (process.env.ADMIN_EMAIL ?? "").trim().toLowerCase();
+  const trusted =
+    (!!adminEmail && email === adminEmail) || (!!INVITE_CODE && invite === INVITE_CODE);
+
   const passwordHash = await bcrypt.hash(password, 10);
   const user = await prisma.user.create({
-    data: { name, email, passwordHash },
+    data: {
+      name,
+      email,
+      passwordHash,
+      note: note || null,
+      trusted,
+      status: trusted ? "approved" : "pending",
+    },
   });
+
+  // 待审核的用户不建会话：必须先由管理员通过才能使用
+  if (!trusted) {
+    return {
+      message: "✅ 申请已提交。管理员审核通过后即可登录，可联系管理员加快处理。",
+    };
+  }
 
   await createSession(user.id);
   redirect("/dashboard");
@@ -64,6 +81,16 @@ export async function login(
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
     return { message: "邮箱或密码错误" };
+  }
+
+  // 访问审批：只有「信任人员」和「审核通过」的人能登录
+  if (!user.trusted && user.status !== "approved") {
+    return {
+      message:
+        user.status === "rejected"
+          ? "很抱歉，你的访问申请未通过"
+          : "你的申请正在等待管理员审核，通过后即可登录",
+    };
   }
 
   await createSession(user.id);

@@ -19,7 +19,9 @@ export default function RegisterPage() {
           </div>
           <h1 className="text-2xl font-semibold dark:text-zinc-50">创建账号</h1>
           <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            {needInvite ? "本站需要邀请码，请向邀请你的人索取" : "开始构建你的 AI 知识库"}
+            {needInvite
+              ? "提交后需管理员审核；填写邀请码可直接开通"
+              : "本站为审核制，提交申请后由管理员开通"}
           </p>
         </div>
 

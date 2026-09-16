@@ -33,3 +33,46 @@ export async function setUserRole(formData: FormData): Promise<void> {
   await prisma.user.update({ where: { id }, data: { role } });
   revalidatePath("/admin/users");
 }
+
+/* ---------- 访问审批 ---------- */
+
+// 通过访问申请：该用户即可登录使用
+export async function approveUser(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  if (!id) return;
+  await prisma.user.update({ where: { id }, data: { status: "approved" } });
+  revalidatePath("/admin/requests");
+  revalidatePath("/admin/users");
+}
+
+// 拒绝访问申请
+export async function rejectUser(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  if (!id) return;
+  await prisma.user.update({ where: { id }, data: { status: "rejected" } });
+  revalidatePath("/admin/requests");
+  revalidatePath("/admin/users");
+}
+
+// 打上 / 取消「信任」标签。
+// 打上 = 免申请且始终可登录（同时把状态置为通过）；
+// 取消 = 回到需要审批的状态（状态保持不变，由管理员另行决定）。
+export async function toggleTrusted(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  if (!id) return;
+  const user = await prisma.user.findUnique({
+    where: { id },
+    select: { trusted: true },
+  });
+  if (!user) return;
+  const next = !user.trusted;
+  await prisma.user.update({
+    where: { id },
+    data: next ? { trusted: true, status: "approved" } : { trusted: false },
+  });
+  revalidatePath("/admin/users");
+  revalidatePath("/admin/requests");
+}

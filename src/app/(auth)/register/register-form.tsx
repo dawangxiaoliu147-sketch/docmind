@@ -55,26 +55,36 @@ export function RegisterForm({ needInvite = false }: { needInvite?: boolean }) {
         )}
       </div>
 
+      <div>
+        <label htmlFor="note" className="mb-1 block text-sm font-medium dark:text-zinc-200">
+          申请说明（选填）
+        </label>
+        <textarea
+          id="note"
+          name="note"
+          rows={2}
+          maxLength={200}
+          placeholder="简单说明用途，方便管理员审核"
+          className={inputCls}
+        />
+      </div>
+
       {needInvite && (
         <div>
           <label htmlFor="invite" className="mb-1 block text-sm font-medium dark:text-zinc-200">
-            邀请码
+            邀请码（选填）
           </label>
           <input
             id="invite"
             name="invite"
-            required
-            placeholder="向邀请你的人索取"
+            placeholder="填写可直接开通，不填则提交申请"
             className={inputCls}
           />
-          {state?.errors?.invite && (
-            <p className="mt-1 text-xs text-red-600 dark:text-red-400">{state.errors.invite}</p>
-          )}
         </div>
       )}
 
       {state?.message && (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600 dark:bg-red-950 dark:text-red-400">
+        <p className="rounded-lg bg-emerald-50 px-3 py-2 text-xs text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400">
           {state.message}
         </p>
       )}
@@ -84,7 +94,7 @@ export function RegisterForm({ needInvite = false }: { needInvite?: boolean }) {
         disabled={pending}
         className="w-full rounded-lg bg-indigo-600 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {pending ? "注册中…" : "注册"}
+        {pending ? "提交中…" : "提交申请"}
       </button>
     </form>
   );

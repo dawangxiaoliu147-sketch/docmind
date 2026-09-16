@@ -14,6 +14,8 @@ export type SafeUser = {
   email: string;
   avatarUrl: string | null;
   role: string;
+  status: string;
+  trusted: boolean;
 };
 
 // 解析会话，不跳转（供 API Route 判断用，返回 null 表示未登录）
@@ -33,8 +35,20 @@ export const getCurrentUser = cache(async (): Promise<SafeUser | null> => {
 
   const user = await prisma.user.findUnique({
     where: { id: session.userId },
-    select: { id: true, name: true, email: true, avatarUrl: true, role: true },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      avatarUrl: true,
+      role: true,
+      status: true,
+      trusted: true,
+    },
   });
+  if (!user) return null;
+  // 访问审批：管理员把某人改成「待审核 / 已拒绝」后立即失效，
+  // 不用等 7 天的 Cookie 过期才踢出去。信任人员始终放行。
+  if (!user.trusted && user.status !== "approved") return null;
   return user;
 });
 

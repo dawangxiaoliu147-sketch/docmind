@@ -1,6 +1,6 @@
 import { requireAdmin } from "@/lib/dal";
 import { prisma } from "@/lib/db";
-import { deleteUser, setUserRole } from "@/lib/actions/admin";
+import { deleteUser, setUserRole, toggleTrusted, approveUser } from "@/lib/actions/admin";
 
 export default async function AdminUsersPage() {
   await requireAdmin();
@@ -24,6 +24,8 @@ export default async function AdminUsersPage() {
               <th className="px-5 py-3 font-medium">昵称</th>
               <th className="px-5 py-3 font-medium">邮箱</th>
               <th className="px-5 py-3 font-medium">角色</th>
+              <th className="px-5 py-3 font-medium">访问状态</th>
+              <th className="px-5 py-3 font-medium">信任</th>
               <th className="px-5 py-3 font-medium">知识库数</th>
               <th className="px-5 py-3 font-medium">注册时间</th>
               <th className="px-5 py-3 font-medium text-right">操作</th>
@@ -49,6 +51,32 @@ export default async function AdminUsersPage() {
                     {u.role === "admin" ? "管理员" : "用户"}
                   </span>
                 </td>
+                <td className="px-5 py-3">
+                  <span
+                    className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                      u.status === "approved"
+                        ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400"
+                        : u.status === "pending"
+                          ? "bg-amber-50 text-amber-600 dark:bg-amber-950 dark:text-amber-400"
+                          : "bg-red-50 text-red-600 dark:bg-red-950 dark:text-red-400"
+                    }`}
+                  >
+                    {u.status === "approved"
+                      ? "已通过"
+                      : u.status === "pending"
+                        ? "待审核"
+                        : "已拒绝"}
+                  </span>
+                </td>
+                <td className="px-5 py-3">
+                  {u.trusted ? (
+                    <span className="rounded-full bg-violet-50 px-2.5 py-0.5 text-xs font-medium text-violet-600 dark:bg-violet-950 dark:text-violet-400">
+                      ⭐ 信任
+                    </span>
+                  ) : (
+                    <span className="text-xs text-zinc-400">—</span>
+                  )}
+                </td>
                 <td className="px-5 py-3 dark:text-zinc-300">
                   {u._count.knowledgeBases}
                 </td>
@@ -57,6 +85,27 @@ export default async function AdminUsersPage() {
                 </td>
                 <td className="px-5 py-3">
                   <div className="flex items-center justify-end gap-2">
+                    {u.status !== "approved" && (
+                      <form action={approveUser}>
+                        <input type="hidden" name="id" value={u.id} />
+                        <button
+                          type="submit"
+                          className="rounded-lg px-3 py-1.5 text-xs font-medium text-emerald-600 transition hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950"
+                        >
+                          通过
+                        </button>
+                      </form>
+                    )}
+                    <form action={toggleTrusted}>
+                      <input type="hidden" name="id" value={u.id} />
+                      <button
+                        type="submit"
+                        title="信任人员免申请，始终可登录"
+                        className="rounded-lg px-3 py-1.5 text-xs font-medium text-violet-600 transition hover:bg-violet-50 dark:text-violet-400 dark:hover:bg-violet-950"
+                      >
+                        {u.trusted ? "取消信任" : "⭐ 设为信任"}
+                      </button>
+                    </form>
                     <form action={setUserRole}>
                       <input type="hidden" name="id" value={u.id} />
                       <input
