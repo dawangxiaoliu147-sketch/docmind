@@ -25,38 +25,55 @@ export async function POST(req: Request) {
   const tpl = String(body?.tpl ?? "ribbon");
   const accent = String(body?.accent ?? "#1f4e79");
   const prompt = String(body?.prompt ?? "").trim();
-  const source = String(body?.source ?? "").slice(0, 24000);
+  const source = String(body?.source ?? "").slice(0, 100000);
   const image = typeof body?.image === "string" && body.image.startsWith("data:image") ? body.image : "";
   if (!prompt) {
     return Response.json({ error: "请输入你的要求" }, { status: 400 });
   }
 
-  const result = await generateText({
-    model: image ? visionModel : chatModel,
-    system:
-      "你是专业简历编辑助手，帮用户修改简历。用户给你简历的 HTML 片段、当前模板与主题色，以及修改要求。\n" +
-      "若用户还上传了「参考资料」（他的经历、旧简历、项目笔记等），你要从中提炼与求职相关的内容，按板块（教育背景/工作经历/项目经历/专业技能/荣誉证书/自我评价）归纳改写进简历。\n" +
-      "请完成两件事：\n" +
-      "1) 按需求修改 HTML：保持原有标签与 class 结构不变，只改文字内容（可增删同结构的条目）；内容要专业、量化、贴合求职。\n" +
-      "2) 若用户要求换模板或换配色，在 tpl / accent 字段给出新值（无要求则原样返回）。\n" +
-      `可用模板 tpl：${TEMPLATES.join(" / ")}。\n` +
-      "只返回 JSON，格式：{\"html\":\"修改后的HTML片段\",\"tpl\":\"模板id\",\"accent\":\"#十六进制色\"}。" +
-      "html 里不要包含 <html>/<body> 外壳，不要用 markdown 代码块包裹整体。",
-    messages: [
+  let result;
+  try {
+    result = await generateText({
+      model: image ? visionModel : chatModel,
+      system:
+        "你是专业简历编辑助手，帮用户修改简历。用户给你简历的 HTML 片段、当前模板与主题色，以及修改要求。\n" +
+        "若用户还上传了「参考资料」（他的经历、旧简历、项目笔记等），你要从中提炼与求职相关的内容，按板块（教育背景/工作经历/项目经历/专业技能/荣誉证书/自我评价）归纳改写进简历。\n" +
+        "请完成两件事：\n" +
+        "1) 按需求修改 HTML：保持原有标签与 class 结构不变，只改文字内容（可增删同结构的条目）；内容要专业、量化、贴合求职。\n" +
+        "2) 若用户要求换模板或换配色，在 tpl / accent 字段给出新值（无要求则原样返回）。\n" +
+        `可用模板 tpl：${TEMPLATES.join(" / ")}。\n` +
+        "只返回 JSON，格式：{\"html\":\"修改后的HTML片段\",\"tpl\":\"模板id\",\"accent\":\"#十六进制色\"}。" +
+        "html 里不要包含 <html>/<body> 外壳，不要用 markdown 代码块包裹整体。",
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: `当前模板：${tpl}\n当前主题色：${accent}\n\n当前简历 HTML：\n${html}\n${
+                source ? `\n参考资料（请从中提炼内容写进简历）：\n${source}\n` : ""
+              }${image ? "\n（用户还上传了一张图片，请从中识别并提炼可用于简历的信息）\n" : ""}\n修改要求：${prompt}`,
+            },
+            ...(image ? [{ type: "image" as const, image }] : []),
+          ],
+        },
+      ],
+    });
+  } catch (err) {
+    // 把供应商的真实报错透出去（常见：上下文超长、密钥无效、余额不足），
+    // 否则前端只能看到一句没用的「修改失败」。
+    const detail = err instanceof Error ? err.message : String(err);
+    return Response.json(
       {
-        role: "user",
-        content: [
-          {
-            type: "text",
-            text: `当前模板：${tpl}\n当前主题色：${accent}\n\n当前简历 HTML：\n${html}\n${
-              source ? `\n参考资料（请从中提炼内容写进简历）：\n${source}\n` : ""
-            }${image ? "\n（用户还上传了一张图片，请从中识别并提炼可用于简历的信息）\n" : ""}\n修改要求：${prompt}`,
-          },
-          ...(image ? [{ type: "image" as const, image }] : []),
-        ],
+        error:
+          `模型调用失败：${detail.slice(0, 300)}` +
+          (source.length >= 100000
+            ? "\n（参考资料已达上限，可能是上下文超长，请减少上传的文件）"
+            : ""),
       },
-    ],
-  });
+      { status: 502 },
+    );
+  }
 
   let out = result.text.trim();
   out = out.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/, "").trim();

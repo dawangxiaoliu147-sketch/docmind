@@ -40,6 +40,12 @@ const DEFAULT_HTML = `
 
 const SWATCHES = ["#1f4e79", "#2f6f5e", "#8a3b3b", "#3b3f46", "#2e75b6", "#7c3aed"];
 
+// 把字符数格式化成人话：82,200 → "8.2 万字"（避免出现「24.0 万字」这种量级错误）
+function fmtChars(n: number): string {
+  if (n >= 10000) return `${(n / 10000).toFixed(1)} 万字`;
+  return `${n} 字`;
+}
+
 export function ResumeEditor() {
   const bodyRef = useRef<HTMLDivElement>(null);
   const photoRef = useRef<HTMLInputElement>(null);
@@ -52,7 +58,17 @@ export function ResumeEditor() {
   const [msg, setMsg] = useState<string | null>(null);
   const [srcFiles, setSrcFiles] = useState<{ name: string; text: string }[]>([]);
   const srcTotal = srcFiles.reduce((n, f) => n + f.text.length, 0);
-  const SRC_LIMIT = 24000;
+  // 送进模型的资料上限（字符）。越大越吃模型的上下文窗口，超了会报错。
+  const SRC_LIMIT = 100000;
+  // 按顺序累加，算出实际能完整送进模型的文件数（超出的部分会被截断）
+  let srcUsed = 0;
+  let srcFit = 0;
+  for (const f of srcFiles) {
+    const len = `【资料：${f.name}】\n${f.text}`.length + (srcFit > 0 ? 2 : 0);
+    if (srcUsed + len > SRC_LIMIT) break;
+    srcUsed += len;
+    srcFit += 1;
+  }
   const [uploading, setUploading] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [pages, setPages] = useState(1);
@@ -196,7 +212,7 @@ export function ResumeEditor() {
           source: srcFiles
             .map((f) => `【资料：${f.name}】\n${f.text}`)
             .join("\n\n")
-            .slice(0, 24000),
+            .slice(0, SRC_LIMIT),
           image: imageData ?? "",
         }),
         signal: ctrl.signal,
@@ -469,7 +485,7 @@ export function ResumeEditor() {
               <div className="mb-2 rounded-lg bg-zinc-100 p-1.5 text-xs dark:bg-zinc-800">
                 <div className="mb-1 flex items-center justify-between px-1">
                   <span className="text-zinc-500 dark:text-zinc-400">
-                    📎 已上传 {srcFiles.length} 个文件 · 共 {(srcTotal / 1000).toFixed(1)}k 字
+                    📎 已上传 {srcFiles.length} 个文件 · 共 {fmtChars(srcTotal)}
                   </span>
                   <button
                     onClick={() => setSrcFiles([])}
@@ -487,7 +503,7 @@ export function ResumeEditor() {
                       <span className="truncate text-zinc-600 dark:text-zinc-300">
                         📄 {f.name}
                         <span className="ml-1 text-zinc-400">
-                          （{Math.max(1, Math.round(f.text.length / 100)) / 10}k 字）
+                          （{fmtChars(f.text.length)}）
                         </span>
                       </span>
                       <button
@@ -502,7 +518,10 @@ export function ResumeEditor() {
                 </ul>
                 {srcTotal > SRC_LIMIT && (
                   <p className="mt-1 px-1 text-[11px] leading-snug text-amber-600 dark:text-amber-400">
-                    ⚠️ 资料偏多，只会把前 {(SRC_LIMIT / 1000).toFixed(1)} 万字送进模型。建议只留最相关的几份。
+                    ⚠️ 资料共 {fmtChars(srcTotal)}，超过单次上限 {fmtChars(SRC_LIMIT)}。本次只会送进前{" "}
+                    {srcFit} 个文件（约 {fmtChars(srcUsed)}）
+                    {srcFit < srcFiles.length ? `，后 ${srcFiles.length - srcFit} 个会被截断` : ""}
+                    。建议先移除不相关的文件，或分两次让智能体改。
                   </p>
                 )}
               </div>
