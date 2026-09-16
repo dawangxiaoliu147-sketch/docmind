@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { RegisterForm } from "./register-form";
 
@@ -7,6 +7,9 @@ export const metadata: Metadata = {
 };
 
 export default function RegisterPage() {
+  // 只有服务端配置了 INVITE_CODE 才显示邀请码输入框
+  const needInvite = Boolean((process.env.INVITE_CODE ?? "").trim());
+
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-sm">
@@ -16,12 +19,12 @@ export default function RegisterPage() {
           </div>
           <h1 className="text-2xl font-semibold dark:text-zinc-50">创建账号</h1>
           <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            开始构建你的 AI 知识库
+            {needInvite ? "本站需要邀请码，请向邀请你的人索取" : "开始构建你的 AI 知识库"}
           </p>
         </div>
 
         <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-          <RegisterForm />
+          <RegisterForm needInvite={needInvite} />
         </div>
 
         <p className="mt-6 text-center text-sm text-zinc-500 dark:text-zinc-400">

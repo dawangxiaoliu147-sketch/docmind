@@ -2,6 +2,7 @@ import { streamText, convertToModelMessages } from "ai";
 import type { UIMessage } from "ai";
 import { chatModel } from "@/lib/ai";
 import { verifySession } from "@/lib/dal";
+import { aiQuota } from "@/lib/guard";
 import { getWorkAgent, WORK_AGENTS } from "@/lib/work-agents";
 
 // 工作台通用 Agent 聊天（不依赖知识库）
@@ -10,6 +11,10 @@ export async function POST(req: Request) {
   if (!session) {
     return new Response("未登录", { status: 401 });
   }
+
+  // 配额：防止分享出去后被人写脚本刷爆 AI 账单
+  const limited = aiQuota(session.userId);
+  if (limited) return limited;
 
   const url = new URL(req.url);
   const agentId = url.searchParams.get("agent") ?? WORK_AGENTS[0].id;

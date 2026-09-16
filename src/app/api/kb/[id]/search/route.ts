@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { verifySession } from "@/lib/dal";
+import { aiQuota } from "@/lib/guard";
 import { embedText } from "@/lib/ai";
 import { hybridSearch } from "@/lib/vector";
 
@@ -14,6 +15,10 @@ export async function GET(
   if (!session) {
     return Response.json({ error: "未登录" }, { status: 401 });
   }
+
+  // 检索需要调用嵌入模型，同样计入 AI 配额
+  const limited = aiQuota(session.userId);
+  if (limited) return limited;
 
   const kb = await prisma.knowledgeBase.findFirst({
     where: { id, userId: session.userId },

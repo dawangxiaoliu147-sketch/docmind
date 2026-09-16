@@ -2,6 +2,7 @@ import { generateText } from "ai";
 import { chatModel } from "@/lib/ai";
 import { prisma } from "@/lib/db";
 import { verifySession } from "@/lib/dal";
+import { aiQuota } from "@/lib/guard";
 
 // 生成知识库内容摘要
 export async function POST(
@@ -14,6 +15,9 @@ export async function POST(
   if (!session) {
     return Response.json({ error: "未登录" }, { status: 401 });
   }
+
+  const limited = aiQuota(session.userId);
+  if (limited) return limited;
 
   const kb = await prisma.knowledgeBase.findFirst({
     where: { id, userId: session.userId },

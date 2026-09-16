@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 import { verifySession } from "@/lib/dal";
+import { aiQuota, uploadQuota } from "@/lib/guard";
 import { ingestDocument } from "@/lib/ingest";
 import { generateDocTags } from "@/lib/tag";
 import { isSupported } from "@/lib/parse";
@@ -18,6 +19,12 @@ export async function POST(
   if (!session) {
     return Response.json({ error: "未登录" }, { status: 401 });
   }
+
+  // 入库会跑「自动打标签 + 分块向量化」，既花 AI 额度也占磁盘，两道配额都要过
+  const upLimit = uploadQuota(session.userId);
+  if (upLimit) return upLimit;
+  const aiLimit = aiQuota(session.userId);
+  if (aiLimit) return aiLimit;
 
   // 2. 校验知识库归属
   const kb = await prisma.knowledgeBase.findFirst({

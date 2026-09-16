@@ -1,6 +1,7 @@
 import { generateText } from "ai";
 import { chatModel } from "@/lib/ai";
 import { verifySession } from "@/lib/dal";
+import { aiQuota } from "@/lib/guard";
 import { isSupported, extractTextFromFile } from "@/lib/parse";
 import { getAllJobs } from "@/lib/job-store";
 
@@ -21,6 +22,9 @@ export async function POST(req: Request) {
   if (!session) {
     return Response.json({ error: "未登录" }, { status: 401 });
   }
+
+  const limited = aiQuota(session.userId);
+  if (limited) return limited;
 
   const formData = await req.formData();
   const file = formData.get("file");

@@ -11,6 +11,7 @@ import { chatModel, embedText } from "@/lib/ai";
 import { hybridSearch } from "@/lib/vector";
 import { prisma } from "@/lib/db";
 import { verifySession } from "@/lib/dal";
+import { aiQuota } from "@/lib/guard";
 import { getAgentSystemPrompt } from "@/lib/agents";
 
 export async function POST(
@@ -24,6 +25,10 @@ export async function POST(
   if (!session) {
     return new Response("未登录", { status: 401 });
   }
+
+  // 1.5 配额：RAG 问答消耗嵌入 + 生成两次模型调用
+  const limited = aiQuota(session.userId);
+  if (limited) return limited;
 
   // 2. 校验知识库归属，并确认存在可用文档
   const kb = await prisma.knowledgeBase.findFirst({

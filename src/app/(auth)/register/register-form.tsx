@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { register } from "@/lib/actions/auth";
 
-export function RegisterForm() {
+export function RegisterForm({ needInvite = false }: { needInvite?: boolean }) {
   const [state, action, pending] = useActionState(register, undefined);
 
   const inputCls =
@@ -54,6 +54,30 @@ export function RegisterForm() {
           <p className="mt-1 text-xs text-red-600 dark:text-red-400">{state.errors.password}</p>
         )}
       </div>
+
+      {needInvite && (
+        <div>
+          <label htmlFor="invite" className="mb-1 block text-sm font-medium dark:text-zinc-200">
+            邀请码
+          </label>
+          <input
+            id="invite"
+            name="invite"
+            required
+            placeholder="向邀请你的人索取"
+            className={inputCls}
+          />
+          {state?.errors?.invite && (
+            <p className="mt-1 text-xs text-red-600 dark:text-red-400">{state.errors.invite}</p>
+          )}
+        </div>
+      )}
+
+      {state?.message && (
+        <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600 dark:bg-red-950 dark:text-red-400">
+          {state.message}
+        </p>
+      )}
 
       <button
         type="submit"

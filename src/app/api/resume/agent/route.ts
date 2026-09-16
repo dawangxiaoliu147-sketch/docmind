@@ -1,6 +1,7 @@
 import { generateText } from "ai";
 import { chatModel, visionModel } from "@/lib/ai";
 import { verifySession } from "@/lib/dal";
+import { aiQuota } from "@/lib/guard";
 
 const TEMPLATES = ["ribbon", "bar", "gray", "underline", "dark", "topbar", "right", "center"];
 
@@ -19,6 +20,9 @@ export async function POST(req: Request) {
   if (!session) {
     return Response.json({ error: "未登录" }, { status: 401 });
   }
+
+  const limited = aiQuota(session.userId);
+  if (limited) return limited;
 
   const body = await req.json();
   const html = String(body?.html ?? "").slice(0, 14000);

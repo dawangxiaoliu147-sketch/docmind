@@ -1,4 +1,5 @@
 import { verifySession } from "@/lib/dal";
+import { uploadQuota } from "@/lib/guard";
 import { extractTextFromFile, isSupported } from "@/lib/parse";
 
 const MAX_SIZE = 20 * 1024 * 1024; // 20MB
@@ -9,6 +10,10 @@ export async function POST(req: Request) {
   if (!session) {
     return Response.json({ error: "未登录" }, { status: 401 });
   }
+
+  // 配额：防止有人靠上传塞满服务器磁盘
+  const limited = uploadQuota(session.userId);
+  if (limited) return limited;
 
   const formData = await req.formData();
   const file = formData.get("file");

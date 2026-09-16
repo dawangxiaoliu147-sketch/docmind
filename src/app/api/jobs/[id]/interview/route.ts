@@ -1,6 +1,7 @@
 import { generateText } from "ai";
 import { chatModel } from "@/lib/ai";
 import { verifySession } from "@/lib/dal";
+import { aiQuota } from "@/lib/guard";
 import { getJob } from "@/lib/job-store";
 
 // 针对某个职位生成模拟面试题（含参考答案要点）
@@ -14,6 +15,8 @@ export async function GET(
   if (!session) {
     return Response.json({ error: "未登录" }, { status: 401 });
   }
+  const limited = aiQuota(session.userId);
+  if (limited) return limited;
   const job = await getJob(id);
   if (!job) {
     return Response.json({ error: "职位不存在" }, { status: 404 });

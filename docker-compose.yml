@@ -8,7 +8,10 @@ services:
       POSTGRES_PASSWORD: docmind
       POSTGRES_DB: docmind
     ports:
-      - "5432:5432"
+      # 只绑定到本机回环地址：外部扫不到 5432 端口。
+      # 原来写成 "5432:5432" 会把数据库直接暴露到公网，
+      # 而库密码就是 docmind/docmind —— 等于把全站用户数据摆在门口。
+      - "127.0.0.1:5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
       # 首次初始化时自动启用 pgvector 扩展
@@ -40,6 +43,14 @@ services:
       # 以下从宿主 .env 读取，未设置时用默认值
       AUTH_SECRET: ${AUTH_SECRET:-docmind-local-dev-secret-please-change}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      # 上了 HTTPS 之后设为 true（Cookie 只在加密连接下发送）
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      # 注册邀请码：留空 = 开放注册；填上则必须填对才能注册
+      INVITE_CODE: ${INVITE_CODE:-}
+      # AI 与上传配额（详见 src/lib/guard.ts）
+      AI_HOURLY_LIMIT: ${AI_HOURLY_LIMIT:-80}
+      AI_DAILY_LIMIT: ${AI_DAILY_LIMIT:-300}
+      UPLOAD_HOURLY_LIMIT: ${UPLOAD_HOURLY_LIMIT:-60}
       AI_BASE_URL: ${AI_BASE_URL:-https://api.openai.com/v1}
       AI_API_KEY: ${AI_API_KEY:-}
       CHAT_MODEL: ${CHAT_MODEL:-gpt-4o-mini}

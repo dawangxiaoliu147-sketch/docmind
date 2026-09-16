@@ -4,6 +4,7 @@ import { z } from "zod";
 import { chatModel } from "@/lib/ai";
 import { prisma } from "@/lib/db";
 import { verifySession } from "@/lib/dal";
+import { aiQuota } from "@/lib/guard";
 import { getAllJobs } from "@/lib/job-store";
 
 // 「知行智能体」：一个通用 Agent Harness
@@ -13,6 +14,10 @@ export async function POST(req: Request) {
   if (!session) {
     return new Response("未登录", { status: 401 });
   }
+
+  // 配额：Agent 支持多步工具调用，一次请求可能花掉多次模型调用，必须限住
+  const limited = aiQuota(session.userId);
+  if (limited) return limited;
 
   const body = await req.json();
   const uiMessages: UIMessage[] = Array.isArray(body?.messages) ? body.messages : [];

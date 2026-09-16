@@ -2,6 +2,7 @@ import { generateText } from "ai";
 import { chatModel } from "@/lib/ai";
 import { prisma } from "@/lib/db";
 import { verifySession } from "@/lib/dal";
+import { aiQuota } from "@/lib/guard";
 
 function extractJson(text: string): string {
   const fence = text.match(/```(?:json)?\s*([\s\S]*?)```/);
@@ -23,6 +24,9 @@ export async function GET(
   if (!session) {
     return Response.json({ error: "未登录" }, { status: 401 });
   }
+
+  const limited = aiQuota(session.userId);
+  if (limited) return limited;
 
   const kb = await prisma.knowledgeBase.findFirst({
     where: { id, userId: session.userId },
