@@ -25,7 +25,7 @@ export async function POST(req: Request) {
   const tpl = String(body?.tpl ?? "ribbon");
   const accent = String(body?.accent ?? "#1f4e79");
   const prompt = String(body?.prompt ?? "").trim();
-  const source = String(body?.source ?? "").slice(0, 12000);
+  const source = String(body?.source ?? "").slice(0, 24000);
   const image = typeof body?.image === "string" && body.image.startsWith("data:image") ? body.image : "";
   if (!prompt) {
     return Response.json({ error: "请输入你的要求" }, { status: 400 });

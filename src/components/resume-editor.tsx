@@ -50,8 +50,9 @@ export function ResumeEditor() {
   const [prompt, setPrompt] = useState("");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
-  const [srcName, setSrcName] = useState<string | null>(null);
-  const [srcText, setSrcText] = useState<string | null>(null);
+  const [srcFiles, setSrcFiles] = useState<{ name: string; text: string }[]>([]);
+  const srcTotal = srcFiles.reduce((n, f) => n + f.text.length, 0);
+  const SRC_LIMIT = 24000;
   const [uploading, setUploading] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [pages, setPages] = useState(1);
@@ -148,28 +149,32 @@ export function ResumeEditor() {
   }, []);
 
   async function onUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files ?? []);
+    if (files.length === 0) return;
     setUploading(true);
     setMsg(null);
-    try {
-      const data = new FormData();
-      data.append("file", file);
-      const res = await fetch("/api/assistant/upload", { method: "POST", body: data });
-      const json = await res.json();
-      if (!res.ok) {
-        setMsg(json.error ?? "解析失败");
-      } else {
-        setSrcName(json.fileName);
-        setSrcText(json.text);
-        setMsg("📎 资料已读取，说说你想怎么用");
+    const added: { name: string; text: string }[] = [];
+    let failed = 0;
+    for (const file of files) {
+      try {
+        const data = new FormData();
+        data.append("file", file);
+        const res = await fetch("/api/assistant/upload", { method: "POST", body: data });
+        const json = await res.json();
+        if (res.ok && json.text) added.push({ name: json.fileName ?? file.name, text: json.text });
+        else failed += 1;
+      } catch {
+        failed += 1; // 单个失败跳过，不影响其它文件
       }
-    } catch {
-      setMsg("解析失败，请重试");
-    } finally {
-      setUploading(false);
-      e.target.value = "";
     }
+    setSrcFiles((prev) => [...prev, ...added]);
+    setUploading(false);
+    setMsg(
+      added.length
+        ? `📎 已读取 ${added.length} 个文件${failed ? `，${failed} 个失败` : ""}`
+        : "解析失败，请重试",
+    );
+    e.target.value = "";
   }
 
   async function askAgent() {
@@ -188,7 +193,10 @@ export function ResumeEditor() {
           prompt: text,
           tpl,
           accent,
-          source: srcText ?? "",
+          source: srcFiles
+            .map((f) => `【资料：${f.name}】\n${f.text}`)
+            .join("\n\n")
+            .slice(0, 24000),
           image: imageData ?? "",
         }),
         signal: ctrl.signal,
@@ -457,25 +465,54 @@ export function ResumeEditor() {
               上传资料或直接说需求，智能体会自动改在简历上👇
             </p>
 
-            {srcName && (
-              <div className="mb-2 flex items-center justify-between rounded-lg bg-zinc-100 px-2 py-1.5 text-xs dark:bg-zinc-800">
-                <span className="truncate text-zinc-600 dark:text-zinc-300">📎 {srcName}</span>
-                <button
-                  onClick={() => {
-                    setSrcName(null);
-                    setSrcText(null);
-                  }}
-                  className="ml-2 shrink-0 text-zinc-400 hover:text-red-500"
-                >
-                  移除
-                </button>
+            {srcFiles.length > 0 && (
+              <div className="mb-2 rounded-lg bg-zinc-100 p-1.5 text-xs dark:bg-zinc-800">
+                <div className="mb-1 flex items-center justify-between px-1">
+                  <span className="text-zinc-500 dark:text-zinc-400">
+                    📎 已上传 {srcFiles.length} 个文件 · 共 {(srcTotal / 1000).toFixed(1)}k 字
+                  </span>
+                  <button
+                    onClick={() => setSrcFiles([])}
+                    className="shrink-0 text-zinc-400 hover:text-red-500"
+                  >
+                    清空全部
+                  </button>
+                </div>
+                <ul className="space-y-0.5">
+                  {srcFiles.map((f, i) => (
+                    <li
+                      key={`${f.name}-${i}`}
+                      className="flex items-center justify-between rounded px-1 py-0.5 hover:bg-zinc-200/60 dark:hover:bg-zinc-700/60"
+                    >
+                      <span className="truncate text-zinc-600 dark:text-zinc-300">
+                        📄 {f.name}
+                        <span className="ml-1 text-zinc-400">
+                          （{Math.max(1, Math.round(f.text.length / 100)) / 10}k 字）
+                        </span>
+                      </span>
+                      <button
+                        onClick={() => setSrcFiles((prev) => prev.filter((_, j) => j !== i))}
+                        className="ml-2 shrink-0 text-zinc-400 hover:text-red-500"
+                        title="移除这个文件"
+                      >
+                        ✕
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                {srcTotal > SRC_LIMIT && (
+                  <p className="mt-1 px-1 text-[11px] leading-snug text-amber-600 dark:text-amber-400">
+                    ⚠️ 资料偏多，只会把前 {(SRC_LIMIT / 1000).toFixed(1)} 万字送进模型。建议只留最相关的几份。
+                  </p>
+                )}
               </div>
             )}
 
             <label className="mb-2 flex cursor-pointer items-center justify-center gap-1 rounded-lg border border-dashed border-zinc-300 py-2 text-xs text-zinc-500 transition hover:border-violet-400 hover:text-violet-600 dark:border-zinc-700 dark:text-zinc-400">
-              {uploading ? "解析中…" : "📎 上传简历 / 经历资料（可选）"}
+              {uploading ? "解析中…" : "📎 上传简历 / 经历资料（可多选，可累加）"}
               <input
                 type="file"
+                multiple
                 accept=".pdf,.docx,.md,.txt,.markdown,.html,.htm,.csv,application/pdf,text/plain,text/markdown,text/html,text/csv,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 className="hidden"
                 onChange={onUpload}
