@@ -46,6 +46,27 @@ function fmtChars(n: number): string {
   return `${n} 字`;
 }
 
+/* ---------- 撤回 / 恢复的快照 ---------- */
+// 简历内容以 DOM 为准（contentEditable），所以历史记录直接存 innerHTML。
+// 同时把模板、主题色、缩放一并存下来 —— 这样「换了个模板/颜色」也能撤回。
+type Snapshot = {
+  html: string;
+  tpl: string;
+  accent: string;
+  zoom: number;
+  curId: string | null;
+};
+
+function sameSnapshot(a: Snapshot, b: Snapshot): boolean {
+  return (
+    a.html === b.html &&
+    a.tpl === b.tpl &&
+    a.accent === b.accent &&
+    a.zoom === b.zoom &&
+    a.curId === b.curId
+  );
+}
+
 export function ResumeEditor() {
   const bodyRef = useRef<HTMLDivElement>(null);
   const photoRef = useRef<HTMLInputElement>(null);
@@ -84,6 +105,93 @@ export function ResumeEditor() {
     return bodyRef.current?.innerHTML ?? "";
   }
 
+  /* ---------- 撤回 / 恢复 ---------- */
+  const pastRef = useRef<Snapshot[]>([]); // 过去的状态，栈顶是「上一步」
+  const futureRef = useRef<Snapshot[]>([]); // 被撤回的状态，用于「恢复下一步」
+  const lastPushRef = useRef(0); // 打字合并用：避免每个字符都记一步
+  const undoRef = useRef<() => void>(() => {}); // 给全局快捷键用，避免闭包取到旧状态
+  const redoRef = useRef<() => void>(() => {});
+  const [, bumpHistory] = useState(0); // 只用来触发重渲染，刷新按钮的可用状态
+  const HISTORY_LIMIT = 50;
+  const INPUT_COALESCE_MS = 1200; // 1.2 秒内的连续输入算「一步」
+
+  function takeSnapshot(): Snapshot | null {
+    const el = bodyRef.current;
+    if (!el) return null;
+    return { html: el.innerHTML, tpl, accent, zoom, curId };
+  }
+
+  // 在「即将改变简历」之前调用，把当前状态压入历史
+  function pushHistory() {
+    const snap = takeSnapshot();
+    if (!snap) return;
+    const past = pastRef.current;
+    const last = past[past.length - 1];
+    if (last && sameSnapshot(last, snap)) return; // 和上一步完全一样，不重复记
+    // 连续拖取色器：只有颜色在变时不重复记，整段拖动合并成一步
+    if (last && last.html === snap.html && last.tpl === snap.tpl && last.zoom === snap.zoom) return;
+    past.push(snap);
+    if (past.length > HISTORY_LIMIT) past.shift(); // 只留最近 50 步
+    futureRef.current = []; // 出现了新分支，原来的「下一步」作废
+    bumpHistory((v) => v + 1);
+  }
+
+  function applySnapshot(s: Snapshot) {
+    if (bodyRef.current) bodyRef.current.innerHTML = s.html;
+    setTpl(s.tpl);
+    setAccent(s.accent);
+    setZoom(s.zoom);
+    // curId 也要还原：否则「新建 → 撤回」后 curId 是 null，
+    // 再点保存会新建一份，而不是更新原来那份简历。
+    setCurId(s.curId);
+    setTimeout(measurePages, 60);
+  }
+
+  function resetHistory() {
+    pastRef.current = [];
+    futureRef.current = [];
+    bumpHistory((v) => v + 1);
+  }
+
+  // 撤销 / 重做
+  function undo() {
+    const past = pastRef.current;
+    const cur = takeSnapshot();
+    // 跳过与当前状态相同的记录（合并输入时会留下），否则会出现「点了没反应」
+    while (past.length > 0 && cur && sameSnapshot(past[past.length - 1], cur)) past.pop();
+    if (past.length === 0) {
+      bumpHistory((v) => v + 1);
+      return;
+    }
+    const prev = past.pop() as Snapshot;
+    if (cur) futureRef.current.push(cur);
+    applySnapshot(prev);
+    setMsg("↩️ 已撤回上一步");
+    bumpHistory((v) => v + 1);
+  }
+
+  function redo() {
+    const future = futureRef.current;
+    if (future.length === 0) return;
+    const cur = takeSnapshot();
+    const next = future.pop() as Snapshot;
+    if (cur) pastRef.current.push(cur);
+    applySnapshot(next);
+    setMsg("↪️ 已恢复下一步");
+    bumpHistory((v) => v + 1);
+  }
+
+  // 打字：在 DOM 变化之前记一步，1.2 秒内的连续输入合并
+  function onPageBeforeInput() {
+    const now = Date.now();
+    if (now - lastPushRef.current < INPUT_COALESCE_MS) return;
+    lastPushRef.current = now;
+    pushHistory();
+  }
+
+  const canUndo = pastRef.current.length > 0;
+  const canRedo = futureRef.current.length > 0;
+
   // 点照片框 → 选图 → 内联到简历里
   function onPageClick(e: React.MouseEvent<HTMLElement>) {
     const hit = (e.target as HTMLElement).closest(".rh-photo");
@@ -97,6 +205,7 @@ export function ResumeEditor() {
     reader.onload = () => {
       const photo = bodyRef.current?.querySelector<HTMLElement>(".rh-photo");
       if (!photo) return;
+      pushHistory(); // 记录插入照片前的状态
       // 用 <img> 而不是背景图：打印/导出 PDF 更可靠
       photo.innerHTML = `<img src="${reader.result}" alt="照片" style="width:100%;height:100%;object-fit:cover;display:block;" />`;
       photo.style.padding = "0";
@@ -136,6 +245,7 @@ export function ResumeEditor() {
   function fitOnePage() {
     const el = bodyRef.current;
     if (!el) return;
+    pushHistory(); // 缩放也算一步，方便撤回
     setZoom(1);
     requestAnimationFrame(() => {
       const target = bodyRef.current;
@@ -162,6 +272,29 @@ export function ResumeEditor() {
   useEffect(() => {
     loadList();
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // 每次渲染后刷新快捷键回调，避免闭包里读到旧的 tpl/accent/zoom
+  useEffect(() => {
+    undoRef.current = undo;
+    redoRef.current = redo;
+  });
+
+  // 全局快捷键：Ctrl+Z 撤回、Ctrl+Y / Ctrl+Shift+Z 恢复。
+  // 正在简历纸里打字时，把 Ctrl+Z 让给浏览器自带的逐字撤回，两者不打架。
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (!(e.ctrlKey || e.metaKey)) return;
+      const k = e.key.toLowerCase();
+      if (k !== "z" && k !== "y") return;
+      const el = bodyRef.current;
+      if (el && el.contains(document.activeElement)) return;
+      e.preventDefault();
+      if (k === "y" || e.shiftKey) redoRef.current();
+      else undoRef.current();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, []);
 
   async function onUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -221,6 +354,7 @@ export function ResumeEditor() {
       if (!res.ok) {
         setMsg(json.error ?? "修改失败");
       } else if (bodyRef.current) {
+        pushHistory(); // 记下 AI 改动前的简历，可一键撤回
         bodyRef.current.innerHTML = json.html;
         if (json.tpl) setTpl(json.tpl);
         if (json.accent) setAccent(json.accent);
@@ -306,6 +440,9 @@ export function ResumeEditor() {
       setTpl(json.resume.tpl);
       setAccent(json.resume.accent);
       setCurId(id);
+      // 换了一份简历，清空历史：否则撤回会把上一份的内容带回来，
+      // 而 curId 已指向新简历，一保存就把新简历覆盖掉了。
+      resetHistory();
       setMsg(`📂 已打开：${json.resume.title}`);
       setTimeout(measurePages, 120);
     } catch {
@@ -314,6 +451,7 @@ export function ResumeEditor() {
   }
 
   function newResume() {
+    pushHistory(); // 误点「新建」也能撤回
     if (bodyRef.current) bodyRef.current.innerHTML = DEFAULT_HTML;
     setTpl("ribbon");
     setAccent("#1f4e79");
@@ -340,6 +478,22 @@ export function ResumeEditor() {
         >
           {editing ? "✓ 完成编辑" : "✎ 编辑"}
         </button>
+        <button
+          onClick={undo}
+          disabled={!canUndo}
+          title="撤回上一步（Ctrl+Z）"
+          className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+        >
+          ↩️ 撤回
+        </button>
+        <button
+          onClick={redo}
+          disabled={!canRedo}
+          title="恢复下一步（Ctrl+Y）"
+          className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+        >
+          ↪️ 恢复
+        </button>
         <span className="text-xs text-zinc-400">模板</span>
         {([
           ["ribbon", "缎带标签"],
@@ -353,7 +507,10 @@ export function ResumeEditor() {
         ] as const).map(([id, label]) => (
           <button
             key={id}
-            onClick={() => setTpl(id)}
+            onClick={() => {
+              pushHistory();
+              setTpl(id);
+            }}
             className={`rounded-lg px-2.5 py-1.5 text-xs font-medium transition ${
               tpl === id
                 ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
@@ -368,7 +525,10 @@ export function ResumeEditor() {
         {SWATCHES.map((c) => (
           <button
             key={c}
-            onClick={() => setAccent(c)}
+            onClick={() => {
+              pushHistory();
+              setAccent(c);
+            }}
             className={`h-6 w-6 rounded-full border-2 transition ${
               accent === c ? "scale-110 border-zinc-800 dark:border-zinc-200" : "border-transparent"
             }`}
@@ -378,7 +538,10 @@ export function ResumeEditor() {
         <input
           type="color"
           value={accent}
-          onChange={(e) => setAccent(e.target.value)}
+          onChange={(e) => {
+            pushHistory();
+            setAccent(e.target.value);
+          }}
           className="h-6 w-6 cursor-pointer rounded border border-zinc-300 bg-white dark:border-zinc-700"
         />
         <span className="mx-1 h-4 w-px bg-zinc-200 dark:bg-zinc-700" />
@@ -464,6 +627,7 @@ export function ResumeEditor() {
           suppressContentEditableWarning
           spellCheck={false}
           onClick={onPageClick}
+          onBeforeInput={onPageBeforeInput}
           dangerouslySetInnerHTML={{ __html: DEFAULT_HTML }}
         />
         <input ref={photoRef} type="file" accept="image/*" className="hidden" onChange={onPhoto} />
