@@ -4,7 +4,6 @@ import bcrypt from "bcryptjs";
 import { redirect } from "next/navigation";
 import { prisma } from "../db";
 import { createSession, deleteSession } from "../session";
-import { checkLimit, clientIp, formatWait } from "../rate-limit";
 
 // 注册邀请码：在 .env 里配置 INVITE_CODE 后，注册必须填对才能通过。
 // 不配置则保持开放注册（本地开发方便）。
@@ -27,13 +26,8 @@ export async function register(
   const password = String(formData.get("password") ?? "");
   const invite = String(formData.get("invite") ?? "").trim();
 
-  // 抗批量注册：同一 IP 每小时最多 10 次。
-  // 直连（没挂 Nginx）时拿不到真实 IP，会退化成全局计数，所以放宽到 30。
-  const ip = await clientIp();
-  const regLimit = checkLimit(`reg:${ip}`, ip === "unknown" ? 30 : 10, 60 * 60 * 1000);
-  if (!regLimit.ok) {
-    return { message: `注册太频繁了，请 ${formatWait(regLimit.retryAfterSec)} 后再试` };
-  }
+  // 邀请码就是注册的唯一门槛：配了就必须填对，没配则开放注册。
+  // 刻意不做频率限制 —— 邀请码不对的人在到达 bcrypt 之前就被挡掉了，不会消耗 CPU。
 
   // 邀请码校验：只有配置了 INVITE_CODE 才启用
   if (INVITE_CODE && invite !== INVITE_CODE) {
@@ -64,18 +58,9 @@ export async function login(
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
 
-  // 防暴力破解：按 IP + 按账号 双重计数。
-  // 「按账号」这一层即使拿不到真实 IP 也有效，是最可靠的一道闸。
-  const ip = await clientIp();
-  const ipLimit = checkLimit(`login:ip:${ip}`, ip === "unknown" ? 60 : 30, 5 * 60 * 1000);
-  if (!ipLimit.ok) {
-    return { message: `尝试次数过多，请 ${formatWait(ipLimit.retryAfterSec)} 后再试` };
-  }
-  const accountLimit = checkLimit(`login:email:${email || "empty"}`, 8, 5 * 60 * 1000);
-  if (!accountLimit.ok) {
-    return { message: `该账号尝试次数过多，请 ${formatWait(accountLimit.retryAfterSec)} 后再试` };
-  }
-
+  // 登录不做频率限制：正常用户不该被"尝试次数过多"挡在门外。
+  // 代价是登录接口不限次，理论上可被脚本用来空跑 bcrypt 消耗 CPU。
+  // 需要时再打开：src/lib/rate-limit.ts 里现成的写法仍在。
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
     return { message: "邮箱或密码错误" };

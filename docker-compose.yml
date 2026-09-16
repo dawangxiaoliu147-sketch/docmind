@@ -50,6 +50,7 @@ services:
       # AI 与上传配额（详见 src/lib/guard.ts）
       AI_HOURLY_LIMIT: ${AI_HOURLY_LIMIT:-80}
       AI_DAILY_LIMIT: ${AI_DAILY_LIMIT:-300}
+      AI_GLOBAL_DAILY_LIMIT: ${AI_GLOBAL_DAILY_LIMIT:-2000}
       UPLOAD_HOURLY_LIMIT: ${UPLOAD_HOURLY_LIMIT:-60}
       AI_BASE_URL: ${AI_BASE_URL:-https://api.openai.com/v1}
       AI_API_KEY: ${AI_API_KEY:-}

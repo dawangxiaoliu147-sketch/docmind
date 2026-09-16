@@ -15,10 +15,21 @@ function envInt(name: string, fallback: number): number {
   return Number.isFinite(raw) && raw > 0 ? Math.floor(raw) : fallback;
 }
 
-/** AI 接口配额：先看每小时，再看每天。返回 Response 表示被拦下。 */
+/** AI 接口配额：全站总闸 → 每人每小时 → 每人每天。返回 Response 表示被拦下。 */
 export function aiQuota(userId: string): Response | null {
   const hourly = envInt("AI_HOURLY_LIMIT", 80);
   const daily = envInt("AI_DAILY_LIMIT", 300);
+  // 全站总闸：所有用户加起来的每日上限。
+  // 就算有人换邮箱注册好几个号，也冲不破这一条线 —— 这是账单的最后一道保险。
+  const globalDaily = envInt("AI_GLOBAL_DAILY_LIMIT", 2000);
+
+  const g = checkLimit("ai:global:d", globalDaily, 24 * 60 * 60 * 1000);
+  if (!g.ok) {
+    return rateLimitedResponse(
+      g.retryAfterSec,
+      `本站今日 AI 调用总量已达上限，请 ${formatWait(g.retryAfterSec)} 后再试`,
+    );
+  }
 
   const h = checkLimit(`ai:h:${userId}`, hourly, 60 * 60 * 1000);
   if (!h.ok) {
