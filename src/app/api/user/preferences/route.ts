@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { verifySession } from "@/lib/dal";
+import { revalidatePath } from "next/cache";
 
 // 读取用户偏好（AI 记忆）
 export async function GET() {
@@ -26,5 +27,8 @@ export async function POST(req: Request) {
     where: { id: session.userId },
     data: { preferences: preferences.slice(0, 2000) || null },
   });
+  // API 路由不会自动失效页面缓存，小岛与仪表盘要显式声明
+  revalidatePath("/dashboard");
+  revalidatePath("/island");
   return Response.json({ ok: true });
 }

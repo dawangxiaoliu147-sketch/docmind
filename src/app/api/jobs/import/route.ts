@@ -1,5 +1,6 @@
 import { verifySession } from "@/lib/dal";
 import { prisma } from "@/lib/db";
+import { revalidatePath } from "next/cache";
 
 // 简易 CSV 解析（支持引号包裹的字段）
 function parseCSV(text: string): string[][] {
@@ -102,5 +103,8 @@ export async function POST(req: Request) {
   }
 
   await prisma.job.createMany({ data: jobs });
+  // API 路由不会自动失效页面缓存，小岛与仪表盘要显式声明
+  revalidatePath("/dashboard");
+  revalidatePath("/island");
   return Response.json({ ok: true, count: jobs.length });
 }

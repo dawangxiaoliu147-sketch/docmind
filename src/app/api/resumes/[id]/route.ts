@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { verifySession } from "@/lib/dal";
+import { revalidatePath } from "next/cache";
 
 // 单份简历：读取 / 更新 / 删除
 export async function GET(
@@ -38,6 +39,9 @@ export async function PUT(
   if (typeof body?.accent === "string") data.accent = body.accent;
 
   await prisma.resume.update({ where: { id }, data });
+  // API 路由不会自动失效页面缓存，小岛与仪表盘要显式声明
+  revalidatePath("/dashboard");
+  revalidatePath("/island");
   return Response.json({ ok: true });
 }
 
@@ -55,5 +59,8 @@ export async function DELETE(
   if (!existing) return Response.json({ error: "简历不存在" }, { status: 404 });
 
   await prisma.resume.delete({ where: { id } });
+  // API 路由不会自动失效页面缓存，小岛与仪表盘要显式声明
+  revalidatePath("/dashboard");
+  revalidatePath("/island");
   return Response.json({ ok: true });
 }

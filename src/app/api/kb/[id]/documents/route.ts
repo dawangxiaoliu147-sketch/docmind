@@ -5,6 +5,7 @@ import { aiQuota, uploadQuota } from "@/lib/guard";
 import { ingestDocument } from "@/lib/ingest";
 import { generateDocTags } from "@/lib/tag";
 import { isSupported } from "@/lib/parse";
+import { revalidatePath } from "next/cache";
 
 const MAX_SIZE = 50 * 1024 * 1024; // 50MB（可自行调整；要支持更大文件需改造为异步处理）
 
@@ -64,6 +65,9 @@ export async function POST(
       status: "processing",
     },
   });
+  // API 路由不会自动失效页面缓存，小岛与仪表盘要显式声明
+  revalidatePath("/dashboard");
+  revalidatePath("/island");
 
   try {
     const chunkCount = await ingestDocument({
@@ -79,6 +83,9 @@ export async function POST(
       where: { id: doc.id },
       data: { status: "ready", chunkCount, tags },
     });
+    // API 路由不会自动失效页面缓存，小岛与仪表盘要显式声明
+    revalidatePath("/dashboard");
+    revalidatePath("/island");
 
     return Response.json({
       ok: true,
@@ -89,6 +96,9 @@ export async function POST(
       where: { id: doc.id },
       data: { status: "failed" },
     });
+    // API 路由不会自动失效页面缓存，小岛与仪表盘要显式声明
+    revalidatePath("/dashboard");
+    revalidatePath("/island");
 
     const message =
       err instanceof Error ? err.message : "文档处理失败，请重试";

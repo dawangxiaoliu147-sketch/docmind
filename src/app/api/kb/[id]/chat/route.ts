@@ -11,6 +11,7 @@ import { chatModel, embedText } from "@/lib/ai";
 import { hybridSearch } from "@/lib/vector";
 import { prisma } from "@/lib/db";
 import { verifySession } from "@/lib/dal";
+import { revalidatePath } from "next/cache";
 import { aiQuota } from "@/lib/guard";
 import { getAgentSystemPrompt } from "@/lib/agents";
 
@@ -82,12 +83,18 @@ export async function POST(
           title: query.slice(0, 40),
         },
       });
+      // API 路由不会自动失效页面缓存，小岛与仪表盘要显式声明
+      revalidatePath("/dashboard");
+      revalidatePath("/island");
       convId = created.id;
     }
   } else {
     const created = await prisma.conversation.create({
       data: { kbId: id, userId: session.userId, title: query.slice(0, 40) },
     });
+    // API 路由不会自动失效页面缓存，小岛与仪表盘要显式声明
+    revalidatePath("/dashboard");
+    revalidatePath("/island");
     convId = created.id;
   }
 
@@ -96,6 +103,9 @@ export async function POST(
     await prisma.message.create({
       data: { conversationId: convId, role: "user", content: query },
     });
+    // API 路由不会自动失效页面缓存，小岛与仪表盘要显式声明
+    revalidatePath("/dashboard");
+    revalidatePath("/island");
   } catch {
     // 保存失败不阻断
   }
@@ -226,10 +236,16 @@ export async function POST(
         await prisma.message.create({
           data: { conversationId: convId, role: "assistant", content: text },
         });
+        // API 路由不会自动失效页面缓存，小岛与仪表盘要显式声明
+        revalidatePath("/dashboard");
+        revalidatePath("/island");
         await prisma.conversation.update({
           where: { id: convId },
           data: { updatedAt: new Date() },
         });
+        // API 路由不会自动失效页面缓存，小岛与仪表盘要显式声明
+        revalidatePath("/dashboard");
+        revalidatePath("/island");
       } catch {
         // 忽略保存失败
       }

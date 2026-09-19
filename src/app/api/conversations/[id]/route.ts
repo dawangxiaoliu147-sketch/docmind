@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { verifySession } from "@/lib/dal";
+import { revalidatePath } from "next/cache";
 
 // 获取某个对话及其消息
 export async function GET(
@@ -42,5 +43,8 @@ export async function DELETE(
   }
 
   await prisma.conversation.delete({ where: { id } });
+  // API 路由不会自动失效页面缓存，小岛与仪表盘要显式声明
+  revalidatePath("/dashboard");
+  revalidatePath("/island");
   return Response.json({ ok: true });
 }

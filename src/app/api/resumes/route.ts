@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { verifySession } from "@/lib/dal";
+import { revalidatePath } from "next/cache";
 
 // 简历库：列出 / 新建
 export async function GET() {
@@ -31,5 +32,8 @@ export async function POST(req: Request) {
   const resume = await prisma.resume.create({
     data: { userId: session.userId, title, html, tpl, accent },
   });
+  // API 路由不会自动失效页面缓存，小岛与仪表盘要显式声明
+  revalidatePath("/dashboard");
+  revalidatePath("/island");
   return Response.json({ id: resume.id });
 }

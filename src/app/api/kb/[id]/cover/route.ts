@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { verifySession } from "@/lib/dal";
 import { saveImage, isImage, imageSizeOk } from "@/lib/upload";
+import { revalidatePath } from "next/cache";
 
 // 上传知识库封面图
 export async function POST(
@@ -41,6 +42,9 @@ export async function POST(
     where: { id },
     data: { coverImage: url },
   });
+  // API 路由不会自动失效页面缓存，小岛与仪表盘要显式声明
+  revalidatePath("/dashboard");
+  revalidatePath("/island");
 
   return Response.json({ ok: true, url });
 }
