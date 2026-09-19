@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { requireUser } from "@/lib/dal";
 import { Avatar } from "@/components/avatar";
 import { AvatarUpload } from "@/components/avatar-upload";
@@ -61,7 +61,7 @@ export default async function SettingsPage() {
         </div>
 
         <p className="mt-5 text-xs text-zinc-400 dark:text-zinc-500">
-          深色/浅色模式可在右上角 ☀️/🌙 图标切换
+          主题场景（雨林 / 雪境 / 暖云）可在右上角的三个色点切换
         </p>
       </div>
 

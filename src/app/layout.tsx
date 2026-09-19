@@ -50,10 +50,12 @@ const DEFAULT_BG_IMAGE = "/api/uploads/55963743-1084-43e5-b5f9-8960e2c3e1ca.jpg"
 // 在页面渲染前应用主题（深色模式 + 主题色 + 背景图），避免闪烁
 const themeInit = `(function(){
   try{
-    var t=localStorage.getItem('theme');
-    // 默认深色：知行的设计语言是深色玻璃场景，未设置过的用户直接看到完整效果
-    var d=t?t==='dark':true;
-    if(d)document.documentElement.classList.add('dark');
+    // 知行的设计语言是深色场景（对齐 Summer Checkin），不提供浅色模式
+    var d = true;
+    document.documentElement.classList.add('dark');
+    // 场景换肤：rain 雨林（默认）/ snow 雪境 / cloud 暖云
+    var s = localStorage.getItem('scene');
+    document.documentElement.setAttribute('data-scene', s || 'rain');
     var a=localStorage.getItem('accent');
     if(a){var c=JSON.parse(a);var r=document.documentElement.style;
       if(c.accent)r.setProperty('--accent',c.accent);

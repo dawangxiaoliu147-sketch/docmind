@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { SceneSwitcher } from "@/components/scene-switcher";
 import { Logo } from "@/components/logo";
 
 // 落地页/关于页共用的顶部导航
@@ -25,7 +25,7 @@ export function LandingNav() {
         </div>
 
         <div className="flex items-center gap-3">
-          <ThemeToggle />
+          <SceneSwitcher />
           <Link
             href="/login"
             className="rounded-lg px-3 py-1.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getCurrentUser, isAdmin } from "@/lib/dal";
 import { logout } from "@/lib/actions/auth";
 import { Avatar } from "@/components/avatar";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { SceneSwitcher } from "@/components/scene-switcher";
 import { MobileNav, type NavLink } from "@/components/mobile-nav";
 import { CommandPalette } from "@/components/command-palette";
 import { Logo } from "@/components/logo";
@@ -52,7 +52,7 @@ export async function Navbar() {
 
         <div className="flex items-center gap-3">
           <CommandPalette />
-          <ThemeToggle />
+          <SceneSwitcher />
           <Link
             href="/settings"
             className="flex items-center gap-2 transition hover:opacity-80"
