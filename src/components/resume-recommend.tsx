@@ -40,7 +40,7 @@ export function ResumeRecommend() {
   return (
     <div className="panel ui-rail p-6 pl-7">
       <h2 className="text-lg font-semibold text-fg">
-        🎯 上传简历，智能推荐职位
+         上传简历，智能推荐职位
       </h2>
       <p className="mt-1 text-sm text-muted-fg">
         AI 会分析你的简历，从职位库中推荐最匹配的岗位
@@ -48,7 +48,7 @@ export function ResumeRecommend() {
 
       <div className="mt-4">
         <label className="btn btn-primary cursor-pointer gap-2">
-          {pending ? "分析中…" : "📄 上传简历"}
+          {pending ? "分析中…" : " 上传简历"}
           <input
             type="file"
             accept=".pdf,.md,.txt,.markdown,.docx,.html,.htm,.csv,application/pdf,text/plain,text/markdown,text/html,text/csv,application/vnd.openxmlformats-officedocument.wordprocessingml.document"

@@ -43,7 +43,7 @@ export function JobImport() {
 
       <div className="mt-4">
         <label className="btn btn-outline cursor-pointer gap-2">
-          {pending ? "导入中…" : "📄 选择 CSV 文件"}
+          {pending ? "导入中…" : " 选择 CSV 文件"}
           <input
             type="file"
             accept=".csv,text/csv"

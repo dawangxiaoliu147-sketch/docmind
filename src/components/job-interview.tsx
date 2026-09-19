@@ -26,7 +26,7 @@ export function JobInterview({ jobId }: { jobId: string }) {
 
   return (
     <div className="panel p-6">
-      <h2 className="text-lg font-semibold text-fg">🎤 模拟面试题</h2>
+      <h2 className="text-lg font-semibold text-fg"> 模拟面试题</h2>
       <p className="mt-1 text-sm text-muted-fg">
         AI 针对这个职位生成高频面试题 + 参考答案
       </p>
@@ -37,7 +37,7 @@ export function JobInterview({ jobId }: { jobId: string }) {
           disabled={pending}
           className="btn btn-primary mt-4"
         >
-          {pending ? "生成中…" : "🪄 生成面试题"}
+          {pending ? "生成中…" : " 生成面试题"}
         </button>
       )}
 
@@ -51,7 +51,7 @@ export function JobInterview({ jobId }: { jobId: string }) {
                 {i + 1}. {q.question}
               </summary>
               <p className="mt-2 text-sm leading-relaxed text-fg2">
-                💡 参考答案：{q.answer}
+                 参考答案：{q.answer}
               </p>
             </details>
           ))}

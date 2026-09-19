@@ -42,7 +42,7 @@ export function Badge({
 /**
  * 图标瓦片：主色系描边 + 主色字符。
  * L2 铁律：里面只放单调 Unicode（↯ ◎ ✦ ⬢ ≋ ◈ ⊞ ⊡ ⋯）或 SVG，
- * 绝不放彩色 emoji（⚡❤️🌞✅ 都会自带颜色、不服从 CSS color）。
+ * 绝不放彩色 emoji（⚡✅ 都会自带颜色、不服从 CSS color）。
  */
 export function IconBox({
   className,

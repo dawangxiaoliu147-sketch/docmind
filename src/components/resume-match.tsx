@@ -38,7 +38,7 @@ export function ResumeMatch({ jobId }: { jobId: string }) {
   return (
     <div className="panel p-6">
       <h2 className="text-lg font-semibold text-fg">
-        🔍 匹配我的简历
+         匹配我的简历
       </h2>
       <p className="mt-1 text-sm text-muted-fg">
         上传简历，AI 分析你与这个职位的匹配度、优势和差距
@@ -46,7 +46,7 @@ export function ResumeMatch({ jobId }: { jobId: string }) {
 
       <div className="mt-4">
         <label className="btn btn-primary cursor-pointer gap-2">
-          {pending ? "分析中…" : "📄 上传简历"}
+          {pending ? "分析中…" : " 上传简历"}
           <input
             type="file"
             accept=".pdf,.md,.txt,.markdown,.docx,.html,.htm,.csv,application/pdf,text/plain,text/markdown,text/html,text/csv,application/vnd.openxmlformats-officedocument.wordprocessingml.document"

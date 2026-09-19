@@ -101,7 +101,7 @@ export function ChatPanel({
   function exportMarkdown() {
     const lines = messages.map((m) => {
       const text = messageText(m);
-      return `## ${m.role === "user" ? "🙋 用户" : "🤖 AI"}\n\n${text}`;
+      return `## ${m.role === "user" ? " 用户" : " AI"}\n\n${text}`;
     });
     const md = `# 知行 对话记录\n\n> 导出时间：${new Date().toLocaleString()}\n\n${lines.join("\n\n")}`;
     const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });

@@ -7,12 +7,12 @@ export type AgentMode = {
 };
 
 export const AGENT_MODES: AgentMode[] = [
-  { id: "assistant", name: "智能问答", icon: "🤖", description: "检索知识库回答问题" },
-  { id: "summarizer", name: "总结助手", icon: "📝", description: "提炼文档核心要点" },
-  { id: "researcher", name: "深度研究", icon: "🔬", description: "多文档深入研究" },
-  { id: "teacher", name: "出题老师", icon: "🎯", description: "出题考考你" },
-  { id: "translator", name: "翻译助手", icon: "🌐", description: "翻译文档内容" },
-  { id: "writer", name: "写作助手", icon: "✍️", description: "基于资料辅助写作" },
+  { id: "assistant", name: "智能问答", icon: "", description: "检索知识库回答问题" },
+  { id: "summarizer", name: "总结助手", icon: "", description: "提炼文档核心要点" },
+  { id: "researcher", name: "深度研究", icon: "", description: "多文档深入研究" },
+  { id: "teacher", name: "出题老师", icon: "", description: "出题考考你" },
+  { id: "translator", name: "翻译助手", icon: "", description: "翻译文档内容" },
+  { id: "writer", name: "写作助手", icon: "", description: "基于资料辅助写作" },
 ];
 
 const TOOLS_HINT =

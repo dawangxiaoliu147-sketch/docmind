@@ -481,7 +481,7 @@ export function ResumeEditor() {
           title="撤回上一步（Ctrl+Z）"
           variant="outline"
         >
-          ↩️ 撤回
+          ↩撤回
         </Button>
         <Button
           onClick={redo}
@@ -489,7 +489,7 @@ export function ResumeEditor() {
           title="恢复下一步（Ctrl+Y）"
           variant="outline"
         >
-          ↪️ 恢复
+          ↪恢复
         </Button>
         <span className="text-xs text-muted-fg">模板</span>
         {([
@@ -546,7 +546,7 @@ export function ResumeEditor() {
           导出 PDF
         </Button>
         <Button onClick={fitOnePage} variant="outline">
-          📏 适配一页
+           适配一页
         </Button>
         <Chip tone={pages > 1 ? "red" : "success"}>
           {pages > 1 ? `⚠ 约 ${pages} 页` : "✓ 1 页 A4"}
@@ -556,7 +556,7 @@ export function ResumeEditor() {
             onClick={saveResume}
             disabled={saving}
           >
-            {saving ? "保存中…" : "💾 保存"}
+            {saving ? "保存中…" : " 保存"}
           </Button>
           <Button
             onClick={() => {
@@ -566,7 +566,7 @@ export function ResumeEditor() {
             variant="outline"
             className="ml-1"
           >
-            📚 简历库
+             简历库
           </Button>
           {libOpen && (
             <div className="absolute left-0 top-full z-30 mt-1 w-64 overflow-hidden rounded-xl border border-border bg-surface2 shadow-xl">
@@ -574,7 +574,7 @@ export function ResumeEditor() {
                 onClick={newResume}
                 className="block w-full px-3 py-2 text-left text-sm text-fg2 hover:bg-accent"
               >
-                🆕 新建空白简历
+                 新建空白简历
               </button>
               <div className="max-h-64 overflow-y-auto border-t border-border">
                 {saved.length === 0 ? (
