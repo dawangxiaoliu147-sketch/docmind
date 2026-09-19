@@ -51,7 +51,8 @@ const DEFAULT_BG_IMAGE = "/api/uploads/55963743-1084-43e5-b5f9-8960e2c3e1ca.jpg"
 const themeInit = `(function(){
   try{
     var t=localStorage.getItem('theme');
-    var d=t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches);
+    // 默认深色：知行的设计语言是深色玻璃场景，未设置过的用户直接看到完整效果
+    var d=t?t==='dark':true;
     if(d)document.documentElement.classList.add('dark');
     var a=localStorage.getItem('accent');
     if(a){var c=JSON.parse(a);var r=document.documentElement.style;

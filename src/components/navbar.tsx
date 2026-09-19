@@ -22,7 +22,7 @@ export async function Navbar() {
   ];
 
   return (
-    <header className="sticky top-0 z-10 border-b border-zinc-200/70 bg-white/80 shadow-[0_1px_14px_-10px_rgba(16,24,40,0.35)] backdrop-blur-xl dark:border-zinc-800/70 dark:bg-zinc-950/80">
+    <header className="sticky top-0 z-10 border-b border-zinc-200/70 bg-white/80 shadow-[0_1px_14px_-10px_rgba(16,24,40,0.35)] backdrop-blur-xl dark:border-white/10 dark:bg-[rgba(9,22,17,0.72)]">
       <nav className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
         <div className="flex items-center gap-3 sm:gap-6">
           <MobileNav links={links} />
@@ -40,7 +40,7 @@ export async function Navbar() {
                 href={l.href}
                 className={
                   l.highlight
-                    ? "font-semibold text-indigo-600 transition hover:text-indigo-700 dark:text-indigo-400"
+                    ? "font-semibold text-indigo-600 transition hover:text-indigo-700 dark:text-[#d7ef83]"
                     : "transition hover:text-zinc-900 dark:hover:text-zinc-100"
                 }
               >
@@ -69,7 +69,7 @@ export async function Navbar() {
           <form action={logout}>
             <button
               type="submit"
-              className="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              className="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 dark:border-white/15 dark:text-zinc-200 dark:hover:bg-white/5"
             >
               退出
             </button>

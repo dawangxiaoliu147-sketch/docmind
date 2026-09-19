@@ -7,7 +7,7 @@ export default function AppLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="app-bg min-h-screen">
+    <div className="app-bg app-shell min-h-screen">
       <Navbar />
       <main className="mx-auto w-full max-w-6xl px-4 py-8">{children}</main>
       <FloatingAgent />

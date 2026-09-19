@@ -1236,3 +1236,94 @@ body:has(.zx-landing) {
     transform: none;
   }
 }
+
+/* ============================================================
+   应用内页 · 同步落地页的设计语言
+   作用域：.app-shell（(app)/layout.tsx 的根容器）且仅深色模式
+   浅色主题完全不受影响；内页写法（dark:bg-zinc-900 等）也一行不用改。
+   ============================================================ */
+
+/* ---- 场景令牌（深色模式下的内页）---- */
+.dark .app-shell {
+  --theme-bg: #07130d;
+  --theme-bg2: #0b1e15;
+  --theme-surface: rgba(16, 36, 28, 0.55);
+  --theme-surface2: rgba(12, 28, 21, 0.68);
+  --theme-glass: rgba(9, 22, 17, 0.72);
+  --theme-border: rgba(255, 255, 255, 0.11);
+  --theme-border2: rgba(255, 255, 255, 0.18);
+  --theme-accent: rgba(190, 214, 198, 0.14);
+
+  /* 场景背景：固定不随滚动，和落地页同一套雨林氛围 */
+  background-color: var(--theme-bg);
+  background-image:
+    radial-gradient(1200px 620px at 50% -12%, rgba(215, 239, 131, 0.10), transparent 62%),
+    radial-gradient(900px 520px at 68% 76%, rgba(127, 201, 138, 0.09), transparent 60%),
+    linear-gradient(180deg, #0b1e15 0%, #07130d 46%, #0d3524 100%);
+  background-attachment: fixed;
+  color: #eaf3ec;
+}
+
+/* ---- 把内页最常见的深色卡片 / 描边重映射成玻璃面 ----
+   这些类名在 DOM 里就是字面量（dark:bg-zinc-900），
+   所以可以直接用转义类选择器精确覆盖，比改 20 个文件安全得多。 */
+.dark .app-shell .dark\:bg-zinc-900,
+.dark .app-shell .dark\:bg-zinc-800 {
+  background-color: var(--theme-surface);
+  backdrop-filter: blur(20px) saturate(118%);
+  -webkit-backdrop-filter: blur(20px) saturate(118%);
+}
+.dark .app-shell .dark\:bg-zinc-950,
+.dark .app-shell .dark\:bg-zinc-900\/60 {
+  background-color: var(--theme-surface2);
+  backdrop-filter: blur(20px) saturate(118%);
+  -webkit-backdrop-filter: blur(20px) saturate(118%);
+}
+.dark .app-shell .dark\:bg-zinc-900\/40,
+.dark .app-shell .dark\:bg-zinc-800\/50 {
+  background-color: color-mix(in srgb, var(--theme-surface) 70%, transparent);
+}
+/* 悬停态：只改边框和底色，不做发亮 */
+.dark .app-shell .dark\:hover\:bg-zinc-800:hover,
+.dark .app-shell .dark\:hover\:bg-zinc-700:hover {
+  background-color: color-mix(in srgb, var(--theme-surface) 70%, rgba(255, 255, 255, 0.05));
+}
+.dark .app-shell .dark\:border-zinc-800 {
+  border-color: var(--theme-border);
+}
+.dark .app-shell .dark\:border-zinc-700 {
+  border-color: var(--theme-border2);
+}
+/* 图标瓦片：--accent-soft / --accent-deep 是浅色主题的底色，
+   深色下直接用会变成刺眼亮块，这里统一换成半透明主色（经验 Z1） */
+.dark .app-shell .dark\:bg-indigo-950 {
+  background-color: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.dark .app-shell .dark\:bg-indigo-900\/40 {
+  background-color: color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+/* ---- 统一卡片类：直接升级成玻璃面 ---- */
+.dark .app-shell .card-soft {
+  border-color: var(--theme-border);
+  background: var(--theme-surface);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 12px 28px -22px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(20px) saturate(118%);
+  -webkit-backdrop-filter: blur(20px) saturate(118%);
+}
+.dark .app-shell .card-soft:hover {
+  border-color: color-mix(in srgb, #d7ef83 38%, transparent);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08) inset, 0 18px 36px -24px rgba(0, 0, 0, 0.7);
+}
+
+/* ---- 内页玻璃工具类（新页面推荐直接用）---- */
+.app-glass {
+  border: 1px solid var(--theme-border, rgba(0, 0, 0, 0.08));
+  border-radius: 12px;
+  background: var(--theme-surface, #fff);
+}
+.dark .app-shell .app-glass {
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 12px 28px -22px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(20px) saturate(118%);
+  -webkit-backdrop-filter: blur(20px) saturate(118%);
+}
