@@ -13,6 +13,8 @@ export function FloatingAgent() {
   const [pos, setPos] = useState({ x: 0, y: 0 });
   const [ready, setReady] = useState(false);
   const [dragging, setDragging] = useState(false);
+  /** 是否让它自己走动（桌宠的自动漫游）。用户可关掉，一直停在原地。 */
+  const [moving, setMoving] = useState(true);
   const posRef = useRef({ x: 0, y: 0 });
   const drag = useRef({ active: false, moved: false, sx: 0, sy: 0, ox: 0, oy: 0 });
 
@@ -42,9 +44,9 @@ export function FloatingAgent() {
     /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
 
-  // 桌面宠物：自己不定期走到屏幕上的随机位置（面板打开/拖动时暂停）
+  // 桌面宠物：自己不定期走到屏幕上的随机位置（面板打开/拖动/关掉漫游时暂停）
   useEffect(() => {
-    if (!ready || open) return;
+    if (!ready || open || !moving) return;
     const id = window.setInterval(() => {
       if (drag.current.active) return;
       const w = window.innerWidth;
@@ -55,7 +57,25 @@ export function FloatingAgent() {
       setPos({ x, y });
     }, 7000);
     return () => window.clearInterval(id);
-  }, [ready, open]);
+  }, [ready, open, moving]);
+
+  /**
+   * 漫游开关的读写。
+   * 读放在挂载后（localStorage 只有客户端可读，渲染期读会 hydration 不一致）；
+   * 默认开，所以只有明确存过 "0" 才认为是关。
+   */
+  useEffect(() => {
+    /* eslint-disable-next-line react-hooks/set-state-in-effect -- 见上 */
+    setMoving(localStorage.getItem("agentPetMove") !== "0");
+  }, []);
+
+  function toggleMove() {
+    setMoving((v) => {
+      const next = !v;
+      localStorage.setItem("agentPetMove", next ? "1" : "0");
+      return next;
+    });
+  }
 
   function onPointerDown(e: React.PointerEvent<HTMLButtonElement>) {
     drag.current = {
@@ -109,7 +129,7 @@ export function FloatingAgent() {
           transition: dragging ? "none" : "left 2.5s ease-in-out, top 2.5s ease-in-out",
         }}
         aria-label="打开知行智能体（可拖动）"
-        title="点击打开智能体 · 可拖动移动"
+        title="点击打开智能体 · 可拖动 · 面板里可让它停下"
         className="pet-float group fixed z-40 flex cursor-grab touch-none items-center justify-center transition-transform hover:scale-110 active:cursor-grabbing"
       >
         <span className="pointer-events-none absolute inset-0 animate-ping rounded-full bg-primary/30" />
@@ -125,7 +145,16 @@ export function FloatingAgent() {
             className="h-[82vh] w-full max-w-3xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="mb-2 flex justify-end">
+            <div className="mb-2 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={toggleMove}
+                aria-pressed={!moving}
+                title={moving ? "让它停在原地" : "让它自己走动"}
+                className="btn btn-secondary btn-sm"
+              >
+                {moving ? "让它停下" : "让它走动"}
+              </button>
               <button
                 onClick={() => setOpen(false)}
                 className="btn btn-secondary btn-sm"
