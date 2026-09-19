@@ -45,7 +45,7 @@ export function KbGraph({ kbId }: { kbId: string }) {
                   : "flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-200"
               }
             >
-              <span>{depth === 0 ? "🧠" : depth === 1 ? "📌" : "•"}</span>
+              <span>{depth === 0 ? "◆" : depth === 1 ? "◇" : "•"}</span>
               {n.name}
             </div>
             {n.children && n.children.length > 0 && renderNodes(n.children, depth + 1)}
@@ -63,7 +63,7 @@ export function KbGraph({ kbId }: { kbId: string }) {
           disabled={pending}
           className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {pending ? "🪄 生成中…" : "🪄 生成知识图谱"}
+          {pending ? "生成中…" : "生成知识图谱"}
         </button>
       )}
       {error && <p className="mt-2 text-xs text-red-600 dark:text-red-400">{error}</p>}

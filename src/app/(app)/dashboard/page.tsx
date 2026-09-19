@@ -6,12 +6,12 @@ import { KbCover } from "@/components/kb-cover";
 import { GlobalSearch } from "@/components/global-search";
 
 const FEATURES = [
-  { href: "/agent", icon: "🤖", name: "智能体", desc: "自主调用工具完成任务" },
-  { href: "/workbench", icon: "🧰", name: "工作台", desc: "12 个 AI 工作助手" },
-  { href: "/jobs", icon: "💼", name: "职位库", desc: "职位匹配 · 模拟面试" },
-  { href: "/resume", icon: "📝", name: "简历工坊", desc: "8 套模板 · 智能体改简历" },
-  { href: "/achievements", icon: "🏆", name: "成就", desc: "查看你的使用成就" },
-  { href: "/settings", icon: "⚙️", name: "设置", desc: "个性化与 AI 偏好" },
+  { href: "/agent", icon: "✦", name: "智能体", desc: "自主调用工具完成任务" },
+  { href: "/workbench", icon: "⊞", name: "工作台", desc: "13 个 AI 工作助手" },
+  { href: "/jobs", icon: "⬢", name: "职位库", desc: "职位匹配 · 模拟面试" },
+  { href: "/resume", icon: "⊡", name: "简历工坊", desc: "8 套模板 · 智能体改简历" },
+  { href: "/achievements", icon: "◆", name: "成就", desc: "查看你的使用成就" },
+  { href: "/settings", icon: "⊙", name: "设置", desc: "个性化与 AI 偏好" },
 ];
 
 export default async function DashboardPage() {
@@ -28,17 +28,16 @@ export default async function DashboardPage() {
   ]);
 
   const stats = [
-    { label: "知识库", value: kbs.length, icon: "🗂️" },
-    { label: "文档", value: docCount, icon: "📄" },
-    { label: "知识片段", value: chunkCount, icon: "🧩" },
+    { label: "知识库", value: kbs.length, icon: "◈" },
+    { label: "文档", value: docCount, icon: "≣" },
+    { label: "知识片段", value: chunkCount, icon: "⬡" },
   ];
 
   return (
     <div className="space-y-8">
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-600 p-6 text-white">
-        <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
-        <h1 className="text-2xl font-bold">📚 我的知识库</h1>
-        <p className="mt-1 text-sm text-indigo-100">
+        <h1 className="text-2xl font-bold">我的知识库</h1>
+        <p className="mt-2 text-sm text-indigo-100">
           创建知识库 → 上传文档 → 向 AI 提问，三步构建你的专属问答助手
         </p>
       </div>
@@ -66,7 +65,7 @@ export default async function DashboardPage() {
       {/* 功能总览 */}
       <div>
         <h2 className="mb-3 text-sm font-semibold text-zinc-500 dark:text-zinc-400">
-          🧭 功能总览
+          功能总览
         </h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((f) => (

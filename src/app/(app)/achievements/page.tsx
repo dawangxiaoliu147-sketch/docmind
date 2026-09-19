@@ -12,12 +12,12 @@ export default async function AchievementsPage() {
   ]);
 
   const achievements = [
-    { icon: "🗂️", title: "初建知识库", desc: "创建第一个知识库", unlocked: kbCount >= 1 },
-    { icon: "📄", title: "文档收藏家", desc: "上传 5 个文档", unlocked: docCount >= 5 },
-    { icon: "📚", title: "文档大师", desc: "上传 20 个文档", unlocked: docCount >= 20 },
-    { icon: "💬", title: "首次提问", desc: "发起第一次对话", unlocked: convCount >= 1 },
-    { icon: "🗣️", title: "提问达人", desc: "发起 10 次对话", unlocked: convCount >= 10 },
-    { icon: "🧩", title: "知识渊博", desc: "累计 50 个知识片段", unlocked: chunkCount >= 50 },
+    { icon: "◈", title: "初建知识库", desc: "创建第一个知识库", unlocked: kbCount >= 1 },
+    { icon: "≣", title: "文档收藏家", desc: "上传 5 个文档", unlocked: docCount >= 5 },
+    { icon: "◫", title: "文档大师", desc: "上传 20 个文档", unlocked: docCount >= 20 },
+    { icon: "⊹", title: "首次提问", desc: "发起第一次对话", unlocked: convCount >= 1 },
+    { icon: "✦", title: "提问达人", desc: "发起 10 次对话", unlocked: convCount >= 10 },
+    { icon: "⬡", title: "知识渊博", desc: "累计 50 个知识片段", unlocked: chunkCount >= 50 },
   ];
 
   const unlockedCount = achievements.filter((a) => a.unlocked).length;
@@ -25,7 +25,9 @@ export default async function AchievementsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold dark:text-zinc-50">成就</h1>
+        <h1 className="page-title">
+          <i aria-hidden="true">◆</i>成就
+        </h1>
         <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
           已解锁 {unlockedCount} / {achievements.length}
         </p>
@@ -61,7 +63,7 @@ export default async function AchievementsPage() {
                   : "text-zinc-400 dark:text-zinc-500"
               }`}
             >
-              {a.unlocked ? "✅ 已解锁" : "🔒 未解锁"}
+              {a.unlocked ? "✓ 已解锁" : "— 未解锁"}
             </span>
           </div>
         ))}

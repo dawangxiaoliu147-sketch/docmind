@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 const LINKS = [
-  { href: "/dashboard", label: "控制台", icon: "📊" },
-  { href: "/workbench", label: "工作台", icon: "🧰" },
-  { href: "/jobs", label: "职位库", icon: "💼" },
-  { href: "/settings", label: "设置", icon: "⚙️" },
-  { href: "/achievements", label: "成就", icon: "🏆" },
+  { href: "/dashboard", label: "控制台", icon: "◈" },
+  { href: "/workbench", label: "工作台", icon: "⊞" },
+  { href: "/jobs", label: "职位库", icon: "⬢" },
+  { href: "/settings", label: "设置", icon: "⊙" },
+  { href: "/achievements", label: "成就", icon: "◆" },
 ];
 
 export function CommandPalette() {

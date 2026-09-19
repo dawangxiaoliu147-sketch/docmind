@@ -28,7 +28,7 @@ export function ThemeToggle() {
       aria-label="切换深色模式"
       className="flex h-9 w-9 items-center justify-center rounded-lg border border-zinc-200 text-base transition hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
     >
-      {dark ? "🌙" : "☀️"}
+      {dark ? "◐" : "☀"}
     </button>
   );
 }

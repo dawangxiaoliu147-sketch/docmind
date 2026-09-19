@@ -64,7 +64,7 @@ export default async function KbPage({
             href={`/kb/${kb.id}/quiz`}
             className="rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-600 transition hover:bg-indigo-100 dark:border-indigo-900 dark:bg-indigo-950 dark:text-indigo-400 dark:hover:bg-indigo-900"
           >
-            🎯 知识测验
+            ◐ 知识测验
           </Link>
           <Link
             href={`/kb/${kb.id}/chat`}
@@ -78,7 +78,7 @@ export default async function KbPage({
       {/* AI 摘要 */}
       <details className="rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
         <summary className="cursor-pointer select-none px-5 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:text-zinc-200 dark:hover:bg-zinc-800/50">
-          ✨ AI 摘要（一键总结这个知识库）
+          ✧ AI 摘要（一键总结这个知识库）
         </summary>
         <div className="border-t border-zinc-100 p-5 dark:border-zinc-800">
           <KbSummary kbId={kb.id} />
@@ -88,7 +88,7 @@ export default async function KbPage({
       {/* 编辑知识库 */}
       <details className="rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
         <summary className="cursor-pointer select-none px-5 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:text-zinc-200 dark:hover:bg-zinc-800/50">
-          ✏️ 编辑知识库（重命名 / 描述 / 主题色）
+          ✎ 编辑知识库（重命名 / 描述 / 主题色）
         </summary>
         <div className="border-t border-zinc-100 p-5 dark:border-zinc-800">
           <KbEditForm
@@ -103,7 +103,7 @@ export default async function KbPage({
       {/* AI 知识图谱 */}
       <details className="rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
         <summary className="cursor-pointer select-none px-5 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:text-zinc-200 dark:hover:bg-zinc-800/50">
-          🗺️ 知识图谱（AI 自动梳理知识结构）
+          ⊛ 知识图谱（AI 自动梳理知识结构）
         </summary>
         <div className="border-t border-zinc-100 p-5 dark:border-zinc-800">
           <KbGraph kbId={kb.id} />
@@ -113,7 +113,7 @@ export default async function KbPage({
       {/* AI 工具箱 */}
       <details className="rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
         <summary className="cursor-pointer select-none px-5 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:text-zinc-200 dark:hover:bg-zinc-800/50">
-          🧰 AI 工具箱（闪卡 / 闯关 / 学习计划 / 每日一问 / 主题色）
+          ⊞ AI 工具箱（闪卡 / 闯关 / 学习计划 / 每日一问 / 主题色）
         </summary>
         <div className="border-t border-zinc-100 p-5 dark:border-zinc-800">
           <AiTools kbId={kb.id} />
@@ -123,7 +123,7 @@ export default async function KbPage({
       {/* 分享知识库 */}
       <details className="rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
         <summary className="cursor-pointer select-none px-5 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:text-zinc-200 dark:hover:bg-zinc-800/50">
-          🔗 分享知识库（生成只读链接）
+          ⧉ 分享知识库（生成只读链接）
         </summary>
         <div className="border-t border-zinc-100 p-5 dark:border-zinc-800">
           <form action={toggleShare}>
@@ -132,7 +132,7 @@ export default async function KbPage({
               type="submit"
               className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700"
             >
-              {kb.shared ? "🔒 取消分享" : "🔗 开启分享"}
+              {kb.shared ? "停止分享" : "开启分享"}
             </button>
           </form>
           {kb.shared && (
@@ -166,7 +166,7 @@ export default async function KbPage({
                   className="flex items-center justify-between px-5 py-3.5"
                 >
                   <div className="flex min-w-0 items-center gap-3">
-                    <span className="text-lg">📄</span>
+                    <span className="text-lg" aria-hidden="true">≣</span>
                     <div className="min-w-0">
                       <Link
                         href={`/kb/${kb.id}/docs/${doc.id}`}

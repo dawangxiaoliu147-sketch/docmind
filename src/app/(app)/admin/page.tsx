@@ -20,21 +20,20 @@ export default async function AdminDashboard() {
   });
 
   const stats = [
-    { label: "用户", value: users, icon: "👤" },
-    { label: "知识库", value: kbs, icon: "🗂️" },
-    { label: "文档", value: docs, icon: "📄" },
-    { label: "知识片段", value: chunks, icon: "🧩" },
-    { label: "对话", value: convs, icon: "💬" },
-    { label: "消息", value: msgs, icon: "✉️" },
+    { label: "用户", value: users, icon: "◉" },
+    { label: "知识库", value: kbs, icon: "◈" },
+    { label: "文档", value: docs, icon: "≣" },
+    { label: "知识片段", value: chunks, icon: "⬡" },
+    { label: "对话", value: convs, icon: "⊹" },
+    { label: "消息", value: msgs, icon: "✉" },
   ];
 
   return (
     <div className="space-y-6">
       {/* 顶部横幅 */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-600 p-6 text-white">
-        <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
-        <h1 className="text-2xl font-bold">🛠️ 管理后台</h1>
-        <p className="mt-1 text-sm text-indigo-100">
+        <h1 className="text-2xl font-bold">管理后台</h1>
+        <p className="mt-2 text-sm text-indigo-100">
           平台数据总览 · 共 {users} 位用户，{kbs} 个知识库
         </p>
       </div>

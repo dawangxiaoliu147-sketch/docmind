@@ -7,12 +7,12 @@ import remarkGfm from "remark-gfm";
 type ToolKey = "flashcards" | "game" | "plan" | "daily" | "theme" | "recommend";
 
 const TOOLS: { key: ToolKey; label: string; icon: string }[] = [
-  { key: "flashcards", label: "AI 闪卡", icon: "🎴" },
-  { key: "game", label: "知识闯关", icon: "🎮" },
-  { key: "plan", label: "学习计划", icon: "📝" },
-  { key: "daily", label: "每日一问", icon: "📅" },
-  { key: "recommend", label: "推荐问题", icon: "🎯" },
-  { key: "theme", label: "推荐主题色", icon: "🎨" },
+  { key: "flashcards", label: "AI 闪卡", icon: "⊟" },
+  { key: "game", label: "知识闯关", icon: "◐" },
+  { key: "plan", label: "学习计划", icon: "≣" },
+  { key: "daily", label: "每日一问", icon: "☉" },
+  { key: "recommend", label: "推荐问题", icon: "◎" },
+  { key: "theme", label: "推荐主题色", icon: "◨" },
 ];
 
 export function AiTools({ kbId }: { kbId: string }) {
@@ -59,7 +59,7 @@ export function AiTools({ kbId }: { kbId: string }) {
         ))}
       </div>
 
-      {pending && <p className="mt-3 text-sm text-zinc-500">🪄 生成中…</p>}
+      {pending && <p className="mt-3 text-sm text-zinc-500">生成中…</p>}
       {error && <p className="mt-3 text-xs text-red-600 dark:text-red-400">{error}</p>}
 
       {data && type === "flashcards" && (
@@ -67,7 +67,7 @@ export function AiTools({ kbId }: { kbId: string }) {
           {(data as Array<{ front: string; back: string }>).map((c, i) => (
             <details key={i} className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800/50">
               <summary className="cursor-pointer text-sm font-medium text-zinc-700 dark:text-zinc-200">
-                🎴 {c.front}
+                ⊟ {c.front}
               </summary>
               <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{c.back}</p>
             </details>
@@ -113,7 +113,7 @@ export function AiTools({ kbId }: { kbId: string }) {
                   </div>
                   {sel !== undefined && (
                     <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-                      {correct ? "✅ 答对了！" : `❌ 正确答案是 ${q.answer}`} · {q.explanation}
+                      {correct ? "✓ 答对了！" : `✗ 正确答案是 ${q.answer}`} · {q.explanation}
                     </p>
                   )}
                 </div>
@@ -132,7 +132,7 @@ export function AiTools({ kbId }: { kbId: string }) {
       {data && type === "daily" && (
         <div className="mt-3 rounded-xl bg-indigo-50 p-4 dark:bg-indigo-950/30">
           <p className="text-sm font-medium text-zinc-800 dark:text-zinc-100">
-            📅 {(data as { question: string }).question}
+            ☉ {(data as { question: string }).question}
           </p>
           {(data as { hint?: string }).hint && (
             <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
@@ -163,7 +163,7 @@ export function AiTools({ kbId }: { kbId: string }) {
         <ul className="mt-3 space-y-2">
           {(data as Array<{ question: string }>).map((q, i) => (
             <li key={i} className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-200">
-              <span>🎯</span> {q.question}
+              <span>◎</span> {q.question}
             </li>
           ))}
         </ul>

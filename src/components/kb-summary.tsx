@@ -32,7 +32,7 @@ export function KbSummary({ kbId }: { kbId: string }) {
         disabled={pending}
         className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {pending ? "生成中…" : "✨ AI 生成摘要"}
+        {pending ? "生成中…" : "✧ AI 生成摘要"}
       </button>
       {summary && (
         <div className="mt-3 whitespace-pre-wrap rounded-xl bg-zinc-50 p-4 text-sm leading-relaxed text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
