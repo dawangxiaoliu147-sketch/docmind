@@ -40,6 +40,7 @@ export async function deleteKnowledgeBase(formData: FormData): Promise<void> {
 
   await prisma.knowledgeBase.delete({ where: { id } });
   revalidatePath("/dashboard");
+  revalidatePath("/island");
   redirect("/dashboard");
 }
 
@@ -58,6 +59,7 @@ export async function deleteDocument(formData: FormData): Promise<void> {
 
   await prisma.document.delete({ where: { id: docId } });
   revalidatePath(`/kb/${kbId}`);
+  revalidatePath("/island");
 }
 
 // 更新知识库（重命名 / 改描述 / 改主题色）
@@ -84,7 +86,9 @@ export async function updateKnowledgeBase(formData: FormData): Promise<void> {
     data: { name, description: description || null, color: color || null },
   });
   revalidatePath(`/kb/${id}`);
+  revalidatePath("/island");
   revalidatePath("/dashboard");
+  revalidatePath("/island");
 }
 
 // 切换知识库分享状态（开启/关闭只读分享链接）
@@ -104,4 +108,5 @@ export async function toggleShare(formData: FormData): Promise<void> {
     data: { shared: !kb.shared },
   });
   revalidatePath(`/kb/${id}`);
+  revalidatePath("/island");
 }

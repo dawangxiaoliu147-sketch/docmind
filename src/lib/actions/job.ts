@@ -41,5 +41,6 @@ export async function addJob(formData: FormData): Promise<void> {
   });
 
   revalidatePath("/jobs");
+  revalidatePath("/island");
   redirect("/jobs");
 }
