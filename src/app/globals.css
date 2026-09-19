@@ -3272,25 +3272,42 @@ body {
   pointer-events: none;
   background: linear-gradient(
     180deg,
-    color-mix(in srgb, var(--theme-background) 26%, transparent) 0%,
-    color-mix(in srgb, var(--theme-background) 12%, transparent) 16%,
-    color-mix(in srgb, var(--theme-background) 4%, transparent) 42%,
-    color-mix(in srgb, var(--theme-background) 5%, transparent) 66%,
-    color-mix(in srgb, var(--theme-background) 16%, transparent) 86%,
-    color-mix(in srgb, var(--theme-background) 30%, transparent) 100%
+    color-mix(in srgb, var(--theme-background) 46%, transparent) 0%,
+    color-mix(in srgb, var(--theme-background) 26%, transparent) 16%,
+    color-mix(in srgb, var(--theme-background) 16%, transparent) 42%,
+    color-mix(in srgb, var(--theme-background) 18%, transparent) 66%,
+    color-mix(in srgb, var(--theme-background) 32%, transparent) 86%,
+    color-mix(in srgb, var(--theme-background) 46%, transparent) 100%
   );
 }
 
-/* 内页的遮罩：仍然比首屏厚（表格/表单密集，可读性优先），但已从七成降到四成左右，
-   让背景照片清楚可见 */
+/**
+ * 压在照片上的文字加投影。
+ *
+ * 起因：把蒙版压到 26% 之后实测对比度不足（首页标题最坏 2.42:1、关于页 2.25:1，AA 要 4.5:1）。
+ * 但用户的诉求是"背景照片要清晰"，所以**不动照片**（不压暗、不模糊），改成给文字一层局部阴影 ——
+ * 这是照片上的文字最标准的做法：只影响文字所在的像素，背景原样保留。
+ *
+ * 只压在照片上的文字才加：卡片/面板里的文字有自己的底色，加了反而发脏。
+ */
+.has-scenic :is(h1, h2, h3, p, li, .ui-title, .ui-subtitle, .ui-eyebrow, .zx-h1, .zx-h2, .zx-lead, .zx-head-label, .zx-head-desc) {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55), 0 2px 14px rgba(0, 0, 0, 0.45);
+}
+.has-scenic :is(.card, .panel, .glass, .zx-mock) :is(h1, h2, h3, p, li, span, div) {
+  text-shadow: none;
+}
+
+/* 内页的遮罩：实测降到四成会让正文对比度不足（2.92:1，AA 要 4.5），
+   所以回到接近原始强度 —— 这是内页表格/表单密集的必要代价。
+   请注意这里的取舍：内页可读性优先于"照片最清楚"，首屏才用更透的那一版。 */
 .scenic-veil-strong {
   background: linear-gradient(
     180deg,
-    color-mix(in srgb, var(--theme-background) 42%, transparent) 0%,
-    color-mix(in srgb, var(--theme-background) 36%, transparent) 18%,
-    color-mix(in srgb, var(--theme-background) 30%, transparent) 48%,
-    color-mix(in srgb, var(--theme-background) 36%, transparent) 80%,
-    color-mix(in srgb, var(--theme-background) 46%, transparent) 100%
+    color-mix(in srgb, var(--theme-background) 66%, transparent) 0%,
+    color-mix(in srgb, var(--theme-background) 60%, transparent) 18%,
+    color-mix(in srgb, var(--theme-background) 56%, transparent) 48%,
+    color-mix(in srgb, var(--theme-background) 62%, transparent) 80%,
+    color-mix(in srgb, var(--theme-background) 70%, transparent) 100%
   );
 }
 
