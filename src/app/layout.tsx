@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { RevealObserver } from "@/components/ui/reveal-observer";
+import { DEFAULT_ACCENT, DEFAULT_SCENE } from "@/config/theme-defaults";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -56,9 +57,9 @@ const themeInit = `(function(){
     // 知行的设计语言是深色场景（对齐 Summer Checkin），不提供浅色模式
     var d = true;
     document.documentElement.classList.add('dark');
-    // 场景换肤：rain 雨林（默认）/ snow 雪境 / cloud 暖云
+    // 场景换肤：rain 雨林 / snow 雪境 / cloud 暖云（默认值见 config/theme-defaults）
     var s = localStorage.getItem('scene');
-    document.documentElement.setAttribute('data-scene', s || 'rain');
+    document.documentElement.setAttribute('data-scene', s || '${DEFAULT_SCENE}');
     // 每个场景各自的背景图（在 /settings → 场景背景 里选或上传）
     var scs = ['rain','snow','cloud'];
     for (var i = 0; i < scs.length; i++) {
@@ -72,15 +73,18 @@ const themeInit = `(function(){
     }
     // 背景总开关
     document.documentElement.setAttribute('data-scenic', localStorage.getItem('scenicOff') === '1' ? 'off' : 'on');
+    // 主题色：存过就用用户的，没存过用默认色 —— 新用户第一次打开看到的即默认
+    var r=document.documentElement.style;
     var a=localStorage.getItem('accent');
-    if(a){var c=JSON.parse(a);var r=document.documentElement.style;
-      if(c.accent)r.setProperty('--accent',c.accent);
-      if(c.hover)r.setProperty('--accent-hover',c.hover);
-      if(c.soft)r.setProperty('--accent-soft',c.soft);
-      if(c.softer)r.setProperty('--accent-softer',c.softer);
-      if(c.border)r.setProperty('--accent-border',c.border);
-      if(c.deep)r.setProperty('--accent-deep',c.deep);
-    }
+    var c=null;
+    if(a){try{c=JSON.parse(a);}catch(e){}}
+    if(!c)c=${JSON.stringify(DEFAULT_ACCENT)};
+    if(c.accent)r.setProperty('--accent',c.accent);
+    if(c.hover)r.setProperty('--accent-hover',c.hover);
+    if(c.soft)r.setProperty('--accent-soft',c.soft);
+    if(c.softer)r.setProperty('--accent-softer',c.softer);
+    if(c.border)r.setProperty('--accent-border',c.border);
+    if(c.deep)r.setProperty('--accent-deep',c.deep);
     var b=localStorage.getItem('bgImage');
     if(b){document.documentElement.style.setProperty('--bg-image','url('+b+')');}
     var o=localStorage.getItem('bgOpacity');
@@ -95,7 +99,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="zh-CN"
       suppressHydrationWarning
-      data-scene="rain"
+      data-scene={DEFAULT_SCENE}
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
