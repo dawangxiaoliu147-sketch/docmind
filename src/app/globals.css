@@ -3288,13 +3288,22 @@ body {
  * 但用户的诉求是"背景照片要清晰"，所以**不动照片**（不压暗、不模糊），改成给文字一层局部阴影 ——
  * 这是照片上的文字最标准的做法：只影响文字所在的像素，背景原样保留。
  *
- * 只压在照片上的文字才加：卡片/面板里的文字有自己的底色，加了反而发脏。
+ * ⚠️ 只列**真正压在照片上的**那几处。一开始写的是 :is(h1,h2,h3,p,li) 通配 —— 结果应用页里
+ * 所有不在卡片里的正文（简历纸、聊天回答、文档内容）全被套上投影，字发虚、打印更明显。
+ * 教训：这种全局视觉规则宁可列具体类名，不要用标签通配。
  */
-.has-scenic :is(h1, h2, h3, p, li, .ui-title, .ui-subtitle, .ui-eyebrow, .zx-h1, .zx-h2, .zx-lead, .zx-head-label, .zx-head-desc) {
+.has-scenic :is(
+  .zx-h1,
+  .zx-h2,
+  .zx-lead,
+  .zx-head-label,
+  .zx-head-desc,
+  .ui-title,
+  .ui-subtitle,
+  .ui-eyebrow,
+  .ui-section-title
+) {
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55), 0 2px 14px rgba(0, 0, 0, 0.45);
-}
-.has-scenic :is(.card, .panel, .glass, .zx-mock) :is(h1, h2, h3, p, li, span, div) {
-  text-shadow: none;
 }
 
 /* 内页的遮罩：实测降到四成会让正文对比度不足（2.92:1，AA 要 4.5），
