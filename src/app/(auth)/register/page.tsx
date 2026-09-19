@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { RegisterForm } from "./register-form";
 import { Logo } from "@/components/logo";
-import { ZxBackdrop } from "@/components/zx-scene";
 
 export const metadata: Metadata = {
   title: "注册 · 知行",
@@ -20,8 +19,6 @@ export default function RegisterPage() {
 
   return (
     <div className="zx-landing">
-      <ZxBackdrop />
-
       <div className="zx-shell">
         <div className="zx-auth-wrap">
           <div className="zx-auth-card">
@@ -43,7 +40,7 @@ export default function RegisterPage() {
                   {POINTS.map((p) => (
                     <li key={p.text}>
                       <span
-                        className="zx-feat-icon"
+                        className="zx-point-icon"
                         style={{ width: 28, height: 28, fontSize: 14 }}
                         aria-hidden="true"
                       >

@@ -78,6 +78,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="zh-CN"
       suppressHydrationWarning
+      data-scene="rain"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
