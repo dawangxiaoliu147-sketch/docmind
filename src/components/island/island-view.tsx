@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { KnowledgeIsland, type IslandDoc } from "./knowledge-island";
 import { buildIsland, type IslandStats } from "./island-model";
 import type { IslandSkin, IslandWeather } from "./knowledge-island-3d";
+import { DEFAULT_SCENE } from "@/config/theme-defaults";
 
 /** 路径 → 中文去处。3D 里建筑没有文字标签，不标出来根本不知道点了会去哪 */
 const DEST: Record<string, string> = {
@@ -74,11 +75,11 @@ const SCENE_WEATHER: Record<GlobalScene, IslandWeather> = {
  * 用 MutationObserver 盯着它即可，不需要把场景提到 Context，也不用让岛页订阅全站状态。
  */
 function useGlobalScene(): GlobalScene {
-  const [scene, setScene] = useState<GlobalScene>("rain");
+  const [scene, setScene] = useState<GlobalScene>(DEFAULT_SCENE);
   useEffect(() => {
     const read = () => {
       const v = document.documentElement.dataset.scene;
-      setScene(v === "snow" || v === "cloud" ? v : "rain");
+      setScene(v === "snow" || v === "cloud" ? v : DEFAULT_SCENE);
     };
     read();
     const mo = new MutationObserver(read);

@@ -9,6 +9,7 @@ import {
   scenicKeys,
   type ScenicScene,
 } from "@/config/scenic";
+import { DEFAULT_SCENE } from "@/config/theme-defaults";
 
 /**
  * 场景切换：点开是一个**带预览图的面板**，而不是三个色点。
@@ -52,7 +53,7 @@ export function SceneSwitcher() {
   useEffect(() => {
     /* eslint-disable react-hooks/set-state-in-effect -- localStorage / documentElement 只有客户端可读，
        渲染期读会 hydration 不一致；挂载后同步一次当前场景。 */
-    const saved = (localStorage.getItem("scene") as ScenicScene) || "rain";
+    const saved = (localStorage.getItem("scene") as ScenicScene) || DEFAULT_SCENE;
     setScene(saved);
     document.documentElement.setAttribute("data-scene", saved);
     /* eslint-enable react-hooks/set-state-in-effect */
