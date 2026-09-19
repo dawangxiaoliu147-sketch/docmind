@@ -4287,3 +4287,136 @@ html[data-scenic="off"] .scenic-veil {
     transition: none;
   }
 }
+
+/* ============================================================================
+   场景切换的平滑过渡
+   ----------------------------------------------------------------------------
+   CSS 自定义属性默认**不可过渡** —— 浏览器不知道 --theme-primary 是个颜色，只能瞬时替换。
+   所以以前切场景时：背景照片是 360ms 淡入的，而所有颜色是"啪"地跳过去的，一半平滑一半生硬。
+
+   用 @property 给这些令牌声明类型之后，它们就能参与 transition 了，整站配色跟着柔和渐变。
+   不支持 @property 的浏览器自动退回原来的瞬时切换，不会坏 —— 只是没有这个过渡。
+   ============================================================================ */
+
+@property --theme-background {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #0c1f19;
+}
+@property --theme-foreground {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #f2f8f4;
+}
+@property --theme-primary {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #d7ef83;
+}
+@property --theme-primary-foreground {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #051612;
+}
+@property --theme-ring {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #d7ef83;
+}
+@property --theme-card {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: rgba(255, 255, 255, 0.12);
+}
+@property --theme-muted {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: rgba(255, 255, 255, 0.08);
+}
+@property --theme-muted-foreground {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #a0bdb2;
+}
+@property --theme-border {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: rgba(255, 255, 255, 0.14);
+}
+@property --theme-secondary-foreground {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #dceddf;
+}
+/* 主题色是 JS 写上去的独立变量，注册后换色也会渐变 */
+@property --accent {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #d97706;
+}
+@property --accent-hover {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #b45309;
+}
+
+html {
+  transition: --theme-background 620ms ease, --theme-foreground 620ms ease,
+    --theme-primary 620ms ease, --theme-primary-foreground 620ms ease, --theme-ring 620ms ease,
+    --theme-card 620ms ease, --theme-muted 620ms ease, --theme-muted-foreground 620ms ease,
+    --theme-border 620ms ease, --theme-secondary-foreground 620ms ease, --accent 400ms ease,
+    --accent-hover 400ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    transition: none;
+  }
+}
+
+/* ============================================================================
+   卡片光标光斑
+   ----------------------------------------------------------------------------
+   全站模糊归零之后，玻璃卡片失去了"厚度"，成了半透明色块。这里用一团跟着鼠标走的
+   柔光把它补回来 —— 只在悬停时出现，不干扰阅读。
+
+   坐标由 reveal-observer 里的**一个委托监听**写进 --mx/--my（不是每张卡各挂一个监听），
+   所以卡片数量再多也只有一个监听器。
+   ============================================================================ */
+
+.card,
+.panel,
+.glass {
+  position: relative;
+}
+
+.card::before,
+.panel::before,
+.glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.28s ease;
+  background: radial-gradient(
+    260px circle at var(--mx, 50%) var(--my, 50%),
+    color-mix(in srgb, var(--theme-primary) 13%, transparent),
+    transparent 72%
+  );
+}
+
+.card:hover::before,
+.panel:hover::before,
+.glass:hover::before {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce), (hover: none) {
+  .card::before,
+  .panel::before,
+  .glass::before {
+    display: none;
+  }
+}

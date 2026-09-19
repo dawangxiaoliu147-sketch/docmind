@@ -91,5 +91,39 @@ export function RevealObserver() {
     };
   }, []);
 
+  /**
+   * 卡片光标光斑：把鼠标位置写进当前卡片的 --mx/--my，CSS 用 radial-gradient 渲染那团柔光。
+   *
+   * 用**一个委托监听**而不是给每张卡各挂一个 —— 控制台一屏就有几十张卡，
+   * 逐元素绑定既浪费又要在 DOM 变动时重新绑定。坐标写进自定义属性，不触发 React 重渲染。
+   *
+   * 用 rAF 节流：pointermove 每秒能触发上百次，直接写样式会让主线程忙于样式重算。
+   */
+  useEffect(() => {
+    let raf = 0;
+    let pending: { el: HTMLElement; x: number; y: number } | null = null;
+
+    const onMove = (e: PointerEvent) => {
+      const target = e.target as HTMLElement | null;
+      const card = target?.closest?.(".card, .panel, .glass") as HTMLElement | null;
+      if (!card) return;
+      pending = { el: card, x: e.clientX, y: e.clientY };
+      if (raf) return;
+      raf = window.requestAnimationFrame(() => {
+        raf = 0;
+        if (!pending) return;
+        const r = pending.el.getBoundingClientRect();
+        pending.el.style.setProperty("--mx", `${pending.x - r.left}px`);
+        pending.el.style.setProperty("--my", `${pending.y - r.top}px`);
+      });
+    };
+
+    window.addEventListener("pointermove", onMove, { passive: true });
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      if (raf) window.cancelAnimationFrame(raf);
+    };
+  }, []);
+
   return null;
 }

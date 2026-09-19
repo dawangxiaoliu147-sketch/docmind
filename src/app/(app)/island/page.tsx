@@ -8,6 +8,7 @@ import { TourButton } from "@/components/onboarding-tour";
 import {
   Button,
   Chip,
+  CountUp,
   Metric,
   MetricGrid,
   PageHeader,
@@ -105,7 +106,7 @@ export default async function IslandPage() {
       </div>
 
       <MetricGrid>
-        <Metric icon="◈" label="成长分" value={score} />
+        <Metric icon="◈" label="成长分" value={<CountUp value={score} />} />
         <Metric icon="⬡" label="已解锁地块" value={island.unlocked} unit={`/ ${island.total}`} />
         <Metric icon="≣" label="文档" value={doc} />
         <Metric icon="✦" label="对话" value={conv} delta={`近 7 天活跃 ${activeDays} 天`} />

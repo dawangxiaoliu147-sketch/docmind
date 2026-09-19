@@ -31,6 +31,7 @@ export {
 } from "./card";
 
 export { Badge, Chip, IconBox } from "./badge";
+export { CountUp } from "./count-up";
 export type { ChipTone } from "./badge";
 
 export { Checkbox, Field, FieldRow, Input, Radio, Range, Select, Switch, Textarea } from "./input";

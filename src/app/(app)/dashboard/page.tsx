@@ -12,6 +12,7 @@ import {
   Card,
   CardGrid,
   Chip,
+  CountUp,
   Empty,
   Field,
   IconBox,
@@ -82,7 +83,7 @@ export default async function DashboardPage() {
 
       {/* 数据条 */}
       <MetricGrid>
-        <Metric icon="◈" label="知识库" value={kbs.length} />
+        <Metric icon="◈" label="知识库" value={<CountUp value={kbs.length} />} />
         <Metric icon="≣" label="文档" value={docCount} />
         <Metric icon="⬡" label="知识片段" value={chunkCount} />
       </MetricGrid>
