@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   SCENIC_SCENES,
   SCENIC_SCENE_LABEL,
@@ -40,19 +40,45 @@ export function SceneSwitcher() {
   const [open, setOpen] = useState(false);
   const [thumbs, setThumbs] = useState<Partial<Record<ScenicScene, string | null>>>({});
 
-  useEffect(() => {
-    /* eslint-disable react-hooks/set-state-in-effect -- localStorage / documentElement 只有客户端可读，
-       渲染期读会 hydration 不一致；挂载后同步一次当前场景与三张预览图。 */
-    const saved = (localStorage.getItem("scene") as ScenicScene) || "rain";
-    setScene(saved);
-    document.documentElement.setAttribute("data-scene", saved);
-    setThumbs({
+  const readThumbs = useCallback(
+    (): Partial<Record<ScenicScene, string | null>> => ({
       rain: thumbFor("rain"),
       snow: thumbFor("snow"),
       cloud: thumbFor("cloud"),
-    });
+    }),
+    [],
+  );
+
+  useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- localStorage / documentElement 只有客户端可读，
+       渲染期读会 hydration 不一致；挂载后同步一次当前场景。 */
+    const saved = (localStorage.getItem("scene") as ScenicScene) || "rain";
+    setScene(saved);
+    document.documentElement.setAttribute("data-scene", saved);
     /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
+
+  /**
+   * 每次**打开面板**都重读缩略图。
+   *
+   * 这个组件挂在布局里，从设置页返回时不会重新挂载 —— 只在挂载时读一次的话，
+   * 在设置里换了背景之后这里会一直显示旧图。打开即重读是最省事也最可靠的同步点。
+   */
+  useEffect(() => {
+    /* eslint-disable-next-line react-hooks/set-state-in-effect -- 读的是 localStorage，挂载后才可读 */
+    setThumbs(readThumbs());
+  }, [readThumbs, open]);
+
+  /** 设置页保存后会派发 scenic:changed；在**其它标签页**改则走 storage */
+  useEffect(() => {
+    const sync = () => setThumbs(readThumbs());
+    window.addEventListener("scenic:changed", sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener("scenic:changed", sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, [readThumbs]);
 
   // ESC 关闭
   useEffect(() => {

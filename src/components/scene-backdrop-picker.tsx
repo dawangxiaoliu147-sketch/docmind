@@ -96,6 +96,14 @@ export function SceneBackdropPicker() {
     localStorage.setItem(k.pick, next);
     if (next === "custom" && url) localStorage.setItem(k.custom, url);
 
+    /**
+     * 通知同一标签页里的其它组件（头部那个场景切换面板）。
+     *
+     * `storage` 事件**只在其它标签页**触发，本标签页的写入不会派发，所以同页面内的同步
+     * 必须自己发一个事件。不然在设置里换了背景，头部的缩略图还是旧的。
+     */
+    window.dispatchEvent(new Event("scenic:changed"));
+
     setPick((prev) => ({ ...prev, [scene]: next }));
     if (next === "custom" && url) {
       setCustom((prev) => ({ ...prev, [scene]: url }));
