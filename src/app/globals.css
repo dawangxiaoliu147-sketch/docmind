@@ -1678,8 +1678,11 @@ body {
   --ui-ease-fade: cubic-bezier(0.4, 0, 0.2, 1);
   --ui-ease-enter: cubic-bezier(0.22, 1, 0.36, 1);
   /* 玻璃模糊强度：想更清晰就调小，设 0 则完全关闭磨砂 */
-  --ui-blur: 10px;
-  --ui-blur-lg: 15px;
+  /* 玻璃层的模糊：设为 0 —— 背景照片要清晰，不要磨砂感。
+     所有 backdrop-filter 都引用这两个变量，一处改即全站生效。
+     想反悔：改成 4px / 6px 就回到"有一点玻璃"的观感。 */
+  --ui-blur: 0px;
+  --ui-blur-lg: 0px;
   --ui-font-mono: "JetBrains Mono", "Cascadia Code", SFMono-Regular, Consolas, monospace;
 }
 
@@ -3269,24 +3272,25 @@ body {
   pointer-events: none;
   background: linear-gradient(
     180deg,
-    color-mix(in srgb, var(--theme-background) 44%, transparent) 0%,
-    color-mix(in srgb, var(--theme-background) 22%, transparent) 16%,
-    color-mix(in srgb, var(--theme-background) 11%, transparent) 42%,
-    color-mix(in srgb, var(--theme-background) 13%, transparent) 66%,
-    color-mix(in srgb, var(--theme-background) 28%, transparent) 86%,
-    color-mix(in srgb, var(--theme-background) 48%, transparent) 100%
+    color-mix(in srgb, var(--theme-background) 26%, transparent) 0%,
+    color-mix(in srgb, var(--theme-background) 12%, transparent) 16%,
+    color-mix(in srgb, var(--theme-background) 4%, transparent) 42%,
+    color-mix(in srgb, var(--theme-background) 5%, transparent) 66%,
+    color-mix(in srgb, var(--theme-background) 16%, transparent) 86%,
+    color-mix(in srgb, var(--theme-background) 30%, transparent) 100%
   );
 }
 
-/* 内页用的"淡版"遮罩：比首屏厚，因为内页表格/表单密集，可读性优先 */
+/* 内页的遮罩：仍然比首屏厚（表格/表单密集，可读性优先），但已从七成降到四成左右，
+   让背景照片清楚可见 */
 .scenic-veil-strong {
   background: linear-gradient(
     180deg,
-    color-mix(in srgb, var(--theme-background) 68%, transparent) 0%,
-    color-mix(in srgb, var(--theme-background) 62%, transparent) 18%,
-    color-mix(in srgb, var(--theme-background) 58%, transparent) 48%,
-    color-mix(in srgb, var(--theme-background) 64%, transparent) 80%,
-    color-mix(in srgb, var(--theme-background) 72%, transparent) 100%
+    color-mix(in srgb, var(--theme-background) 42%, transparent) 0%,
+    color-mix(in srgb, var(--theme-background) 36%, transparent) 18%,
+    color-mix(in srgb, var(--theme-background) 30%, transparent) 48%,
+    color-mix(in srgb, var(--theme-background) 36%, transparent) 80%,
+    color-mix(in srgb, var(--theme-background) 46%, transparent) 100%
   );
 }
 
