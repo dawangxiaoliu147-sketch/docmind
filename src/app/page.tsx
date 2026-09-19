@@ -2,6 +2,8 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 import { Logo } from "@/components/logo";
 import { LandingReveal } from "@/components/landing-reveal";
+import { ScenicBackdrop, PhoneShell, ScreenDashboard } from "@/components/ui";
+import { SceneSwitcher } from "@/components/scene-switcher";
 
 // 给 reveal 元素挂错峰延迟
 const d = (s: string) => ({ "--d": s }) as CSSProperties;
@@ -39,37 +41,45 @@ const TECH = [
 
 export default function LandingPage() {
   return (
-    <div className="zx-landing">
+    <div className="zx-landing has-scenic">
+      {/* 整页固定的场景背板 + 暗过渡：首屏照片清晰，内容段被磨砂压住 */}
+      <ScenicBackdrop />
       <div className="zx-shell">
         {/* ─────────── 首屏 ─────────── */}
         <section className="zx-hero">
           <div className="zx-hero-overlay" aria-hidden="true" />
 
-          <nav className="zx-hero-nav" aria-label="首页导航">
+          <nav className="zx-pillnav" aria-label="首页导航">
             <Link href="/" className="zx-brand">
               <span className="zx-brand-mark">
                 <Logo className="h-5 w-5" />
               </span>
               知行
             </Link>
-            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-              <Link
-                href="/login"
-                style={{ fontSize: 14, fontWeight: 500, color: "rgba(255,255,255,.75)" }}
-              >
+            <div className="zx-pillnav-links">
+              <Link href="/#features" className="nav-link">
+                功能
+              </Link>
+              <Link href="/#steps" className="nav-link">
+                如何使用
+              </Link>
+              <Link href="/about" className="nav-link">
+                关于
+              </Link>
+            </div>
+            <div className="zx-pillnav-right">
+              <SceneSwitcher />
+              <Link href="/login" className="btn btn-ghost btn-sm">
                 登录
               </Link>
-              <Link
-                href="/dashboard"
-                className="btn-ghost-pill"
-                style={{ padding: "0.5rem 1.1rem", fontSize: 13 }}
-              >
+              <Link href="/dashboard" className="btn btn-primary btn-sm">
                 进入控制台
               </Link>
             </div>
           </nav>
 
           <div className="zx-hero-body">
+            <div className="zx-hero-grid">
             <div className="product-enter">
               <div className="zx-badge zx-reveal">
                 <i>✦</i>基于 RAG 检索增强生成
@@ -112,6 +122,13 @@ export default function LandingPage() {
               <div className="zx-hero-foot">
                 <i aria-hidden="true">✓</i>
                 数据存在你自己部署的服务上，随时开始，随时回看
+              </div>
+            </div>
+              {/* §10 版式 A：Hero 左文右单机；整机在场景背板上浮动（§6 #5 唯一允许的环境浮动） */}
+              <div className="zx-hero-phone">
+                <PhoneShell active={0}>
+                  <ScreenDashboard />
+                </PhoneShell>
               </div>
             </div>
           </div>
@@ -343,7 +360,7 @@ export default function LandingPage() {
         </section>
 
         {/* ─────────── 如何使用 + 技术栈 ─────────── */}
-        <section className="zx-band">
+        <section id="steps" className="zx-band">
           <div className="zx-inner">
             <div className="zx-head zx-reveal">
               <div>

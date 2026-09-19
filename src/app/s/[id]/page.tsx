@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
+import { Card, Chip, Empty, IconBox, ScenicBackdrop, buttonClass } from "@/components/ui";
 
 // 公开分享页：无需登录，只读展示知识库的文档概览
 export default async function SharePage({
@@ -34,53 +35,47 @@ export default async function SharePage({
   );
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-12">
-      <div className="mb-2 text-sm font-medium text-indigo-500">🔗 知行 知识库分享</div>
-      <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">{kb.name}</h1>
-      {kb.description && (
-        <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">{kb.description}</p>
-      )}
+    <div className="ui-shell has-scenic ui-scene-fade min-h-screen">
+      <ScenicBackdrop veil="strong" />
+      <div className="mx-auto max-w-3xl px-4 py-12">
+        <p className="ui-eyebrow">shared knowledge base</p>
+        <h1 className="ui-title">{kb.name}</h1>
+        {kb.description && <p className="ui-subtitle">{kb.description}</p>}
 
-      <div className="mt-8">
-        <h2 className="mb-3 text-sm font-semibold text-zinc-500 dark:text-zinc-400">
-          文档（{docs.length}）
-        </h2>
-        {docs.length === 0 ? (
-          <p className="text-sm text-zinc-400">该知识库暂无已就绪的文档</p>
-        ) : (
-          <div className="space-y-4">
-            {docs.map((d) => (
-              <div
-                key={d.id}
-                className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
-              >
-                <h3 className="font-semibold text-zinc-800 dark:text-zinc-100">
-                  📄 {d.title}
-                </h3>
-                <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">
-                  {d.chunkCount} 个片段
-                </p>
-                {d.preview && (
-                  <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                    {d.preview}…
-                  </p>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+        <div className="mt-8">
+          <h2 className="ui-section-title mb-3">文档（{docs.length}）</h2>
+          {docs.length === 0 ? (
+            <Empty icon="◈" title="该知识库暂无已就绪的文档" />
+          ) : (
+            <div className="flex flex-col gap-4">
+              {docs.map((d) => (
+                <Card key={d.id} pad>
+                  <div className="flex items-start gap-3">
+                    <IconBox size="sm">≣</IconBox>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-3">
+                        <h3 className="text-[13.5px] font-semibold text-fg">{d.title}</h3>
+                        <Chip className="num">{d.chunkCount} 个片段</Chip>
+                      </div>
+                      {d.preview && (
+                        <p className="mt-3 whitespace-pre-wrap text-[12.5px] leading-relaxed text-muted-fg">
+                          {d.preview}…
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
 
-      <div className="mt-10 border-t border-zinc-200 pt-6 text-center dark:border-zinc-800">
-        <p className="text-xs text-zinc-400 dark:text-zinc-500">
-          由 知行 提供 · 基于 RAG 的 AI 智能知识库
-        </p>
-        <Link
-          href="/"
-          className="mt-2 inline-block text-sm font-medium text-indigo-600 hover:underline dark:text-indigo-400"
-        >
-          我也要创建自己的知识库 →
-        </Link>
+        <div className="mt-10 border-t border-border pt-6 text-center">
+          <p className="text-[11.5px] text-muted-fg">由 知行 提供 · 基于 RAG 的 AI 智能知识库</p>
+          <Link href="/" className={buttonClass({ variant: "link", className: "mt-2" })}>
+            我也要创建自己的知识库 →
+          </Link>
+        </div>
       </div>
     </div>
   );

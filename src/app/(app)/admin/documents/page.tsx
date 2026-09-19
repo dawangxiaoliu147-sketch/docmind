@@ -1,5 +1,16 @@
 import { requireAdmin } from "@/lib/dal";
 import { prisma } from "@/lib/db";
+import {
+  Chip,
+  Section,
+  Table,
+  TableWrap,
+  TBody,
+  TD,
+  TH,
+  THead,
+  TR,
+} from "@/components/ui";
 
 export default async function AdminDocsPage() {
   await requireAdmin();
@@ -12,58 +23,49 @@ export default async function AdminDocsPage() {
   });
 
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-      <div className="border-b border-zinc-100 px-5 py-4 dark:border-zinc-800">
-        <h2 className="text-sm font-semibold dark:text-zinc-100">
-          文档（{docs.length}）
-        </h2>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-zinc-50 text-xs text-zinc-500 dark:bg-zinc-800/50 dark:text-zinc-400">
-            <tr>
-              <th className="px-5 py-3 font-medium">标题</th>
-              <th className="px-5 py-3 font-medium">知识库</th>
-              <th className="px-5 py-3 font-medium">所属用户</th>
-              <th className="px-5 py-3 font-medium">状态</th>
-              <th className="px-5 py-3 font-medium">片段数</th>
-              <th className="px-5 py-3 font-medium">上传时间</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+    <Section title={`文档（${docs.length}）`}>
+      <TableWrap>
+        <Table>
+          <THead>
+            <TR>
+              <TH>标题</TH>
+              <TH>知识库</TH>
+              <TH>所属用户</TH>
+              <TH>状态</TH>
+              <TH>片段数</TH>
+              <TH>上传时间</TH>
+            </TR>
+          </THead>
+          <TBody>
             {docs.map((d) => (
-              <tr key={d.id}>
-                <td className="max-w-[220px] truncate px-5 py-3 font-medium dark:text-zinc-100">
+              <TR key={d.id}>
+                <TD strong className="max-w-[220px] truncate">
                   {d.title}
-                </td>
-                <td className="px-5 py-3 text-zinc-500 dark:text-zinc-400">
-                  {d.kb.name}
-                </td>
-                <td className="px-5 py-3 text-zinc-500 dark:text-zinc-400">
-                  {d.kb.user.email}
-                </td>
-                <td className="px-5 py-3">
-                  <span
-                    className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                </TD>
+                <TD className="text-muted-fg">{d.kb.name}</TD>
+                <TD className="text-muted-fg">{d.kb.user.email}</TD>
+                <TD>
+                  <Chip
+                    tone={
                       d.status === "ready"
-                        ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400"
+                        ? "success"
                         : d.status === "failed"
-                          ? "bg-red-50 text-red-600 dark:bg-red-950 dark:text-red-400"
-                          : "bg-amber-50 text-amber-600 dark:bg-amber-950 dark:text-amber-400"
-                    }`}
+                          ? "red"
+                          : "primary"
+                    }
                   >
                     {d.status}
-                  </span>
-                </td>
-                <td className="px-5 py-3 dark:text-zinc-300">{d.chunkCount}</td>
-                <td className="px-5 py-3 text-zinc-500 dark:text-zinc-400">
+                  </Chip>
+                </TD>
+                <TD className="num">{d.chunkCount}</TD>
+                <TD className="text-muted-fg">
                   {d.createdAt.toLocaleDateString()}
-                </td>
-              </tr>
+                </TD>
+              </TR>
             ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+          </TBody>
+        </Table>
+      </TableWrap>
+    </Section>
   );
 }

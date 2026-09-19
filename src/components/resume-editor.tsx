@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Button, Chip, Textarea } from "@/components/ui";
 
 // 默认简历内容（对齐参考模板：照片 + 姓名标题 + 蓝色横幅 + 信息网格 + 蓝色分区标签）
 const DEFAULT_HTML = `
@@ -166,7 +167,7 @@ export function ResumeEditor() {
     const prev = past.pop() as Snapshot;
     if (cur) futureRef.current.push(cur);
     applySnapshot(prev);
-    setMsg("↩️ 已撤回上一步");
+    setMsg("↩ 已撤回上一步");
     bumpHistory((v) => v + 1);
   }
 
@@ -177,7 +178,7 @@ export function ResumeEditor() {
     const next = future.pop() as Snapshot;
     if (cur) pastRef.current.push(cur);
     applySnapshot(next);
-    setMsg("↪️ 已恢复下一步");
+    setMsg("↪ 已恢复下一步");
     bumpHistory((v) => v + 1);
   }
 
@@ -257,7 +258,7 @@ export function ResumeEditor() {
       if (h > A4_PX) {
         setZoom(Math.max(0.62, Number((A4_PX / h).toFixed(3))));
       }
-      setMsg("📏 已自动适配到一页");
+      setMsg("已自动适配到一页");
       setTimeout(measurePages, 60);
     });
   }
@@ -266,12 +267,10 @@ export function ResumeEditor() {
   useEffect(() => {
     const t = setTimeout(measurePages, 150);
     return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tpl, zoom]);
 
   useEffect(() => {
     loadList();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // 每次渲染后刷新快捷键回调，避免闭包里读到旧的 tpl/accent/zoom
@@ -320,7 +319,7 @@ export function ResumeEditor() {
     setUploading(false);
     setMsg(
       added.length
-        ? `📎 已读取 ${added.length} 个文件${failed ? `，${failed} 个失败` : ""}`
+        ? `已读取 ${added.length} 个文件${failed ? `，${failed} 个失败` : ""}`
         : "解析失败，请重试",
     );
     e.target.value = "";
@@ -354,15 +353,15 @@ export function ResumeEditor() {
       if (!res.ok) {
         setMsg(json.error ?? "修改失败");
       } else if (bodyRef.current) {
-        pushHistory(); // 记下 AI 改动前的简历，可一键撤回
+        pushHistory(); // 记下 AI 改动前的简历，可撤回
         bodyRef.current.innerHTML = json.html;
         if (json.tpl) setTpl(json.tpl);
         if (json.accent) setAccent(json.accent);
-        setMsg("✅ 已按你的要求修改");
+        setMsg("✓ 已按你的要求修改");
         setPrompt("");
       }
     } catch (err) {
-      if ((err as Error)?.name === "AbortError") setMsg("⏹ 已停止修改");
+      if ((err as Error)?.name === "AbortError") setMsg("已停止修改");
       else setMsg("修改失败，请重试");
     } finally {
       setBusy(false);
@@ -382,7 +381,7 @@ export function ResumeEditor() {
     reader.onload = () => {
       setImageData(reader.result as string);
       setImageName(file.name);
-      setMsg("🖼️ 图片已读入，说说你要从中提炼什么");
+      setMsg("图片已读入，说说你要从中提炼什么");
     };
     reader.readAsDataURL(file);
     e.target.value = "";
@@ -417,7 +416,7 @@ export function ResumeEditor() {
         setMsg(json.error ?? "保存失败");
       } else {
         if (!curId && json.id) setCurId(json.id);
-        setMsg("💾 已保存到简历库");
+        setMsg("已保存到简历库");
         loadList();
       }
     } catch {
@@ -443,7 +442,7 @@ export function ResumeEditor() {
       // 换了一份简历，清空历史：否则撤回会把上一份的内容带回来，
       // 而 curId 已指向新简历，一保存就把新简历覆盖掉了。
       resetHistory();
-      setMsg(`📂 已打开：${json.resume.title}`);
+      setMsg(`已打开：${json.resume.title}`);
       setTimeout(measurePages, 120);
     } catch {
       setMsg("读取失败");
@@ -457,7 +456,7 @@ export function ResumeEditor() {
     setAccent("#1f4e79");
     setCurId(null);
     setLibOpen(false);
-    setMsg("🆕 已新建空白简历");
+    setMsg("已新建空白简历");
   }
 
   async function delResume(id: string) {
@@ -469,32 +468,30 @@ export function ResumeEditor() {
   return (
     <div>
       {/* 工具条 */}
-      <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-zinc-200 bg-white p-2.5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-        <button
+      <div className="panel mb-3 flex flex-wrap items-center gap-2 p-2.5" data-tour="resume-toolbar">
+        <Button
           onClick={() => setEditing((v) => !v)}
-          className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
-            editing ? "bg-emerald-600 text-white" : "bg-indigo-600 text-white hover:bg-indigo-700"
-          }`}
+          variant="secondary"
         >
           {editing ? "✓ 完成编辑" : "✎ 编辑"}
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={undo}
           disabled={!canUndo}
           title="撤回上一步（Ctrl+Z）"
-          className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+          variant="outline"
         >
           ↩️ 撤回
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={redo}
           disabled={!canRedo}
           title="恢复下一步（Ctrl+Y）"
-          className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+          variant="outline"
         >
           ↪️ 恢复
-        </button>
-        <span className="text-xs text-zinc-400">模板</span>
+        </Button>
+        <span className="text-xs text-muted-fg">模板</span>
         {([
           ["ribbon", "缎带标签"],
           ["bar", "蓝底标签"],
@@ -505,23 +502,20 @@ export function ResumeEditor() {
           ["right", "照片在右"],
           ["center", "居中标题"],
         ] as const).map(([id, label]) => (
-          <button
+          <Button
             key={id}
             onClick={() => {
               pushHistory();
               setTpl(id);
             }}
-            className={`rounded-lg px-2.5 py-1.5 text-xs font-medium transition ${
-              tpl === id
-                ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
-                : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300"
-            }`}
+            size="xs"
+            variant={tpl === id ? "secondary" : "ghost"}
           >
             {label}
-          </button>
+          </Button>
         ))}
-        <span className="mx-1 h-4 w-px bg-zinc-200 dark:bg-zinc-700" />
-        <span className="text-xs text-zinc-400">主题色</span>
+        <span className="mx-1 h-4 w-px bg-border" />
+        <span className="text-xs text-muted-fg">主题色</span>
         {SWATCHES.map((c) => (
           <button
             key={c}
@@ -530,7 +524,7 @@ export function ResumeEditor() {
               setAccent(c);
             }}
             className={`h-6 w-6 rounded-full border-2 transition ${
-              accent === c ? "scale-110 border-zinc-800 dark:border-zinc-200" : "border-transparent"
+              accent === c ? "scale-110 border-fg" : "border-transparent"
             }`}
             style={{ backgroundColor: c }}
           />
@@ -542,64 +536,64 @@ export function ResumeEditor() {
             pushHistory();
             setAccent(e.target.value);
           }}
-          className="h-6 w-6 cursor-pointer rounded border border-zinc-300 bg-white dark:border-zinc-700"
+          className="h-6 w-6 cursor-pointer rounded border border-border bg-surface"
         />
-        <span className="mx-1 h-4 w-px bg-zinc-200 dark:bg-zinc-700" />
-        <button onClick={exportHtml} className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800">
+        <span className="mx-1 h-4 w-px bg-border" />
+        <Button onClick={exportHtml} variant="outline">
           导出 HTML
-        </button>
-        <button onClick={() => window.print()} className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800">
+        </Button>
+        <Button onClick={() => window.print()} variant="outline">
           导出 PDF
-        </button>
-        <button onClick={fitOnePage} className="rounded-lg border border-emerald-300 px-3 py-1.5 text-sm font-medium text-emerald-700 hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-400 dark:hover:bg-emerald-950">
+        </Button>
+        <Button onClick={fitOnePage} variant="outline">
           📏 适配一页
-        </button>
-        <span className={`text-xs font-medium ${pages > 1 ? "text-amber-600" : "text-emerald-600"}`}>
+        </Button>
+        <Chip tone={pages > 1 ? "red" : "success"}>
           {pages > 1 ? `⚠ 约 ${pages} 页` : "✓ 1 页 A4"}
-        </span>
+        </Chip>
         <div className="relative">
-          <button
+          <Button
             onClick={saveResume}
             disabled={saving}
-            className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-60"
           >
             {saving ? "保存中…" : "💾 保存"}
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => {
               setLibOpen((v) => !v);
               loadList();
             }}
-            className="ml-1 rounded-lg border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+            variant="outline"
+            className="ml-1"
           >
             📚 简历库
-          </button>
+          </Button>
           {libOpen && (
-            <div className="absolute left-0 top-full z-30 mt-1 w-64 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-xl dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="absolute left-0 top-full z-30 mt-1 w-64 overflow-hidden rounded-xl border border-border bg-surface2 shadow-xl">
               <button
                 onClick={newResume}
-                className="block w-full px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                className="block w-full px-3 py-2 text-left text-sm text-fg2 hover:bg-accent"
               >
                 🆕 新建空白简历
               </button>
-              <div className="max-h-64 overflow-y-auto border-t border-zinc-100 dark:border-zinc-800">
+              <div className="max-h-64 overflow-y-auto border-t border-border">
                 {saved.length === 0 ? (
-                  <p className="px-3 py-2 text-xs text-zinc-400">还没有保存的简历</p>
+                  <p className="px-3 py-2 text-xs text-muted-fg">还没有保存的简历</p>
                 ) : (
                   saved.map((r) => (
                     <div
                       key={r.id}
-                      className="flex items-center gap-1 border-b border-zinc-50 px-2 py-1.5 last:border-0 dark:border-zinc-800/60"
+                      className="flex items-center gap-1 border-b border-border px-2 py-1.5 last:border-0"
                     >
                       <button
                         onClick={() => openResume(r.id)}
-                        className="min-w-0 flex-1 truncate rounded px-1 py-1 text-left text-sm text-zinc-700 hover:text-indigo-600 dark:text-zinc-200"
+                        className="min-w-0 flex-1 truncate rounded px-1 py-1 text-left text-sm text-fg2 hover:text-primary"
                       >
                         {r.title}
                       </button>
                       <button
                         onClick={() => delResume(r.id)}
-                        className="shrink-0 px-1 text-xs text-zinc-300 hover:text-red-500"
+                        className="shrink-0 px-1 text-xs text-muted-fg hover:text-destructive-fg"
                       >
                         ✕
                       </button>
@@ -611,9 +605,9 @@ export function ResumeEditor() {
           )}
         </div>
 
-        <button onClick={() => setAgentOpen((v) => !v)} className="ml-auto rounded-lg bg-violet-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-violet-700">
-          {agentOpen ? "收起智能体" : "🤖 智能体改简历"}
-        </button>
+        <Button onClick={() => setAgentOpen((v) => !v)} variant="secondary" className="ml-auto">
+          {agentOpen ? "收起智能体" : "智能体改简历"}
+        </Button>
       </div>
 
       {/* A4 简历纸 */}
@@ -621,6 +615,7 @@ export function ResumeEditor() {
         <style dangerouslySetInnerHTML={{ __html: pageCss(accent) }} />
         <main
           ref={bodyRef}
+          data-tour="resume-paper"
           className={`page tpl-${tpl} ${editing ? "editing" : ""}`}
           style={{ zoom }}
           contentEditable={editing}
@@ -635,25 +630,25 @@ export function ResumeEditor() {
 
       {/* 智能体小窗口 */}
       {agentOpen && (
-        <div className="fixed bottom-24 right-5 z-30 w-80 overflow-hidden rounded-2xl border border-violet-200 bg-white shadow-2xl dark:border-violet-800 dark:bg-zinc-900">
-          <div className="flex items-center justify-between bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2.5 text-white">
-            <span className="text-sm font-semibold">🤖 简历智能体</span>
-            <button onClick={() => setAgentOpen(false)} className="text-white/80 hover:text-white">✕</button>
+        <div className="fixed bottom-24 right-4 z-30 w-80 overflow-hidden rounded-2xl border border-border bg-surface2 shadow-2xl md:right-24" data-tour="resume-agent">
+          <div className="flex items-center justify-between bg-primary px-4 py-2.5 text-primary-fg">
+            <span className="text-sm font-semibold">简历智能体</span>
+            <button onClick={() => setAgentOpen(false)} className="text-primary-fg/80 hover:text-primary-fg">✕</button>
           </div>
           <div className="p-3">
-            <p className="mb-2 text-xs text-zinc-500 dark:text-zinc-400">
-              上传资料或直接说需求，智能体会自动改在简历上👇
+            <p className="mb-2 text-xs text-muted-fg">
+              上传资料或直接说需求，智能体会自动改在简历上
             </p>
 
             {srcFiles.length > 0 && (
-              <div className="mb-2 rounded-lg bg-zinc-100 p-1.5 text-xs dark:bg-zinc-800">
+              <div className="mb-2 rounded-lg bg-muted p-1.5 text-xs">
                 <div className="mb-1 flex items-center justify-between px-1">
-                  <span className="text-zinc-500 dark:text-zinc-400">
-                    📎 已上传 {srcFiles.length} 个文件 · 共 {fmtChars(srcTotal)}
+                  <span className="text-muted-fg">
+                    已上传 {srcFiles.length} 个文件 · 共 {fmtChars(srcTotal)}
                   </span>
                   <button
                     onClick={() => setSrcFiles([])}
-                    className="shrink-0 text-zinc-400 hover:text-red-500"
+                    className="shrink-0 text-muted-fg hover:text-destructive-fg"
                   >
                     清空全部
                   </button>
@@ -662,17 +657,17 @@ export function ResumeEditor() {
                   {srcFiles.map((f, i) => (
                     <li
                       key={`${f.name}-${i}`}
-                      className="flex items-center justify-between rounded px-1 py-0.5 hover:bg-zinc-200/60 dark:hover:bg-zinc-700/60"
+                      className="flex items-center justify-between rounded px-1 py-0.5 hover:bg-accent"
                     >
-                      <span className="truncate text-zinc-600 dark:text-zinc-300">
-                        📄 {f.name}
-                        <span className="ml-1 text-zinc-400">
+                      <span className="truncate text-fg2">
+                        ≣ {f.name}
+                        <span className="ml-1 text-muted-fg">
                           （{fmtChars(f.text.length)}）
                         </span>
                       </span>
                       <button
                         onClick={() => setSrcFiles((prev) => prev.filter((_, j) => j !== i))}
-                        className="ml-2 shrink-0 text-zinc-400 hover:text-red-500"
+                        className="ml-2 shrink-0 text-muted-fg hover:text-destructive-fg"
                         title="移除这个文件"
                       >
                         ✕
@@ -681,8 +676,8 @@ export function ResumeEditor() {
                   ))}
                 </ul>
                 {srcTotal > SRC_LIMIT && (
-                  <p className="mt-1 px-1 text-[11px] leading-snug text-amber-600 dark:text-amber-400">
-                    ⚠️ 资料共 {fmtChars(srcTotal)}，超过单次上限 {fmtChars(SRC_LIMIT)}。本次只会送进前{" "}
+                  <p className="mt-1 px-1 text-[11px] leading-snug text-destructive-fg">
+                    注意：资料共 {fmtChars(srcTotal)}，超过单次上限 {fmtChars(SRC_LIMIT)}。本次只会送进前{" "}
                     {srcFit} 个文件（约 {fmtChars(srcUsed)}）
                     {srcFit < srcFiles.length ? `，后 ${srcFiles.length - srcFit} 个会被截断` : ""}
                     。建议先移除不相关的文件，或分两次让智能体改。
@@ -691,8 +686,8 @@ export function ResumeEditor() {
               </div>
             )}
 
-            <label className="mb-2 flex cursor-pointer items-center justify-center gap-1 rounded-lg border border-dashed border-zinc-300 py-2 text-xs text-zinc-500 transition hover:border-violet-400 hover:text-violet-600 dark:border-zinc-700 dark:text-zinc-400">
-              {uploading ? "解析中…" : "📎 上传简历 / 经历资料（可多选，可累加）"}
+            <label className="mb-2 flex cursor-pointer items-center justify-center gap-1 rounded-lg border border-dashed border-border2 py-2 text-xs text-muted-fg transition hover:border-primary hover:text-primary">
+              {uploading ? "解析中…" : "上传简历 / 经历资料（可多选，可累加）"}
               <input
                 type="file"
                 multiple
@@ -702,51 +697,51 @@ export function ResumeEditor() {
                 disabled={uploading}
               />
             </label>
-            <textarea
+            <Textarea
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               rows={3}
               placeholder="例如：把工作经历改成 3 年经验的产品经理，多加 2 条量化成果"
-              className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-xs outline-none focus:border-violet-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+              className="text-xs"
             />
             {imageName && (
-              <div className="mb-2 flex items-center justify-between rounded-lg bg-zinc-100 px-2 py-1.5 text-xs dark:bg-zinc-800">
-                <span className="truncate text-zinc-600 dark:text-zinc-300">🖼️ {imageName}</span>
+              <div className="mb-2 flex items-center justify-between rounded-lg bg-muted px-2 py-1.5 text-xs">
+                <span className="truncate text-fg2">{imageName}</span>
                 <button
                   onClick={() => {
                     setImageData(null);
                     setImageName(null);
                   }}
-                  className="ml-2 shrink-0 text-zinc-400 hover:text-red-500"
+                  className="ml-2 shrink-0 text-muted-fg hover:text-destructive-fg"
                 >
                   移除
                 </button>
               </div>
             )}
 
-            <label className="mb-2 flex cursor-pointer items-center justify-center gap-1 rounded-lg border border-dashed border-zinc-300 py-2 text-xs text-zinc-500 transition hover:border-violet-400 hover:text-violet-600 dark:border-zinc-700 dark:text-zinc-400">
-              🖼️ 上传图片（识图，可选）
+            <label className="mb-2 flex cursor-pointer items-center justify-center gap-1 rounded-lg border border-dashed border-border2 py-2 text-xs text-muted-fg transition hover:border-primary hover:text-primary">
+              上传图片（识图，可选）
               <input type="file" accept="image/*" className="hidden" onChange={onImage} />
             </label>
 
             <div className="mt-2 flex gap-2">
-              <button
+              <Button
                 onClick={askAgent}
                 disabled={busy || !prompt.trim()}
-                className="flex-1 rounded-lg bg-violet-600 px-3 py-2 text-sm font-semibold text-white hover:bg-violet-700 disabled:opacity-50"
+                className="flex-1"
               >
-                {busy ? "🪄 修改中…" : "🪄 让智能体修改"}
-              </button>
+                {busy ? "修改中…" : "让智能体修改"}
+              </Button>
               {busy && (
-                <button
+                <Button
                   onClick={stopAgent}
-                  className="rounded-lg border border-red-300 px-3 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950"
+                  variant="destructive"
                 >
-                  ⏹ 停止
-                </button>
+                  停止
+                </Button>
               )}
             </div>
-            {msg && <p className="mt-2 text-xs text-emerald-600 dark:text-emerald-400">{msg}</p>}
+            {msg && <p className="mt-2 text-xs text-primary">{msg}</p>}
           </div>
         </div>
       )}

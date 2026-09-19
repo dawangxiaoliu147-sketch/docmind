@@ -1,79 +1,82 @@
 import Link from "next/link";
 import { getCurrentUser, isAdmin } from "@/lib/dal";
-import { logout } from "@/lib/actions/auth";
 import { Avatar } from "@/components/avatar";
 import { SceneSwitcher } from "@/components/scene-switcher";
-import { MobileNav, type NavLink } from "@/components/mobile-nav";
+import { NavMenu, type NavGroup } from "@/components/nav-menu";
+import { AtomicNav, type AtomicNavItem } from "@/components/atomic-nav";
 import { CommandPalette } from "@/components/command-palette";
 import { Logo } from "@/components/logo";
 
 export async function Navbar() {
   const user = await getCurrentUser();
 
-  const links: NavLink[] = [
-    { href: "/dashboard", label: "控制台" },
-    { href: "/workbench", label: "工作台" },
-    { href: "/jobs", label: "职位" },
-    { href: "/resume", label: "简历" },
-    { href: "/settings", label: "设置" },
-    ...(isAdmin(user)
-      ? [{ href: "/admin", label: "管理后台", highlight: true }]
-      : []),
+  /**
+   * 分三组，而不是平铺九条 —— 新用户先找"我要干哪类事"，再看具体入口。
+   * 每项配一行说明：光看「工作台」「码头」这种名字猜不出点进去是什么。
+   */
+  const groups: NavGroup[] = [
+    {
+      title: "知识",
+      items: [
+        { href: "/dashboard", label: "控制台", hint: "建知识库、上传文档、向 AI 提问" },
+        { href: "/island", label: "我的岛", hint: "你的积累长成的一座岛，点建筑直接进功能" },
+        { href: "/workbench", label: "工作台", hint: "13 个现成的 AI 工作助手" },
+        { href: "/achievements", label: "成就", hint: "里程碑与解锁进度" },
+      ],
+    },
+    {
+      title: "求职",
+      items: [
+        { href: "/jobs", label: "职位库", hint: "浏览职位、按简历推荐、模拟面试" },
+        { href: "/resume", label: "简历工坊", hint: "A4 模板 · 在线编辑 · 智能体改简历" },
+        { href: "/agent", label: "智能体", hint: "描述任务，它自己决定调用哪些工具" },
+      ],
+    },
+    {
+      title: "系统",
+      items: [
+        { href: "/settings", label: "设置", hint: "场景背景、主题色、功能引导" },
+        ...(isAdmin(user)
+          ? [{ href: "/admin", label: "管理后台", hint: "用户与内容管理", highlight: true }]
+          : []),
+      ],
+    },
+  ];
+
+  const primary: AtomicNavItem[] = [
+    { href: "/dashboard", label: "控制台", icon: "◈" },
+    { href: "/island", label: "我的岛", icon: "⬡" },
+    { href: "/workbench", label: "工作台", icon: "⊞" },
+    { href: "/jobs", label: "职位库", icon: "≋" },
+    { href: "/resume", label: "简历工坊", icon: "⊡" },
+    { href: "/agent", label: "智能体", icon: "✦" },
   ];
 
   return (
-    <header className="sticky top-0 z-10 border-b border-zinc-200/70 bg-white/80 shadow-[0_1px_14px_-10px_rgba(16,24,40,0.35)] backdrop-blur-xl dark:border-white/10 dark:bg-[rgba(9,22,17,0.72)]">
-      <nav className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
-        <div className="flex items-center gap-3 sm:gap-6">
-          <MobileNav links={links} />
-          <Link
-            href="/dashboard"
-            className="flex items-center gap-2 text-base font-semibold"
-          >
+    <header className="nav-bar">
+      <nav className="nav-inner">
+        <div className="flex min-w-0 items-center gap-3">
+          <Link href="/dashboard" className="flex shrink-0 items-center gap-2 text-base font-semibold text-fg">
             <Logo className="h-7 w-7" />
             知行
           </Link>
-          <div className="hidden items-center gap-4 text-sm font-medium text-zinc-600 sm:flex dark:text-zinc-300">
-            {links.map((l) => (
-              <Link
-                key={l.href}
-                href={l.href}
-                className={
-                  l.highlight
-                    ? "font-semibold text-indigo-600 transition hover:text-indigo-700 dark:text-[#d7ef83]"
-                    : "transition hover:text-zinc-900 dark:hover:text-zinc-100"
-                }
-              >
-                {l.label}
-              </Link>
-            ))}
-          </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* 居中的图标导航：鼠标悬停自动展开文字，不用点 */}
+        <AtomicNav items={primary} />
+
+        <div className="flex shrink-0 items-center gap-2.5">
           <CommandPalette />
           <SceneSwitcher />
-          <Link
-            href="/settings"
-            className="flex items-center gap-2 transition hover:opacity-80"
-          >
+          <Link href="/settings" className="flex items-center transition hover:opacity-80" aria-label="个人设置">
             <Avatar
               name={user?.name ?? "?"}
               src={user?.avatarUrl}
               className="h-8 w-8 text-sm"
             />
-            <span className="hidden text-sm text-zinc-600 sm:inline dark:text-zinc-300">
-              {user?.name}
-            </span>
           </Link>
-          <form action={logout}>
-            <button
-              type="submit"
-              className="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 dark:border-white/15 dark:text-zinc-200 dark:hover:bg-white/5"
-            >
-              退出
-            </button>
-          </form>
+          {/* 剩下的入口（成就 / 设置 / 管理后台 / 用户信息 / 引导 / 退出）收在这个抽屉里 */}
+          <NavMenu groups={groups} user={user ? { name: user.name, email: user.email } : null} />
         </div>
       </nav>
     </header>

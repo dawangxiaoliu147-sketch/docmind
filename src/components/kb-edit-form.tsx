@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { updateKnowledgeBase } from "@/lib/actions/kb";
+import { Button } from "@/components/ui";
 
 const COLORS = [
   "#6366f1",
@@ -27,8 +28,7 @@ export function KbEditForm({
 }) {
   const [selected, setSelected] = useState(color ?? "");
 
-  const inputCls =
-    "w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:focus:border-indigo-500 dark:focus:ring-indigo-900";
+  const inputCls = "ui-field";
 
   return (
     <form action={updateKnowledgeBase} className="space-y-4">
@@ -36,14 +36,14 @@ export function KbEditForm({
       <input type="hidden" name="color" value={selected} />
 
       <div>
-        <label className="mb-1 block text-sm font-medium dark:text-zinc-200">
+        <label className="field-label">
           名称
         </label>
         <input name="name" defaultValue={name} required className={inputCls} />
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium dark:text-zinc-200">
+        <label className="field-label">
           描述
         </label>
         <input
@@ -54,7 +54,7 @@ export function KbEditForm({
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium dark:text-zinc-200">
+        <label className="field-label">
           主题色
         </label>
         <div className="flex flex-wrap items-center gap-2">
@@ -65,29 +65,25 @@ export function KbEditForm({
               onClick={() => setSelected(c)}
               aria-label={c}
               className={`h-8 w-8 rounded-full border-2 transition ${
-                selected === c
-                  ? "border-zinc-900 dark:border-zinc-100"
-                  : "border-transparent"
+                selected === c ? "border-primary" : "border-transparent"
               }`}
               style={{ background: c }}
             />
           ))}
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="sm"
             onClick={() => setSelected("")}
-            className="h-8 rounded-full border border-zinc-300 px-3 text-xs text-zinc-600 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
           >
             默认
-          </button>
+          </Button>
         </div>
       </div>
 
-      <button
-        type="submit"
-        className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700"
-      >
+      <Button type="submit" variant="secondary">
         保存修改
-      </button>
+      </Button>
     </form>
   );
 }

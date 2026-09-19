@@ -38,6 +38,8 @@ export function AccentPicker() {
   const [selected, setSelected] = useState("靛蓝");
 
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- localStorage 只有客户端可读，
+       渲染期读会 hydration 不一致，只能在挂载后同步一次当前选中的主题。 */
     const saved = localStorage.getItem("accent");
     if (saved) {
       try {
@@ -47,6 +49,7 @@ export function AccentPicker() {
         /* ignore */
       }
     }
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
 
   function choose(t: Theme) {
@@ -65,18 +68,14 @@ export function AccentPicker() {
         >
           <span
             className={`h-10 w-10 rounded-full border-2 transition ${
-              selected === t.name
-                ? "border-zinc-900 dark:border-zinc-100"
-                : "border-transparent"
+              selected === t.name ? "border-primary" : "border-transparent"
             }`}
             style={{ background: t.accent }}
             aria-label={t.name}
           />
           <span
             className={`text-xs ${
-              selected === t.name
-                ? "font-medium text-zinc-900 dark:text-zinc-100"
-                : "text-zinc-500 dark:text-zinc-400"
+              selected === t.name ? "font-medium text-fg" : "text-muted-fg"
             }`}
           >
             {t.name}

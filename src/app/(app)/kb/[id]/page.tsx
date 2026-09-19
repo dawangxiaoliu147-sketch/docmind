@@ -11,11 +11,21 @@ import { KbSummary } from "@/components/kb-summary";
 import { KbGraph } from "@/components/kb-graph";
 import { ShareLink } from "@/components/share-link";
 import { AiTools } from "@/components/ai-tools";
+import {
+  Button,
+  Chip,
+  Empty,
+  PageHeader,
+  Section,
+  Stack,
+  buttonClass,
+} from "@/components/ui";
+import type { ChipTone } from "@/components/ui";
 
-const STATUS_LABEL: Record<string, { text: string; className: string }> = {
-  processing: { text: "处理中", className: "bg-amber-50 text-amber-600 dark:bg-amber-950 dark:text-amber-400" },
-  ready: { text: "已就绪", className: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400" },
-  failed: { text: "失败", className: "bg-red-50 text-red-600 dark:bg-red-950 dark:text-red-400" },
+const STATUS_LABEL: Record<string, { text: string; tone: ChipTone }> = {
+  processing: { text: "处理中", tone: "muted" },
+  ready: { text: "已就绪", tone: "success" },
+  failed: { text: "失败", tone: "red" },
 };
 
 export default async function KbPage({
@@ -33,64 +43,63 @@ export default async function KbPage({
   if (!kb) notFound();
 
   return (
-    <div className="space-y-6">
+    <Stack>
+      <Link
+        href="/dashboard"
+        className={buttonClass({
+          variant: "link",
+          className: "self-start text-muted-fg",
+        })}
+      >
+        ← 返回
+      </Link>
+
       <KbCover
         name={kb.name}
         coverImage={kb.coverImage}
         color={kb.color}
-        className="h-44 w-full rounded-2xl"
+        className="h-44 w-full rounded-lg"
       />
 
-      <div className="flex items-start justify-between">
-        <div>
-          <div className="mb-2 flex items-center gap-3">
-            <Link
-              href="/dashboard"
-              className="text-sm text-zinc-500 transition hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
-            >
-              ← 返回
-            </Link>
-            <h1 className="text-2xl font-semibold dark:text-zinc-50">{kb.name}</h1>
-          </div>
-          {kb.description && (
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">{kb.description}</p>
-          )}
-          <div className="mt-3">
+      <PageHeader
+        eyebrow="knowledge base"
+        title={kb.name}
+        subtitle={kb.description ?? undefined}
+        actions={
+          <>
             <CoverUpload kbId={kb.id} hasCover={!!kb.coverImage} />
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Link
-            href={`/kb/${kb.id}/quiz`}
-            className="rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-600 transition hover:bg-indigo-100 dark:border-indigo-900 dark:bg-indigo-950 dark:text-indigo-400 dark:hover:bg-indigo-900"
-          >
-            ◐ 知识测验
-          </Link>
-          <Link
-            href={`/kb/${kb.id}/chat`}
-            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700"
-          >
-            开始提问
-          </Link>
-        </div>
-      </div>
+            <Link
+              href={`/kb/${kb.id}/quiz`}
+              className={buttonClass({ variant: "outline" })}
+            >
+              ◐ 知识测验
+            </Link>
+            <Link
+              href={`/kb/${kb.id}/chat`}
+              className={buttonClass({ pill: true })}
+            >
+              开始提问
+            </Link>
+          </>
+        }
+      />
 
       {/* AI 摘要 */}
-      <details className="rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-        <summary className="cursor-pointer select-none px-5 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:text-zinc-200 dark:hover:bg-zinc-800/50">
-          ✧ AI 摘要（一键总结这个知识库）
+      <details className="card overflow-hidden">
+        <summary className="cursor-pointer select-none px-5 py-3 text-sm font-medium text-fg2 transition hover:bg-muted">
+          AI 摘要
         </summary>
-        <div className="border-t border-zinc-100 p-5 dark:border-zinc-800">
+        <div className="border-t border-border p-5">
           <KbSummary kbId={kb.id} />
         </div>
       </details>
 
       {/* 编辑知识库 */}
-      <details className="rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-        <summary className="cursor-pointer select-none px-5 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:text-zinc-200 dark:hover:bg-zinc-800/50">
-          ✎ 编辑知识库（重命名 / 描述 / 主题色）
+      <details className="card overflow-hidden">
+        <summary className="cursor-pointer select-none px-5 py-3 text-sm font-medium text-fg2 transition hover:bg-muted">
+          编辑知识库
         </summary>
-        <div className="border-t border-zinc-100 p-5 dark:border-zinc-800">
+        <div className="border-t border-border p-5">
           <KbEditForm
             kbId={kb.id}
             name={kb.name}
@@ -101,43 +110,40 @@ export default async function KbPage({
       </details>
 
       {/* AI 知识图谱 */}
-      <details className="rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-        <summary className="cursor-pointer select-none px-5 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:text-zinc-200 dark:hover:bg-zinc-800/50">
+      <details className="card overflow-hidden">
+        <summary className="cursor-pointer select-none px-5 py-3 text-sm font-medium text-fg2 transition hover:bg-muted">
           ⊛ 知识图谱（AI 自动梳理知识结构）
         </summary>
-        <div className="border-t border-zinc-100 p-5 dark:border-zinc-800">
+        <div className="border-t border-border p-5">
           <KbGraph kbId={kb.id} />
         </div>
       </details>
 
       {/* AI 工具箱 */}
-      <details className="rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-        <summary className="cursor-pointer select-none px-5 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:text-zinc-200 dark:hover:bg-zinc-800/50">
+      <details className="card overflow-hidden">
+        <summary className="cursor-pointer select-none px-5 py-3 text-sm font-medium text-fg2 transition hover:bg-muted">
           ⊞ AI 工具箱（闪卡 / 闯关 / 学习计划 / 每日一问 / 主题色）
         </summary>
-        <div className="border-t border-zinc-100 p-5 dark:border-zinc-800">
+        <div className="border-t border-border p-5">
           <AiTools kbId={kb.id} />
         </div>
       </details>
 
       {/* 分享知识库 */}
-      <details className="rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-        <summary className="cursor-pointer select-none px-5 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:text-zinc-200 dark:hover:bg-zinc-800/50">
+      <details className="card overflow-hidden">
+        <summary className="cursor-pointer select-none px-5 py-3 text-sm font-medium text-fg2 transition hover:bg-muted">
           ⧉ 分享知识库（生成只读链接）
         </summary>
-        <div className="border-t border-zinc-100 p-5 dark:border-zinc-800">
+        <div className="border-t border-border p-5">
           <form action={toggleShare}>
             <input type="hidden" name="id" value={kb.id} />
-            <button
-              type="submit"
-              className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700"
-            >
+            <Button type="submit" variant="secondary">
               {kb.shared ? "停止分享" : "开启分享"}
-            </button>
+            </Button>
           </form>
           {kb.shared && (
             <div className="mt-4">
-              <p className="mb-2 text-xs text-zinc-500 dark:text-zinc-400">
+              <p className="mb-2 text-xs text-muted-fg">
                 分享链接（任何人打开都能只读查看，无需登录）：
               </p>
               <ShareLink path={`/s/${kb.id}`} />
@@ -148,65 +154,59 @@ export default async function KbPage({
 
       <UploadForm kbId={kb.id} />
 
-      <div>
-        <h2 className="mb-3 text-sm font-medium text-zinc-500 dark:text-zinc-400">
-          文档（{kb.documents.length}）
-        </h2>
+      <Section title="文档" extra={`${kb.documents.length} 个`}>
         {kb.documents.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-zinc-300 bg-white/50 px-6 py-12 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-zinc-400">
-            还没有文档，上传一个 PDF / Markdown / TXT 文件开始吧
-          </div>
+          <Empty
+            icon="≣"
+            title="还没有文档"
+            desc="上传一个 PDF / Markdown / TXT 文件开始吧"
+          />
         ) : (
-          <ul className="divide-y divide-zinc-100 rounded-2xl border border-zinc-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-900">
+          <ul className="card divide-y divide-border overflow-hidden">
             {kb.documents.map((doc) => {
               const status = STATUS_LABEL[doc.status] ?? STATUS_LABEL.processing;
               return (
                 <li
                   key={doc.id}
-                  className="flex items-center justify-between px-5 py-3.5"
+                  className="flex items-center justify-between gap-3 px-5 py-3.5"
                 >
                   <div className="flex min-w-0 items-center gap-3">
                     <span className="text-lg" aria-hidden="true">≣</span>
                     <div className="min-w-0">
                       <Link
                         href={`/kb/${kb.id}/docs/${doc.id}`}
-                        className="block truncate text-sm font-medium transition hover:text-indigo-600 dark:text-zinc-100 dark:hover:text-indigo-400"
+                        className="block truncate text-sm font-medium text-fg transition hover:text-primary"
                       >
                         {doc.title}
                       </Link>
-                      <p className="truncate text-xs text-zinc-400 dark:text-zinc-500">
+                      <p className="truncate text-xs text-muted-fg">
                         {doc.fileName} · {formatSize(doc.size)}
                         {doc.status === "ready" && ` · ${doc.chunkCount} 片段`}
                       </p>
                       {doc.tags.length > 0 && (
                         <div className="mt-1 flex flex-wrap gap-1">
                           {doc.tags.map((t) => (
-                            <span
-                              key={t}
-                              className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400"
-                            >
+                            <Chip key={t} tone="primary">
                               {t}
-                            </span>
+                            </Chip>
                           ))}
                         </div>
                       )}
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span
-                      className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${status.className}`}
-                    >
-                      {status.text}
-                    </span>
+                    <Chip tone={status.tone}>{status.text}</Chip>
                     <form action={deleteDocument}>
                       <input type="hidden" name="docId" value={doc.id} />
                       <input type="hidden" name="kbId" value={kb.id} />
-                      <button
+                      <Button
                         type="submit"
-                        className="text-xs font-medium text-zinc-400 transition hover:text-red-600 dark:text-zinc-500 dark:hover:text-red-400"
+                        variant="ghost"
+                        size="sm"
+                        className="text-muted-fg"
                       >
                         删除
-                      </button>
+                      </Button>
                     </form>
                   </div>
                 </li>
@@ -214,8 +214,8 @@ export default async function KbPage({
             })}
           </ul>
         )}
-      </div>
-    </div>
+      </Section>
+    </Stack>
   );
 }
 

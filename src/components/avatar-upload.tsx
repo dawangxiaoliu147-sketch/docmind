@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { buttonClass } from "@/components/ui";
 
 export function AvatarUpload() {
   const router = useRouter();
@@ -38,7 +39,7 @@ export function AvatarUpload() {
 
   return (
     <div>
-      <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700">
+      <label className={buttonClass({ size: "lg", className: "cursor-pointer" })}>
         {pending ? "上传中…" : "上传头像"}
         <input
           type="file"
@@ -49,12 +50,10 @@ export function AvatarUpload() {
         />
       </label>
       {success && (
-        <p className="mt-2 text-xs text-emerald-600 dark:text-emerald-400">
-          头像已更新
-        </p>
+        <p className="mt-2 text-xs text-primary">头像已更新</p>
       )}
       {error && (
-        <p className="mt-2 text-xs text-red-600 dark:text-red-400">{error}</p>
+        <p className="mt-2 text-xs text-destructive-fg">{error}</p>
       )}
     </div>
   );

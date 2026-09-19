@@ -3,8 +3,19 @@
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { Alert, Button, Card, IconBox, Panel } from "@/components/ui";
 
 type ToolKey = "flashcards" | "game" | "plan" | "daily" | "theme" | "recommend";
+
+/** /api/kb/[id]/generate 返回的六种载荷（纯类型，运行时逻辑未变） */
+type ToolPayload =
+  | { front: string; back: string }[]
+  | { question: string; options: string[]; answer: string; explanation: string }[]
+  | { plan: string }
+  | { question: string; hint?: string }
+  | { color: string; reason: string }
+  | { question: string }[]
+  | null;
 
 const TOOLS: { key: ToolKey; label: string; icon: string }[] = [
   { key: "flashcards", label: "AI 闪卡", icon: "⊟" },
@@ -19,7 +30,7 @@ export function AiTools({ kbId }: { kbId: string }) {
   const [type, setType] = useState<ToolKey | null>(null);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<ToolPayload>(null);
   const [picked, setPicked] = useState<Record<number, string>>({});
 
   async function load(t: ToolKey) {
@@ -44,33 +55,36 @@ export function AiTools({ kbId }: { kbId: string }) {
     <div>
       <div className="flex flex-wrap gap-2">
         {TOOLS.map((t) => (
-          <button
+          <Button
             key={t.key}
+            size="sm"
+            variant={type === t.key ? "default" : "outline"}
             onClick={() => load(t.key)}
             disabled={pending}
-            className={`rounded-lg px-3 py-1.5 text-xs font-medium transition disabled:opacity-50 ${
-              type === t.key
-                ? "bg-indigo-600 text-white"
-                : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
-            }`}
           >
             {t.icon} {t.label}
-          </button>
+          </Button>
         ))}
       </div>
 
-      {pending && <p className="mt-3 text-sm text-zinc-500">生成中…</p>}
-      {error && <p className="mt-3 text-xs text-red-600 dark:text-red-400">{error}</p>}
+      {pending && <p className="mt-3 text-sm text-muted-fg">生成中…</p>}
+      {error && (
+        <Alert tone="error" className="mt-3">
+          {error}
+        </Alert>
+      )}
 
       {data && type === "flashcards" && (
         <div className="mt-3 space-y-2">
           {(data as Array<{ front: string; back: string }>).map((c, i) => (
-            <details key={i} className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800/50">
-              <summary className="cursor-pointer text-sm font-medium text-zinc-700 dark:text-zinc-200">
-                ⊟ {c.front}
-              </summary>
-              <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{c.back}</p>
-            </details>
+            <Card key={i} className="p-3">
+              <details>
+                <summary className="cursor-pointer text-sm font-medium text-fg2">
+                  ⊟ {c.front}
+                </summary>
+                <p className="mt-2 text-sm text-muted-fg">{c.back}</p>
+              </details>
+            </Card>
           ))}
         </div>
       )}
@@ -82,8 +96,8 @@ export function AiTools({ kbId }: { kbId: string }) {
               const sel = picked[i];
               const correct = sel === q.answer;
               return (
-                <div key={i} className="rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
-                  <p className="text-sm font-medium text-zinc-800 dark:text-zinc-100">
+                <Card key={i} className="p-4">
+                  <p className="text-sm font-medium text-fg">
                     {i + 1}. {q.question}
                   </p>
                   <div className="mt-2 grid gap-2 sm:grid-cols-2">
@@ -96,14 +110,14 @@ export function AiTools({ kbId }: { kbId: string }) {
                           key={oi}
                           onClick={() => setPicked((p) => ({ ...p, [i]: letter }))}
                           disabled={sel !== undefined}
-                          className={`rounded-lg border px-3 py-2 text-left text-sm transition ${
+                          className={`ui-row w-full cursor-pointer text-left text-sm disabled:cursor-default ${
                             isSel
                               ? correct
-                                ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40"
-                                : "border-red-500 bg-red-50 dark:bg-red-950/40"
+                                ? "border-primary bg-accent text-primary"
+                                : "border-destructive text-destructive-fg"
                               : isAns && sel !== undefined
-                                ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40"
-                                : "border-zinc-200 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+                                ? "border-primary bg-accent text-primary"
+                                : "text-fg2"
                           }`}
                         >
                           {letter}. {o}
@@ -112,11 +126,14 @@ export function AiTools({ kbId }: { kbId: string }) {
                     })}
                   </div>
                   {sel !== undefined && (
-                    <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-                      {correct ? "✓ 答对了！" : `✗ 正确答案是 ${q.answer}`} · {q.explanation}
+                    <p className="mt-2 text-xs text-muted-fg">
+                      <span className={correct ? "text-primary" : "text-destructive-fg"}>
+                        {correct ? "✓ 答对了！" : `✗ 正确答案是 ${q.answer}`}
+                      </span>{" "}
+                      · {q.explanation}
                     </p>
                   )}
-                </div>
+                </Card>
               );
             },
           )}
@@ -124,35 +141,35 @@ export function AiTools({ kbId }: { kbId: string }) {
       )}
 
       {data && type === "plan" && (
-        <div className="markdown mt-3 rounded-lg bg-zinc-50 p-4 text-sm text-zinc-700 dark:bg-zinc-800/50 dark:text-zinc-200">
+        <div className="markdown card mt-3 p-4 text-sm text-fg2">
           <ReactMarkdown remarkPlugins={[remarkGfm]}>{(data as { plan: string }).plan}</ReactMarkdown>
         </div>
       )}
 
       {data && type === "daily" && (
-        <div className="mt-3 rounded-xl bg-indigo-50 p-4 dark:bg-indigo-950/30">
-          <p className="text-sm font-medium text-zinc-800 dark:text-zinc-100">
+        <Panel className="ui-rail mt-3 p-4 pl-5">
+          <p className="text-sm font-medium text-fg">
             ☉ {(data as { question: string }).question}
           </p>
           {(data as { hint?: string }).hint && (
-            <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+            <p className="mt-1 text-xs text-muted-fg">
               提示：{(data as { hint: string }).hint}
             </p>
           )}
-        </div>
+        </Panel>
       )}
 
       {data && type === "theme" && (
         <div className="mt-3 flex items-center gap-3">
           <span
-            className="h-10 w-10 rounded-lg border border-zinc-200 dark:border-zinc-700"
+            className="h-10 w-10 rounded-lg border border-border2"
             style={{ backgroundColor: (data as { color: string }).color }}
           />
           <div>
-            <p className="text-sm font-mono text-zinc-700 dark:text-zinc-200">
+            <p className="mono text-sm text-fg2">
               {(data as { color: string }).color}
             </p>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            <p className="text-xs text-muted-fg">
               {(data as { reason: string }).reason}
             </p>
           </div>
@@ -162,8 +179,8 @@ export function AiTools({ kbId }: { kbId: string }) {
       {data && type === "recommend" && (
         <ul className="mt-3 space-y-2">
           {(data as Array<{ question: string }>).map((q, i) => (
-            <li key={i} className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-200">
-              <span>◎</span> {q.question}
+            <li key={i} className="flex items-center gap-2 text-sm text-fg2">
+              <IconBox size="sm">◎</IconBox> {q.question}
             </li>
           ))}
         </ul>

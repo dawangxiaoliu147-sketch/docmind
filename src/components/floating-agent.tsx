@@ -17,6 +17,8 @@ export function FloatingAgent() {
   const drag = useRef({ active: false, moved: false, sx: 0, sy: 0, ox: 0, oy: 0 });
 
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- window 尺寸与 localStorage 只有客户端可读，
+       渲染期读会 hydration 不一致，只能在挂载后测量并恢复上次位置。 */
     const w = window.innerWidth;
     const h = window.innerHeight;
     let init = { x: w - SIZE - 24, y: h - SIZE - 24 };
@@ -37,6 +39,7 @@ export function FloatingAgent() {
     setPos(init);
     posRef.current = init;
     setReady(true);
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
 
   // 桌面宠物：自己不定期走到屏幕上的随机位置（面板打开/拖动时暂停）
@@ -109,13 +112,13 @@ export function FloatingAgent() {
         title="点击打开智能体 · 可拖动移动"
         className="pet-float group fixed z-40 flex cursor-grab touch-none items-center justify-center transition-transform hover:scale-110 active:cursor-grabbing"
       >
-        <span className="pointer-events-none absolute inset-0 animate-ping rounded-full bg-indigo-400/30" />
+        <span className="pointer-events-none absolute inset-0 animate-ping rounded-full bg-primary/30" />
         <AgentMascot className="relative h-14 w-14 drop-shadow-lg" />
       </button>
 
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+          className="ui-overlay"
           onClick={() => setOpen(false)}
         >
           <div
@@ -125,7 +128,7 @@ export function FloatingAgent() {
             <div className="mb-2 flex justify-end">
               <button
                 onClick={() => setOpen(false)}
-                className="rounded-lg bg-white/90 px-3 py-1.5 text-sm font-medium text-zinc-700 shadow transition hover:bg-white dark:bg-zinc-800/90 dark:text-zinc-200"
+                className="btn btn-secondary btn-sm"
               >
                 ✕ 关闭
               </button>

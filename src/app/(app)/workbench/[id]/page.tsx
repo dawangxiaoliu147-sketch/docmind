@@ -20,7 +20,7 @@ export default async function WorkbenchToolPage({
       <div className="mb-3 flex items-center gap-3">
         <Link
           href="/workbench"
-          className="text-sm text-zinc-500 transition hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+          className="text-sm text-muted-fg transition hover:text-fg"
         >
           ← 返回工作台
         </Link>

@@ -10,8 +10,8 @@ export function Avatar({
   className?: string;
 }) {
   if (src) {
-    // eslint-disable-next-line @next/next/no-img-element
     return (
+      // eslint-disable-next-line @next/next/no-img-element
       <img
         src={src}
         alt={name}
@@ -20,9 +20,7 @@ export function Avatar({
     );
   }
   return (
-    <div
-      className={`flex items-center justify-center rounded-full bg-indigo-600 font-semibold text-white ${className}`}
-    >
+    <div className={`ui-avatar font-semibold ${className}`}>
       {name.charAt(0).toUpperCase()}
     </div>
   );

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { UIMessage } from "ai";
 import { ChatPanel } from "./chat-panel";
 import { AGENT_MODES } from "@/lib/agents";
+import { Button, Select, Tooltip } from "@/components/ui";
 
 type ConvSummary = { id: string; title: string; updatedAt: Date | string };
 
@@ -66,26 +67,23 @@ export function ChatShell({
 
   return (
     <div className="flex flex-1 overflow-hidden">
-      <aside className="flex w-60 shrink-0 flex-col border-r border-zinc-200 pr-3 dark:border-zinc-800">
-        <button
-          onClick={newChat}
-          className="w-full rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700"
-        >
+      <aside className="flex w-60 shrink-0 flex-col border-r border-border pr-3">
+        <Button onClick={newChat} className="w-full">
           ＋ 新建对话
-        </button>
+        </Button>
         <div className="mt-3 flex-1 space-y-1 overflow-y-auto">
           {list.length === 0 && (
-            <p className="px-2 text-xs text-zinc-400 dark:text-zinc-500">
+            <p className="px-2 text-xs text-muted-fg">
               暂无历史对话
             </p>
           )}
           {list.map((c) => (
             <div
               key={c.id}
-              className={`group flex items-center rounded-lg px-2 py-2 text-sm ${
+              className={`group ui-row text-sm ${
                 initialConvId === c.id
-                  ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300"
-                  : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                  ? "bg-accent text-primary"
+                  : "text-fg2"
               }`}
             >
               <button
@@ -94,12 +92,19 @@ export function ChatShell({
               >
                 {c.title}
               </button>
-              <button
-                onClick={() => remove(c.id)}
-                className="ml-1 hidden shrink-0 text-xs text-zinc-400 hover:text-red-600 group-hover:inline dark:text-zinc-500 dark:hover:text-red-400"
+              <Tooltip
+                label="删除对话"
+                className="ml-1 hidden shrink-0 group-hover:inline-flex"
               >
-                ✕
-              </button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  aria-label="删除对话"
+                  onClick={() => remove(c.id)}
+                >
+                  ✕
+                </Button>
+              </Tooltip>
             </div>
           ))}
         </div>
@@ -108,20 +113,19 @@ export function ChatShell({
       <div className="flex flex-1 flex-col pl-4">
         {/* Agent 角色选择器 */}
         <div className="mb-3 flex items-center gap-2">
-          <span className="text-xs text-zinc-400 dark:text-zinc-500">
+          <span className="text-xs text-muted-fg">
             Agent 角色
           </span>
-          <select
+          <Select
             value={agentMode}
             onChange={(e) => changeAgent(e.target.value)}
-            className="rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm outline-none transition focus:border-indigo-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
           >
             {AGENT_MODES.map((m) => (
               <option key={m.id} value={m.id}>
                 {m.icon} {m.name} · {m.description}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
 
         {initialConvId ? (
@@ -135,7 +139,7 @@ export function ChatShell({
             agentMode={agentMode}
           />
         ) : (
-          <div className="flex flex-1 items-center justify-center text-sm text-zinc-400 dark:text-zinc-500">
+          <div className="flex flex-1 items-center justify-center text-sm text-muted-fg">
             点击「新建对话」开始提问，或在左侧选择历史对话
           </div>
         )}

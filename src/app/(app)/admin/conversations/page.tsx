@@ -1,6 +1,17 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/dal";
 import { prisma } from "@/lib/db";
+import {
+  buttonClass,
+  Section,
+  Table,
+  TableWrap,
+  TBody,
+  TD,
+  TH,
+  THead,
+  TR,
+} from "@/components/ui";
 
 export default async function AdminConvsPage() {
   await requireAdmin();
@@ -14,55 +25,44 @@ export default async function AdminConvsPage() {
   });
 
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-      <div className="border-b border-zinc-100 px-5 py-4 dark:border-zinc-800">
-        <h2 className="text-sm font-semibold dark:text-zinc-100">
-          对话（{convs.length}）
-        </h2>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-zinc-50 text-xs text-zinc-500 dark:bg-zinc-800/50 dark:text-zinc-400">
-            <tr>
-              <th className="px-5 py-3 font-medium">标题</th>
-              <th className="px-5 py-3 font-medium">知识库</th>
-              <th className="px-5 py-3 font-medium">所属用户</th>
-              <th className="px-5 py-3 font-medium">消息数</th>
-              <th className="px-5 py-3 font-medium">更新时间</th>
-              <th className="px-5 py-3 font-medium text-right">操作</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+    <Section title={`对话（${convs.length}）`}>
+      <TableWrap>
+        <Table>
+          <THead>
+            <TR>
+              <TH>标题</TH>
+              <TH>知识库</TH>
+              <TH>所属用户</TH>
+              <TH>消息数</TH>
+              <TH>更新时间</TH>
+              <TH className="text-right">操作</TH>
+            </TR>
+          </THead>
+          <TBody>
             {convs.map((c) => (
-              <tr key={c.id}>
-                <td className="max-w-[240px] truncate px-5 py-3 font-medium dark:text-zinc-100">
+              <TR key={c.id}>
+                <TD strong className="max-w-[240px] truncate">
                   {c.title}
-                </td>
-                <td className="px-5 py-3 text-zinc-500 dark:text-zinc-400">
-                  {c.kb.name}
-                </td>
-                <td className="px-5 py-3 text-zinc-500 dark:text-zinc-400">
-                  {c.kb.user.email}
-                </td>
-                <td className="px-5 py-3 dark:text-zinc-300">
-                  {c._count.messages}
-                </td>
-                <td className="px-5 py-3 text-zinc-500 dark:text-zinc-400">
+                </TD>
+                <TD className="text-muted-fg">{c.kb.name}</TD>
+                <TD className="text-muted-fg">{c.kb.user.email}</TD>
+                <TD className="num">{c._count.messages}</TD>
+                <TD className="text-muted-fg">
                   {c.updatedAt.toLocaleString()}
-                </td>
-                <td className="px-5 py-3 text-right">
+                </TD>
+                <TD className="text-right">
                   <Link
                     href={`/admin/conversations/${c.id}`}
-                    className="rounded-lg px-3 py-1.5 text-xs font-medium text-indigo-600 transition hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-950"
+                    className={buttonClass({ variant: "secondary", size: "sm" })}
                   >
                     查看
                   </Link>
-                </td>
-              </tr>
+                </TD>
+              </TR>
             ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+          </TBody>
+        </Table>
+      </TableWrap>
+    </Section>
   );
 }

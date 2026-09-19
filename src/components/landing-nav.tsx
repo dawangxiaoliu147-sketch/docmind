@@ -5,37 +5,31 @@ import { Logo } from "@/components/logo";
 // 落地页/关于页共用的顶部导航
 export function LandingNav() {
   return (
-    <header className="sticky top-0 z-20 border-b border-zinc-200/70 bg-white/80 backdrop-blur dark:border-zinc-800/70 dark:bg-zinc-950/80">
-      <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-        <Link href="/" className="flex items-center gap-2 text-lg font-bold">
+    <header className="nav-bar">
+      <nav className="nav-inner">
+        <Link href="/" className="flex items-center gap-2 text-lg font-bold text-fg">
           <Logo className="h-8 w-8" />
           知行
         </Link>
 
-        <div className="hidden items-center gap-6 text-sm font-medium text-zinc-600 sm:flex dark:text-zinc-300">
-          <Link href="/#features" className="transition hover:text-zinc-900 dark:hover:text-zinc-100">
+        <div className="hidden items-center gap-1 sm:flex">
+          <Link href="/#features" className="nav-link">
             功能
           </Link>
-          <Link href="/#how" className="transition hover:text-zinc-900 dark:hover:text-zinc-100">
+          <Link href="/#how" className="nav-link">
             如何使用
           </Link>
-          <Link href="/about" className="transition hover:text-zinc-900 dark:hover:text-zinc-100">
+          <Link href="/about" className="nav-link">
             关于
           </Link>
         </div>
 
         <div className="flex items-center gap-3">
           <SceneSwitcher />
-          <Link
-            href="/login"
-            className="rounded-lg px-3 py-1.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
-          >
+          <Link href="/login" className="btn btn-ghost btn-sm">
             登录
           </Link>
-          <Link
-            href="/dashboard"
-            className="rounded-lg bg-indigo-600 px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-indigo-700"
-          >
+          <Link href="/dashboard" className="btn btn-primary btn-sm">
             进入控制台
           </Link>
         </div>

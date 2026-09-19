@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { RevealObserver } from "@/components/ui/reveal-observer";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -40,12 +41,14 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "知行 · AI 智能知识库",
-    description: "上传文档即可向 AI 提问，回答可溯源；20+ AI 功能一站式体验。",
+    description: "上传文档即可向 AI 提问，回答可溯源。",
   },
 };
 
-// 默认背景图：所有未自定义背景的用户默认看到这张图
-const DEFAULT_BG_IMAGE = "/api/uploads/55963743-1084-43e5-b5f9-8960e2c3e1ca.jpg";
+// 默认背景图：原来指向 /api/uploads/55963743-….jpg，但该文件在仓库里并不存在，
+// 实测返回 404 —— body::after 的 background-image 解析为空，页面背后什么都没有。
+// 现在默认不设壁纸，页面氛围交给 <ScenicBackdrop> 那份内联 SVG 场景；
+// 用户自己上传壁纸后仍会覆盖到 --bg-image，个性化功能不受影响。
 
 // 在页面渲染前应用主题（深色模式 + 主题色 + 背景图），避免闪烁
 const themeInit = `(function(){
@@ -56,6 +59,19 @@ const themeInit = `(function(){
     // 场景换肤：rain 雨林（默认）/ snow 雪境 / cloud 暖云
     var s = localStorage.getItem('scene');
     document.documentElement.setAttribute('data-scene', s || 'rain');
+    // 每个场景各自的背景图（在 /settings → 场景背景 里选或上传）
+    var scs = ['rain','snow','cloud'];
+    for (var i = 0; i < scs.length; i++) {
+      var g = localStorage.getItem('scenicBg_' + scs[i]);
+      if (g) {
+        // 存的是裸路径（或 "none" 表示用内置矢量场景）
+        document.documentElement.style.setProperty('--scenic-bg-' + scs[i], g === 'none' ? 'none' : 'url(' + g + ')');
+      }
+      var gp = localStorage.getItem('scenicBgPos_' + scs[i]);
+      if (gp) { document.documentElement.style.setProperty('--scenic-bg-pos-' + scs[i], gp); }
+    }
+    // 背景总开关
+    document.documentElement.setAttribute('data-scenic', localStorage.getItem('scenicOff') === '1' ? 'off' : 'on');
     var a=localStorage.getItem('accent');
     if(a){var c=JSON.parse(a);var r=document.documentElement.style;
       if(c.accent)r.setProperty('--accent',c.accent);
@@ -67,7 +83,6 @@ const themeInit = `(function(){
     }
     var b=localStorage.getItem('bgImage');
     if(b){document.documentElement.style.setProperty('--bg-image','url('+b+')');}
-    else{document.documentElement.style.setProperty('--bg-image','url(${DEFAULT_BG_IMAGE})');}
     var o=localStorage.getItem('bgOpacity');
     if(o)document.documentElement.style.setProperty('--bg-opacity',o);
     var bl=localStorage.getItem('bgBlur');
@@ -84,9 +99,26 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
+        {/* 首帧前给 <html> 打上 .js —— 滚动滑入的隐藏态挂在 .js 上（见 globals.css）。
+            刻意做成**独立内联脚本**、不依赖任何 chunk：万一客户端 JS 挂了（资源 403 / 断网 /
+            报错），.js 就不存在，隐藏态不生效，内容照常可见，绝不会因为动画而"整页空白"。 */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "document.documentElement.classList.add('js');" +
+              "window.__uiRevealReady=false;" +
+              // 兜底：1.5s 内观察器没报到，就认为前端 JS 没真正跑起来（chunk 挂了/报错），
+              // 立刻撤掉 .js，所有内容恢复可见 —— 宁可没有动画，也绝不能让内容消失。
+              "setTimeout(function(){if(!window.__uiRevealReady){document.documentElement.classList.remove('js')}},1500);",
+          }}
+        />
         <script dangerouslySetInnerHTML={{ __html: themeInit }} />
       </head>
-      <body className="flex min-h-full flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">
+        {/* 全局滚动滑入观察器：之后任何元素加 ui-reveal 就会滑入，无需包客户端组件 */}
+        <RevealObserver />
+        {children}
+      </body>
     </html>
   );
 }

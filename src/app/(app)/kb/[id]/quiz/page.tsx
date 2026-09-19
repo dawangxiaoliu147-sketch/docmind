@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/dal";
 import { prisma } from "@/lib/db";
 import { QuizPanel } from "@/components/quiz-panel";
+import { PageHeader, Stack, buttonClass } from "@/components/ui";
 
 export default async function QuizPage({
   params,
@@ -18,19 +19,18 @@ export default async function QuizPage({
   if (!kb) notFound();
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <Link
-          href={`/kb/${id}`}
-          className="text-sm text-zinc-500 transition hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
-        >
-          ← 返回
-        </Link>
-        <h1 className="text-xl font-semibold dark:text-zinc-50">
-          「{kb.name}」知识测验
-        </h1>
-      </div>
+    <Stack>
+      <Link
+        href={`/kb/${id}`}
+        className={buttonClass({
+          variant: "link",
+          className: "self-start text-muted-fg",
+        })}
+      >
+        ← 返回
+      </Link>
+      <PageHeader eyebrow="quiz" title={`「${kb.name}」知识测验`} />
       <QuizPanel kbId={id} />
-    </div>
+    </Stack>
   );
 }

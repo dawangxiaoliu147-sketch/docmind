@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Alert, Button, Card } from "@/components/ui";
 
 type Question = {
   question: string;
@@ -51,50 +52,44 @@ export function QuizPanel({ kbId }: { kbId: string }) {
 
   function optionClass(q: Question, qi: number, oi: number): string {
     const base =
-      "block w-full rounded-lg border px-4 py-2.5 text-left text-sm transition ";
+      "ui-row w-full cursor-pointer text-left text-sm disabled:cursor-default ";
     if (submitted) {
       if (oi === q.answer) {
-        return base + "border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-700 dark:bg-emerald-950 dark:text-emerald-300";
+        return base + "border-primary bg-accent text-primary";
       }
       if (answers[qi] === oi && oi !== q.answer) {
-        return base + "border-red-300 bg-red-50 text-red-700 dark:border-red-700 dark:bg-red-950 dark:text-red-300";
+        return base + "border-destructive text-destructive-fg";
       }
-      return base + "border-zinc-200 text-zinc-500 dark:border-zinc-700 dark:text-zinc-400";
+      return base + "text-muted-fg";
     }
     return answers[qi] === oi
-      ? base + "border-indigo-400 bg-indigo-50 text-indigo-700 dark:border-indigo-600 dark:bg-indigo-950 dark:text-indigo-300"
-      : base + "border-zinc-200 text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800";
+      ? base + "border-primary bg-accent text-primary"
+      : base + "text-fg2";
   }
 
   return (
     <div className="space-y-5">
       {loading && (
-        <div className="rounded-2xl border border-zinc-200 bg-white p-10 text-center text-sm text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
-          🤔 正在根据你的文档出题…
-        </div>
+        <Card className="p-10 text-center text-sm text-muted-fg">
+          ◈ 正在根据你的文档出题…
+        </Card>
       )}
 
       {error && (
-        <div className="rounded-2xl border border-zinc-200 bg-white p-10 text-center dark:border-zinc-800 dark:bg-zinc-900">
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">{error}</p>
-          <button
-            onClick={load}
-            className="mt-4 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700"
-          >
+        <Card className="p-10 text-center">
+          <Alert tone="error">{error}</Alert>
+          <Button className="mt-4" onClick={load}>
             重新出题
-          </button>
-        </div>
+          </Button>
+        </Card>
       )}
 
       {!loading && !error && questions.length > 0 && (
         <>
           {questions.map((q, qi) => (
-            <div
-              key={qi}
-              className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
-            >
-              <p className="font-semibold dark:text-zinc-100">
-                <span className="mr-2 text-indigo-600 dark:text-indigo-400">
+            <Card key={qi} pad>
+              <p className="font-semibold text-fg">
+                <span className="num mr-2 text-primary">
                   {qi + 1}.
                 </span>
                 {q.question}
@@ -121,42 +116,40 @@ export function QuizPanel({ kbId }: { kbId: string }) {
                 <div
                   className={`mt-3 rounded-lg px-4 py-2.5 text-sm ${
                     answers[qi] === q.answer
-                      ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
-                      : "bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300"
+                      ? "bg-accent text-primary"
+                      : "text-destructive-fg"
                   }`}
                 >
-                  {answers[qi] === q.answer ? "✅ 答对了！" : "❌ 答错了。"}{" "}
-                  <span className="text-zinc-500 dark:text-zinc-400">
+                  {answers[qi] === q.answer ? "✓ 答对了！" : "✗ 答错了。"}{" "}
+                  <span className="text-muted-fg">
                     {q.explanation}
                   </span>
                 </div>
               )}
-            </div>
+            </Card>
           ))}
 
           {submitted ? (
-            <div className="flex items-center justify-between rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-              <p className="text-lg font-semibold dark:text-zinc-100">
-                得分：{score} / {questions.length}
-                <span className="ml-2 text-sm font-normal text-zinc-500 dark:text-zinc-400">
+            <Card pad className="flex items-center justify-between">
+              <p className="text-lg font-semibold text-fg">
+                <span className="num">得分：{score} / {questions.length}</span>
+                <span className="num ml-2 text-sm font-normal text-muted-fg">
                   （{Math.round((score / questions.length) * 100)} 分）
                 </span>
               </p>
-              <button
-                onClick={load}
-                className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700"
-              >
-                🔄 再来一轮
-              </button>
-            </div>
+              <Button onClick={load}>
+                ≋ 再来一轮
+              </Button>
+            </Card>
           ) : (
-            <button
+            <Button
+              size="lg"
+              className="w-full"
               onClick={() => setSubmitted(true)}
               disabled={answeredCount < questions.length}
-              className="w-full rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              交卷（{answeredCount}/{questions.length}）
-            </button>
+              <span className="num">交卷（{answeredCount}/{questions.length}）</span>
+            </Button>
           )}
         </>
       )}

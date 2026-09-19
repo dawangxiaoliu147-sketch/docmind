@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { buttonClass } from "@/components/ui";
 
 export function CoverUpload({
   kbId,
@@ -41,8 +42,14 @@ export function CoverUpload({
 
   return (
     <div>
-      <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-600 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800">
-        {pending ? "上传中…" : hasCover ? "🖼️ 更换封面" : "🖼️ 上传封面"}
+      <label
+        className={buttonClass({
+          variant: "outline",
+          size: "sm",
+          className: "cursor-pointer",
+        })}
+      >
+        {pending ? "上传中…" : hasCover ? "⊡ 更换封面" : "⊡ 上传封面"}
         <input
           type="file"
           accept="image/*"
@@ -52,7 +59,7 @@ export function CoverUpload({
         />
       </label>
       {error && (
-        <p className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>
+        <p className="mt-1 text-xs text-destructive-fg">{error}</p>
       )}
     </div>
   );

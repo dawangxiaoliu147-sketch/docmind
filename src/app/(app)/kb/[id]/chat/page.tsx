@@ -4,6 +4,7 @@ import type { UIMessage } from "ai";
 import { requireUser } from "@/lib/dal";
 import { prisma } from "@/lib/db";
 import { ChatShell } from "@/components/chat-shell";
+import { PageHeader, buttonClass } from "@/components/ui";
 
 export default async function ChatPage({
   params,
@@ -55,17 +56,20 @@ export default async function ChatPage({
 
   return (
     <div className="flex h-[calc(100vh-7.5rem)] flex-col">
-      <div className="mb-3 flex items-center gap-3">
-        <Link
-          href={`/kb/${id}`}
-          className="text-sm text-zinc-500 transition hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
-        >
-          ← 返回
-        </Link>
-        <h1 className="text-lg font-semibold dark:text-zinc-50">
-          与「{kb.name}」对话
-        </h1>
-      </div>
+      <Link
+        href={`/kb/${id}`}
+        className={buttonClass({
+          variant: "link",
+          className: "mb-3 self-start text-muted-fg",
+        })}
+      >
+        ← 返回
+      </Link>
+      <PageHeader
+        eyebrow="chat"
+        title={`与「${kb.name}」对话`}
+        className="shrink-0"
+      />
       <ChatShell
         kbId={id}
         conversations={conversations}

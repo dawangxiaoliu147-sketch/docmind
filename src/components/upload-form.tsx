@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
+import { Alert, Card } from "@/components/ui";
 
 export function UploadForm({ kbId }: { kbId: string }) {
   const router = useRouter();
@@ -44,10 +45,10 @@ export function UploadForm({ kbId }: { kbId: string }) {
 
     setProgress(null);
     if (ok.length > 0) {
-      setSuccess(`✅ 成功上传 ${ok.length} 个文档：${ok.join("、")}`);
+      setSuccess(`成功上传 ${ok.length} 个文档：${ok.join("、")}`);
     }
     if (failed.length > 0) {
-      setError(`❌ 失败 ${failed.length} 个：${failed.join("；")}`);
+      setError(`失败 ${failed.length} 个：${failed.join("；")}`);
     }
     setPending(false);
     router.refresh();
@@ -67,8 +68,8 @@ export function UploadForm({ kbId }: { kbId: string }) {
   }
 
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-      <h2 className="mb-3 text-sm font-semibold dark:text-zinc-100">上传文档</h2>
+    <Card pad>
+      <h2 className="mb-3 text-sm font-semibold text-fg">上传文档</h2>
 
       <div
         onDragOver={(e) => {
@@ -78,19 +79,21 @@ export function UploadForm({ kbId }: { kbId: string }) {
         onDragLeave={() => setDragging(false)}
         onDrop={onDrop}
         onClick={() => inputRef.current?.click()}
-        className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed px-4 py-8 text-center transition ${
+        className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-4 py-8 text-center transition ${
           dragging
-            ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-950/40"
-            : "border-zinc-300 hover:border-indigo-400 dark:border-zinc-700"
+            ? "border-primary bg-accent"
+            : "border-border2 hover:border-primary"
         }`}
       >
-        <div className="text-3xl">{pending ? "⏳" : "📂"}</div>
-        <p className="mt-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">
+        <div className="text-3xl text-primary">
+          {pending ? "⋯" : "⊡"}
+        </div>
+        <p className="mt-2 text-sm font-medium text-fg">
           {pending
             ? (progress ?? "上传中…")
             : "点击选择文件，或把文件拖到这里"}
         </p>
-        <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">
+        <p className="mt-1 text-xs text-muted-fg">
           支持多文件批量上传 · PDF / Word / Markdown / TXT / HTML / CSV · 单个 ≤ 50MB
         </p>
         <input
@@ -105,15 +108,15 @@ export function UploadForm({ kbId }: { kbId: string }) {
       </div>
 
       {error && (
-        <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 dark:bg-red-950 dark:text-red-400">
+        <Alert tone="error" icon="✕" className="mt-3">
           {error}
-        </p>
+        </Alert>
       )}
       {success && (
-        <p className="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400">
+        <Alert tone="info" icon="✓" className="mt-3">
           {success}
-        </p>
+        </Alert>
       )}
-    </div>
+    </Card>
   );
 }

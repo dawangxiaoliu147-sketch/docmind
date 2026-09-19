@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Button, Card } from "@/components/ui";
 
 export function KbSummary({ kbId }: { kbId: string }) {
   const [summary, setSummary] = useState<string | null>(null);
@@ -27,20 +28,20 @@ export function KbSummary({ kbId }: { kbId: string }) {
 
   return (
     <div>
-      <button
+      <Button
         onClick={generate}
         disabled={pending}
-        className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+        variant="secondary"
       >
         {pending ? "生成中…" : "✧ AI 生成摘要"}
-      </button>
+      </Button>
       {summary && (
-        <div className="mt-3 whitespace-pre-wrap rounded-xl bg-zinc-50 p-4 text-sm leading-relaxed text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
+        <Card pad className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-fg2">
           {summary}
-        </div>
+        </Card>
       )}
       {error && (
-        <p className="mt-2 text-xs text-red-600 dark:text-red-400">{error}</p>
+        <p className="mt-2 text-xs text-destructive-fg">{error}</p>
       )}
     </div>
   );

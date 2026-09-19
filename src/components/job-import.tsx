@@ -34,15 +34,15 @@ export function JobImport() {
   }
 
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-      <h2 className="text-sm font-semibold dark:text-zinc-100">批量导入（CSV）</h2>
-      <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+    <div className="panel p-6">
+      <h2 className="text-sm font-semibold text-fg">批量导入（CSV）</h2>
+      <p className="mt-1 text-xs text-muted-fg">
         CSV 列名：title, company, location, salary, description, tags, requirements
         （tags 和 requirements 用「|」分隔）
       </p>
 
       <div className="mt-4">
-        <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300">
+        <label className="btn btn-outline cursor-pointer gap-2">
           {pending ? "导入中…" : "📄 选择 CSV 文件"}
           <input
             type="file"
@@ -55,12 +55,12 @@ export function JobImport() {
       </div>
 
       {success && (
-        <p className="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400">
+        <p className="alert alert-info mt-3">
           {success}
         </p>
       )}
       {error && (
-        <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 dark:bg-red-950 dark:text-red-400">
+        <p className="alert alert-error mt-3">
           {error}
         </p>
       )}

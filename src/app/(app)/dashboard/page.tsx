@@ -4,6 +4,26 @@ import { prisma } from "@/lib/db";
 import { createKnowledgeBase, deleteKnowledgeBase } from "@/lib/actions/kb";
 import { KbCover } from "@/components/kb-cover";
 import { GlobalSearch } from "@/components/global-search";
+import { buildIsland, activeDaysFrom } from "@/components/island/island-model";
+import { KnowledgeIsland } from "@/components/island/knowledge-island";
+import { TourButton } from "@/components/onboarding-tour";
+import {
+  Button,
+  Card,
+  CardGrid,
+  Chip,
+  Empty,
+  Field,
+  IconBox,
+  Input,
+  Metric,
+  MetricGrid,
+  PageHeader,
+  Panel,
+  Section,
+  Stack,
+  buttonClass,
+} from "@/components/ui";
 
 const FEATURES = [
   { href: "/agent", icon: "✦", name: "智能体", desc: "自主调用工具完成任务" },
@@ -17,7 +37,7 @@ const FEATURES = [
 export default async function DashboardPage() {
   const user = await requireUser();
 
-  const [kbs, docCount, chunkCount] = await Promise.all([
+  const [kbs, docCount, chunkCount, convCount, resumeCount, jobCount, recent] = await Promise.all([
     prisma.knowledgeBase.findMany({
       where: { userId: user.id },
       include: { _count: { select: { documents: true } } },
@@ -25,159 +45,153 @@ export default async function DashboardPage() {
     }),
     prisma.document.count({ where: { kb: { userId: user.id } } }),
     prisma.chunk.count({ where: { document: { kb: { userId: user.id } } } }),
+    prisma.conversation.count({ where: { userId: user.id } }),
+    prisma.resume.count({ where: { userId: user.id } }),
+    prisma.job.count(),
+    prisma.conversation.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+      take: 30,
+      select: { createdAt: true },
+    }),
   ]);
 
-  const stats = [
-    { label: "知识库", value: kbs.length, icon: "◈" },
-    { label: "文档", value: docCount, icon: "≣" },
-    { label: "知识片段", value: chunkCount, icon: "⬡" },
-  ];
+  // 最近 7 天活跃几天 → 岛的天气（不纯调用放在模型层）
+  const activeDays = activeDaysFrom(recent.map((r) => r.createdAt));
+
+  const islandStats = {
+    kb: kbs.length,
+    doc: docCount,
+    chunk: chunkCount,
+    conv: convCount,
+    resume: resumeCount,
+    job: jobCount,
+    activeDays,
+    primaryKbId: kbs[0]?.id,
+  };
+  const island = buildIsland(islandStats);
 
   return (
-    <div className="space-y-8">
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-600 p-6 text-white">
-        <h1 className="text-2xl font-bold">我的知识库</h1>
-        <p className="mt-2 text-sm text-indigo-100">
-          创建知识库 → 上传文档 → 向 AI 提问，三步构建你的专属问答助手
-        </p>
-      </div>
+    <Stack>
+      <PageHeader
+        eyebrow="dashboard"
+        title="我的知识库"
+        subtitle="创建知识库 → 上传文档 → 向 AI 提问，三步构建问答助手。"
+        actions={<TourButton tour="kb" />}
+      />
 
-      {/* 数据统计 */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        {stats.map((s) => (
-          <div
-            key={s.label}
-            className="flex items-center gap-4 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
-          >
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 text-2xl dark:bg-indigo-950">
-              {s.icon}
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
-                {s.value}
-              </p>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">{s.label}</p>
-            </div>
+      {/* 数据条 */}
+      <MetricGrid>
+        <Metric icon="◈" label="知识库" value={kbs.length} />
+        <Metric icon="≣" label="文档" value={docCount} />
+        <Metric icon="⬡" label="知识片段" value={chunkCount} />
+      </MetricGrid>
+
+      {/* 知行岛预览：把积累变成看得见的成长 */}
+      <Panel className="p-4">
+        <div className="mb-2 flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <p className="ui-section-title">知行岛</p>
+            <p className="mt-1 text-[12px] text-muted-fg">
+              {island.stage} · 已解锁 {island.unlocked} / {island.total} 格
+            </p>
           </div>
-        ))}
-      </div>
+          <Link href="/island" className={buttonClass({ size: "sm", variant: "outline" })}>
+            进入我的岛
+          </Link>
+        </div>
+        <KnowledgeIsland stats={islandStats} compact />
+      </Panel>
 
       {/* 功能总览 */}
-      <div>
-        <h2 className="mb-3 text-sm font-semibold text-zinc-500 dark:text-zinc-400">
-          功能总览
-        </h2>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <Section title="功能总览" extra="6 个入口">
+        <CardGrid>
           {FEATURES.map((f) => (
-            <Link
-              key={f.href}
-              href={f.href}
-              className="group flex items-start gap-3 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-indigo-800"
-            >
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-xl transition group-hover:scale-110 dark:bg-indigo-950">
-                {f.icon}
-              </span>
-              <div className="min-w-0">
-                <p className="font-semibold text-zinc-900 dark:text-zinc-100">
-                  {f.name}
-                </p>
-                <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-                  {f.desc}
-                </p>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </div>
-
-      {/* 跨知识库搜索 */}
-      <GlobalSearch />
-
-      {/* 创建知识库 */}
-      <form
-        action={createKnowledgeBase}
-        className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm sm:flex-row dark:border-zinc-800 dark:bg-zinc-900"
-      >
-        <input
-          name="name"
-          required
-          placeholder="知识库名称，如「公司产品手册」"
-          className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:focus:border-indigo-500 dark:focus:ring-indigo-900"
-        />
-        <input
-          name="description"
-          placeholder="描述（可选）"
-          className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:focus:border-indigo-500 dark:focus:ring-indigo-900"
-        />
-        <button
-          type="submit"
-          className="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700"
-        >
-          创建知识库
-        </button>
-      </form>
-
-      {/* 知识库列表 */}
-      {kbs.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-zinc-300 bg-white/50 px-6 py-16 text-center dark:border-zinc-700 dark:bg-zinc-900/50">
-          <p className="text-lg font-medium text-zinc-700 dark:text-zinc-200">
-            还没有知识库
-          </p>
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            在上方输入名称，创建你的第一个知识库
-          </p>
-        </div>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {kbs.map((kb) => (
-            <div
-              key={kb.id}
-              className="flex flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900"
-            >
-              <Link href={`/kb/${kb.id}`} className="block">
-                <KbCover
-                  name={kb.name}
-                  coverImage={kb.coverImage}
-                  color={kb.color}
-                  className="h-32 w-full"
-                />
-              </Link>
-              <div className="flex flex-1 flex-col p-5">
-                <Link href={`/kb/${kb.id}`} className="flex-1">
-                  <h2 className="font-semibold text-zinc-900 dark:text-zinc-100">
-                    {kb.name}
-                  </h2>
-                  <p className="mt-1 line-clamp-2 min-h-[2.5rem] text-sm text-zinc-500 dark:text-zinc-400">
-                    {kb.description || "暂无描述"}
-                  </p>
-                </Link>
-                <div className="mt-4 flex items-center justify-between border-t border-zinc-100 pt-3 dark:border-zinc-800">
-                  <span className="text-xs text-zinc-400 dark:text-zinc-500">
-                    {kb._count.documents} 个文档
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <Link
-                      href={`/kb/${kb.id}/chat`}
-                      className="rounded-lg bg-indigo-50 px-3 py-1.5 text-xs font-medium text-indigo-600 transition hover:bg-indigo-100 dark:bg-indigo-950 dark:text-indigo-400 dark:hover:bg-indigo-900"
-                    >
-                      提问
-                    </Link>
-                    <form action={deleteKnowledgeBase}>
-                      <input type="hidden" name="id" value={kb.id} />
-                      <button
-                        type="submit"
-                        className="rounded-lg px-3 py-1.5 text-xs font-medium text-zinc-500 transition hover:bg-red-50 hover:text-red-600 dark:text-zinc-400 dark:hover:bg-red-950 dark:hover:text-red-400"
-                      >
-                        删除
-                      </button>
-                    </form>
+            <Link key={f.href} href={f.href} className="block min-w-0">
+              <Card hover pad className="h-full">
+                <div className="flex items-start gap-3">
+                  <IconBox>{f.icon}</IconBox>
+                  <div className="min-w-0">
+                    <p className="text-[13.5px] font-semibold text-fg">{f.name}</p>
+                    <p className="mt-0.5 text-[12px] leading-relaxed text-muted-fg">{f.desc}</p>
                   </div>
                 </div>
-              </div>
-            </div>
+              </Card>
+            </Link>
           ))}
-        </div>
-      )}
-    </div>
+        </CardGrid>
+      </Section>
+
+      {/* 跨知识库搜索 */}
+      <div data-tour="search-all">
+        <GlobalSearch />
+      </div>
+
+      {/* 创建知识库 */}
+      <Panel className="ui-rail p-5 pl-6" data-tour="create-kb">
+        <form action={createKnowledgeBase} className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          <Field label="知识库名称" htmlFor="kb-name" className="flex-1" required>
+            <Input id="kb-name" name="name" required placeholder="如「公司产品手册」" />
+          </Field>
+          <Field label="描述" htmlFor="kb-desc" className="flex-1">
+            <Input id="kb-desc" name="description" placeholder="描述（可选）" />
+          </Field>
+          <Button type="submit" pill>
+            创建知识库
+          </Button>
+        </form>
+      </Panel>
+
+      {/* 知识库列表 */}
+      <Section title="知识库" extra={`${kbs.length} 个`} data-tour="kb-list">
+        {kbs.length === 0 ? (
+          <Empty
+            icon="◈"
+            title="还没有知识库"
+            desc="在上方输入名称，创建你的第一个知识库；建好后就能直接上传 PDF / Word 向 AI 提问。"
+          />
+        ) : (
+          <CardGrid>
+            {kbs.map((kb) => (
+              <Card key={kb.id} className="flex flex-col overflow-hidden">
+                <Link href={`/kb/${kb.id}`} className="block">
+                  <KbCover
+                    name={kb.name}
+                    coverImage={kb.coverImage}
+                    color={kb.color}
+                    className="h-32 w-full"
+                  />
+                </Link>
+                <div className="flex flex-1 flex-col p-5">
+                  <Link href={`/kb/${kb.id}`} className="flex-1">
+                    <p className="text-[13.5px] font-semibold text-fg">{kb.name}</p>
+                    <p className="mt-1 line-clamp-2 min-h-[2.5rem] text-[12.5px] leading-relaxed text-muted-fg">
+                      {kb.description || "暂无描述"}
+                    </p>
+                  </Link>
+                  <div className="mt-4 flex items-center justify-between gap-2 border-t border-border pt-3">
+                    <Chip className="num">{kb._count.documents} 个文档</Chip>
+                    <div className="flex items-center gap-1.5">
+                      <Link
+                        href={`/kb/${kb.id}/chat`}
+                        className="btn btn-sm btn-secondary"
+                      >
+                        提问
+                      </Link>
+                      <form action={deleteKnowledgeBase}>
+                        <input type="hidden" name="id" value={kb.id} />
+                        <Button type="submit" variant="ghost" size="sm" className="text-muted-fg">
+                          删除
+                        </Button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </CardGrid>
+        )}
+      </Section>
+    </Stack>
   );
 }

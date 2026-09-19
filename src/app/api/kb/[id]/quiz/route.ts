@@ -14,6 +14,33 @@ function extractJson(text: string): string {
   return text.trim();
 }
 
+/**
+ * 校验模型返回的单条题目。
+ *
+ * 原来这里是一串 `(q as any).question` —— `as any` 会把类型检查整个关掉，
+ * 而且校验也不完整（没检查 options 里每一项是不是字符串）。改用 `unknown` + 类型守卫：
+ * 既让 lint 通过，也真的更严谨。
+ */
+type QuizQuestion = {
+  question: string;
+  options: string[];
+  answer: number;
+  explanation: string;
+};
+
+function isQuizQuestion(q: unknown): q is QuizQuestion {
+  if (typeof q !== "object" || q === null) return false;
+  const o = q as Record<string, unknown>;
+  return (
+    typeof o.question === "string" &&
+    Array.isArray(o.options) &&
+    o.options.length >= 2 &&
+    o.options.every((x) => typeof x === "string") &&
+    typeof o.answer === "number" &&
+    typeof o.explanation === "string"
+  );
+}
+
 export async function POST(
   req: Request,
   ctx: { params: Promise<{ id: string }> },
@@ -72,17 +99,7 @@ ${material}`,
     return Response.json({ error: "出题失败，请重试" }, { status: 500 });
   }
 
-  const valid = (Array.isArray(questions) ? questions : [])
-    .filter(
-      (q) =>
-        q &&
-        typeof (q as any).question === "string" &&
-        Array.isArray((q as any).options) &&
-        (q as any).options.length >= 2 &&
-        typeof (q as any).answer === "number" &&
-        typeof (q as any).explanation === "string",
-    )
-    .slice(0, 5);
+  const valid = (Array.isArray(questions) ? questions : []).filter(isQuizQuestion).slice(0, 5);
 
   if (valid.length === 0) {
     return Response.json({ error: "出题失败，请重试" }, { status: 500 });

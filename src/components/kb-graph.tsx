@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Button } from "@/components/ui";
 
 type GraphNode = { name: string; children?: GraphNode[] };
 
@@ -33,7 +34,7 @@ export function KbGraph({ kbId }: { kbId: string }) {
         className={
           depth === 0
             ? "space-y-3"
-            : "mt-2 space-y-2 border-l-2 border-indigo-100 pl-4 dark:border-indigo-900"
+            : "mt-2 space-y-2 border-l-2 border-border2 pl-4"
         }
       >
         {nodes.map((n, i) => (
@@ -41,8 +42,8 @@ export function KbGraph({ kbId }: { kbId: string }) {
             <div
               className={
                 depth === 0
-                  ? "flex items-center gap-2 rounded-lg bg-indigo-50 px-3 py-2 text-sm font-semibold text-zinc-800 dark:bg-indigo-950/40 dark:text-zinc-100"
-                  : "flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-200"
+                  ? "flex items-center gap-2 rounded-lg bg-accent px-3 py-2 text-sm font-semibold text-fg"
+                  : "flex items-center gap-2 text-sm text-fg2"
               }
             >
               <span>{depth === 0 ? "◆" : depth === 1 ? "◇" : "•"}</span>
@@ -58,20 +59,20 @@ export function KbGraph({ kbId }: { kbId: string }) {
   return (
     <div>
       {!tree && (
-        <button
+        <Button
           onClick={load}
           disabled={pending}
-          className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+          variant="secondary"
         >
           {pending ? "生成中…" : "生成知识图谱"}
-        </button>
+        </Button>
       )}
-      {error && <p className="mt-2 text-xs text-red-600 dark:text-red-400">{error}</p>}
+      {error && <p className="mt-2 text-xs text-destructive-fg">{error}</p>}
       {tree && tree.length > 0 && (
         <div className="mt-2">{renderNodes(tree, 0)}</div>
       )}
       {tree && tree.length === 0 && (
-        <p className="text-sm text-zinc-400 dark:text-zinc-500">
+        <p className="text-sm text-muted-fg">
           该知识库还没有可生成图谱的内容
         </p>
       )}

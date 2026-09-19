@@ -1,5 +1,6 @@
 import { requireAdmin } from "@/lib/dal";
 import { AdminNav } from "@/components/admin-nav";
+import { PageHeader, Stack } from "@/components/ui";
 
 export default async function AdminLayout({
   children,
@@ -9,19 +10,20 @@ export default async function AdminLayout({
   await requireAdmin();
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold dark:text-zinc-50">管理后台</h1>
-        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-          查看并管理用户与全部数据
-        </p>
-      </div>
-      <div className="flex gap-6">
-        <aside className="w-48 shrink-0">
+    <Stack>
+      <PageHeader
+        eyebrow="admin"
+        title="管理后台"
+        subtitle="查看并管理用户与全部数据"
+      />
+      {/* 保持原有的「左侧栏 + 内容」两栏结构（信息架构不动），只把样式换成设计系统；
+          窄屏才堆叠成一列。 */}
+      <div className="flex flex-col gap-6 lg:flex-row">
+        <aside className="w-full shrink-0 lg:w-48">
           <AdminNav />
         </aside>
         <div className="min-w-0 flex-1">{children}</div>
       </div>
-    </div>
+    </Stack>
   );
 }

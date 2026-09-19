@@ -27,8 +27,8 @@ export function KbCover({
   className?: string;
 }) {
   if (coverImage) {
-    // eslint-disable-next-line @next/next/no-img-element
     return (
+      // eslint-disable-next-line @next/next/no-img-element
       <img
         src={coverImage}
         alt={name}
@@ -45,7 +45,7 @@ export function KbCover({
           background: `linear-gradient(135deg, ${color}, color-mix(in srgb, ${color} 70%, black))`,
         }}
       >
-        <span className="text-3xl font-black text-white drop-shadow">
+        <span className="text-3xl font-black text-fg drop-shadow">
           {name.charAt(0).toUpperCase()}
         </span>
       </div>
@@ -56,7 +56,7 @@ export function KbCover({
     <div
       className={`flex items-center justify-center bg-gradient-to-br ${gradientFor(name)} ${className}`}
     >
-      <span className="text-3xl font-black text-white drop-shadow">
+      <span className="text-3xl font-black text-primary-fg drop-shadow">
         {name.charAt(0).toUpperCase()}
       </span>
     </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Button, Range, buttonClass } from "@/components/ui";
 
 export function BackgroundPicker() {
   const [url, setUrl] = useState<string | null>(null);
@@ -10,6 +11,8 @@ export function BackgroundPicker() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- localStorage 只有客户端可读，
+       渲染期读会 hydration 不一致，只能在挂载后把已保存的壁纸设置同步进来。 */
     const savedUrl = localStorage.getItem("bgImage");
     const savedOpacity = Number(localStorage.getItem("bgOpacity") ?? 1);
     const savedBlur = Number(localStorage.getItem("bgBlur") ?? 0);
@@ -27,6 +30,7 @@ export function BackgroundPicker() {
       String(savedOpacity),
     );
     document.documentElement.style.setProperty("--bg-blur", `${savedBlur}px`);
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
 
   function applyOpacity(v: number) {
@@ -86,8 +90,14 @@ export function BackgroundPicker() {
   return (
     <div>
       <div className="flex items-center gap-3">
-        <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700">
-          {pending ? "上传中…" : "🖼️ 上传背景图"}
+        <label
+          className={buttonClass({
+            variant: "secondary",
+            size: "lg",
+            className: "cursor-pointer",
+          })}
+        >
+          {pending ? "上传中…" : "↥ 上传背景图"}
           <input
             type="file"
             accept="image/*"
@@ -97,13 +107,9 @@ export function BackgroundPicker() {
           />
         </label>
         {url && (
-          <button
-            type="button"
-            onClick={remove}
-            className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-600 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
-          >
+          <Button type="button" variant="outline" size="lg" onClick={remove}>
             移除背景图
-          </button>
+          </Button>
         )}
       </div>
 
@@ -113,18 +119,17 @@ export function BackgroundPicker() {
           <img
             src={url}
             alt="背景预览"
-            className="h-24 w-40 rounded-lg border border-zinc-200 object-cover dark:border-zinc-700"
+            className="h-24 w-40 rounded-lg border border-border object-cover"
           />
 
           <div>
-            <label className="mb-1 flex justify-between text-xs text-zinc-500 dark:text-zinc-400">
+            <label className="mb-1 flex justify-between text-xs text-muted-fg">
               <span>透明度</span>
-              <span className="font-medium text-zinc-700 dark:text-zinc-200">
+              <span className="num font-medium text-fg2">
                 {Math.round(opacity * 100)}%
               </span>
             </label>
-            <input
-              type="range"
+            <Range
               min={0}
               max={1}
               step={0.05}
@@ -135,14 +140,11 @@ export function BackgroundPicker() {
           </div>
 
           <div>
-            <label className="mb-1 flex justify-between text-xs text-zinc-500 dark:text-zinc-400">
+            <label className="mb-1 flex justify-between text-xs text-muted-fg">
               <span>虚化程度</span>
-              <span className="font-medium text-zinc-700 dark:text-zinc-200">
-                {blur}px
-              </span>
+              <span className="num font-medium text-fg2">{blur}px</span>
             </label>
-            <input
-              type="range"
+            <Range
               min={0}
               max={20}
               step={1}
@@ -155,7 +157,7 @@ export function BackgroundPicker() {
       )}
 
       {error && (
-        <p className="mt-2 text-xs text-red-600 dark:text-red-400">{error}</p>
+        <p className="mt-2 text-xs text-destructive-fg">{error}</p>
       )}
     </div>
   );

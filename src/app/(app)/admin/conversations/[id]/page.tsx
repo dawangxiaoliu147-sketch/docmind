@@ -25,14 +25,12 @@ export default async function AdminConvDetailPage({
       <div>
         <Link
           href="/admin/conversations"
-          className="text-sm text-zinc-500 transition hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+          className="text-sm text-muted-fg transition hover:text-fg"
         >
           ← 返回对话列表
         </Link>
-        <h2 className="mt-1 text-lg font-semibold dark:text-zinc-50">
-          {conv.title}
-        </h2>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+        <h2 className="mt-1 text-lg font-semibold text-fg">{conv.title}</h2>
+        <p className="text-sm text-muted-fg">
           知识库：{conv.kb.name} · 共 {conv.messages.length} 条消息
         </p>
       </div>
@@ -46,8 +44,8 @@ export default async function AdminConvDetailPage({
             <div
               className={`max-w-[80%] whitespace-pre-wrap rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                 m.role === "user"
-                  ? "bg-indigo-600 text-white"
-                  : "bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200"
+                  ? "bg-primary text-primary-fg"
+                  : "bg-muted text-fg2"
               }`}
             >
               <p className="mb-1 text-[10px] font-semibold uppercase opacity-60">

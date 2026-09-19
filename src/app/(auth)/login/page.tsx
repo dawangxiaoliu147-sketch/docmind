@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 const POINTS = [
   { icon: "◈", text: "上传文档，自动解析、分块、向量化入库" },
   { icon: "✦", text: "知识库 6 个角色 + 工作台 13 个 Agent" },
-  { icon: "≋", text: "回答标注引用来源，可一键核对原文" },
+  { icon: "≋", text: "回答标注引用来源，可核对原文" },
 ];
 
 export default function LoginPage() {

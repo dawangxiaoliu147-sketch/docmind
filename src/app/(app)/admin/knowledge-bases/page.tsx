@@ -1,6 +1,17 @@
 import { requireAdmin } from "@/lib/dal";
 import { prisma } from "@/lib/db";
 import { deleteAnyKb } from "@/lib/actions/admin";
+import {
+  Button,
+  Section,
+  Table,
+  TableWrap,
+  TBody,
+  TD,
+  TH,
+  THead,
+  TR,
+} from "@/components/ui";
 
 export default async function AdminKbsPage() {
   await requireAdmin();
@@ -14,58 +25,42 @@ export default async function AdminKbsPage() {
   });
 
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-      <div className="border-b border-zinc-100 px-5 py-4 dark:border-zinc-800">
-        <h2 className="text-sm font-semibold dark:text-zinc-100">
-          知识库（{kbs.length}）
-        </h2>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-zinc-50 text-xs text-zinc-500 dark:bg-zinc-800/50 dark:text-zinc-400">
-            <tr>
-              <th className="px-5 py-3 font-medium">名称</th>
-              <th className="px-5 py-3 font-medium">所属用户</th>
-              <th className="px-5 py-3 font-medium">文档</th>
-              <th className="px-5 py-3 font-medium">对话</th>
-              <th className="px-5 py-3 font-medium">创建时间</th>
-              <th className="px-5 py-3 font-medium text-right">操作</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+    <Section title={`知识库（${kbs.length}）`}>
+      <TableWrap>
+        <Table>
+          <THead>
+            <TR>
+              <TH>名称</TH>
+              <TH>所属用户</TH>
+              <TH>文档</TH>
+              <TH>对话</TH>
+              <TH>创建时间</TH>
+              <TH className="text-right">操作</TH>
+            </TR>
+          </THead>
+          <TBody>
             {kbs.map((kb) => (
-              <tr key={kb.id}>
-                <td className="px-5 py-3 font-medium dark:text-zinc-100">
-                  {kb.name}
-                </td>
-                <td className="px-5 py-3 text-zinc-500 dark:text-zinc-400">
-                  {kb.user.email}
-                </td>
-                <td className="px-5 py-3 dark:text-zinc-300">
-                  {kb._count.documents}
-                </td>
-                <td className="px-5 py-3 dark:text-zinc-300">
-                  {kb._count.conversations}
-                </td>
-                <td className="px-5 py-3 text-zinc-500 dark:text-zinc-400">
+              <TR key={kb.id}>
+                <TD strong>{kb.name}</TD>
+                <TD className="text-muted-fg">{kb.user.email}</TD>
+                <TD className="num">{kb._count.documents}</TD>
+                <TD className="num">{kb._count.conversations}</TD>
+                <TD className="text-muted-fg">
                   {kb.createdAt.toLocaleDateString()}
-                </td>
-                <td className="px-5 py-3 text-right">
+                </TD>
+                <TD className="text-right">
                   <form action={deleteAnyKb}>
                     <input type="hidden" name="id" value={kb.id} />
-                    <button
-                      type="submit"
-                      className="rounded-lg px-3 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950"
-                    >
+                    <Button type="submit" variant="destructive" size="sm">
                       删除
-                    </button>
+                    </Button>
                   </form>
-                </td>
-              </tr>
+                </TD>
+              </TR>
             ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+          </TBody>
+        </Table>
+      </TableWrap>
+    </Section>
   );
 }

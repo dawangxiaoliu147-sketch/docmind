@@ -4,6 +4,9 @@ import { Avatar } from "@/components/avatar";
 import { AvatarUpload } from "@/components/avatar-upload";
 import { AccentPicker } from "@/components/accent-picker";
 import { BackgroundPicker } from "@/components/background-picker";
+import { SceneBackdropPicker } from "@/components/scene-backdrop-picker";
+import { TourButton, TourHub } from "@/components/onboarding-tour";
+import { KV, KVRow, PageHeader, Panel, Section, Stack } from "@/components/ui";
 
 export const metadata: Metadata = {
   title: "设置 · 知行",
@@ -13,77 +16,84 @@ export default async function SettingsPage() {
   const user = await requireUser();
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold dark:text-zinc-50">设置</h1>
-        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-          管理你的个人资料与界面个性化
-        </p>
-      </div>
+    <Stack>
+      <PageHeader
+        eyebrow="settings"
+        title="设置"
+        subtitle="管理你的个人资料与界面个性化"
+        actions={<TourButton tour="settings" />}
+      />
 
-      <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-        <h2 className="text-sm font-semibold dark:text-zinc-100">个人资料</h2>
-        <div className="mt-4 flex items-center gap-5">
-          <Avatar
-            name={user.name}
-            src={user.avatarUrl}
-            className="h-16 w-16 text-2xl"
-          />
-          <div>
-            <p className="font-medium dark:text-zinc-100">{user.name}</p>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">{user.email}</p>
-            <div className="mt-3">
-              <AvatarUpload />
+      <Panel className="p-6" data-tour="tour-hub">
+        <Section title="功能引导" extra="每个功能一条，需要就点">
+          <TourHub />
+        </Section>
+      </Panel>
+
+      <Panel className="p-6">
+        <Section title="个人资料">
+          <div className="flex items-center gap-5">
+            <Avatar
+              name={user.name}
+              src={user.avatarUrl}
+              className="h-16 w-16 text-2xl"
+            />
+            <div className="min-w-0">
+              <p className="font-medium text-fg">{user.name}</p>
+              <p className="text-sm text-muted-fg">{user.email}</p>
+              <div className="mt-3">
+                <AvatarUpload />
+              </div>
             </div>
           </div>
-        </div>
-        <p className="mt-4 text-xs text-zinc-400 dark:text-zinc-500">
-          支持 JPG / PNG / WebP / GIF，不超过 5MB
-        </p>
-      </div>
-
-      <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-        <h2 className="text-sm font-semibold dark:text-zinc-100">界面个性化</h2>
-
-        <p className="mt-3 mb-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
-          主题色
-        </p>
-        <AccentPicker />
-
-        <div className="mt-6 border-t border-zinc-100 pt-5 dark:border-zinc-800">
-          <p className="mb-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
-            背景图片
+          <p className="mt-4 text-xs text-muted-fg">
+            支持 JPG / PNG / WebP / GIF，不超过 5MB
           </p>
-          <p className="mb-3 text-xs text-zinc-400 dark:text-zinc-500">
-            上传一张喜欢的图片作为全站壁纸（淡显，不影响阅读）
-          </p>
-          <BackgroundPicker />
-        </div>
+        </Section>
+      </Panel>
 
-        <p className="mt-5 text-xs text-zinc-400 dark:text-zinc-500">
-          主题场景（雨林 / 雪境 / 暖云）可在右上角的三个色点切换
-        </p>
-      </div>
+      <Panel className="p-6" data-tour="scenic-picker">
+        <Section title="场景背景" extra="每个场景一张，跟着场景切换">
+          <SceneBackdropPicker />
+        </Section>
+      </Panel>
 
-      <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-        <h2 className="text-sm font-semibold dark:text-zinc-100">账户信息</h2>
-        <dl className="mt-4 space-y-3 text-sm">
-          <div className="flex justify-between">
-            <dt className="text-zinc-500 dark:text-zinc-400">昵称</dt>
-            <dd className="font-medium dark:text-zinc-100">{user.name}</dd>
+      <Panel className="p-6">
+        <Section title="界面个性化">
+          <div className="mt-6 border-t border-border pt-5" data-tour="accent-picker">
+            <p className="mb-1 text-xs font-medium text-muted-fg">主题色</p>
+            <AccentPicker />
           </div>
-          <div className="flex justify-between">
-            <dt className="text-zinc-500 dark:text-zinc-400">邮箱</dt>
-            <dd className="font-medium dark:text-zinc-100">{user.email}</dd>
+
+          <div className="mt-6 border-t border-border pt-5">
+            <p className="mb-1 text-xs font-medium text-muted-fg">
+              自定义壁纸（可选，与上面的场景背景叠加）
+            </p>
+            <p className="mb-3 text-xs text-muted-fg">
+              上传一张自己的图作为全站淡显纹理（透明度很低，只用于增加质感，不影响阅读）
+            </p>
+            <BackgroundPicker />
           </div>
-          <div className="flex justify-between">
-            <dt className="text-zinc-500 dark:text-zinc-400">账号 ID</dt>
-            <dd className="font-mono text-xs text-zinc-400 dark:text-zinc-500">
-              {user.id}
-            </dd>
+
+          <div className="mt-5 border-t border-border pt-5">
+            <p className="max-w-md text-xs text-muted-fg">
+              主题场景（雨林 / 雪境 / 暖云）可在右上角的三个色点切换，场景背景与知行岛都会跟着换
+            </p>
           </div>
-        </dl>
-      </div>
-    </div>
+        </Section>
+      </Panel>
+
+      <Panel className="p-6">
+        <Section title="账户信息">
+          <KV>
+            <KVRow k="昵称">{user.name}</KVRow>
+            <KVRow k="邮箱">{user.email}</KVRow>
+            <KVRow k="账号 ID">
+              <span className="mono text-xs text-muted-fg">{user.id}</span>
+            </KVRow>
+          </KV>
+        </Section>
+      </Panel>
+    </Stack>
   );
 }

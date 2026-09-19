@@ -36,16 +36,16 @@ export function ResumeMatch({ jobId }: { jobId: string }) {
   }
 
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-      <h2 className="text-lg font-semibold dark:text-zinc-100">
+    <div className="panel p-6">
+      <h2 className="text-lg font-semibold text-fg">
         🔍 匹配我的简历
       </h2>
-      <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+      <p className="mt-1 text-sm text-muted-fg">
         上传简历，AI 分析你与这个职位的匹配度、优势和差距
       </p>
 
       <div className="mt-4">
-        <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700">
+        <label className="btn btn-primary cursor-pointer gap-2">
           {pending ? "分析中…" : "📄 上传简历"}
           <input
             type="file"
@@ -56,12 +56,12 @@ export function ResumeMatch({ jobId }: { jobId: string }) {
           />
         </label>
         {error && (
-          <p className="mt-2 text-xs text-red-600 dark:text-red-400">{error}</p>
+          <p className="mt-2 text-xs text-destructive-fg">{error}</p>
         )}
       </div>
 
       {analysis && (
-        <div className="markdown mt-5 rounded-xl bg-zinc-50 p-5 text-zinc-800 dark:bg-zinc-800/50 dark:text-zinc-200">
+        <div className="markdown mt-5 rounded-xl bg-muted p-5 text-fg2">
           <ReactMarkdown remarkPlugins={[remarkGfm]}>{analysis}</ReactMarkdown>
         </div>
       )}

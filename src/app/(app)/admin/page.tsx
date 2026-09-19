@@ -1,5 +1,14 @@
 import { requireAdmin } from "@/lib/dal";
 import { prisma } from "@/lib/db";
+import {
+  Card,
+  Chip,
+  IconBox,
+  Metric,
+  MetricGrid,
+  Panel,
+  Stack,
+} from "@/components/ui";
 
 export default async function AdminDashboard() {
   await requireAdmin();
@@ -29,64 +38,47 @@ export default async function AdminDashboard() {
   ];
 
   return (
-    <div className="space-y-6">
+    <Stack>
       {/* 顶部横幅 */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-600 p-6 text-white">
-        <h1 className="text-2xl font-bold">管理后台</h1>
-        <p className="mt-2 text-sm text-indigo-100">
-          平台数据总览 · 共 {users} 位用户，{kbs} 个知识库
+      <Panel className="ui-rail p-5 pl-6">
+        <p className="text-sm font-semibold text-fg">平台数据总览</p>
+        <p className="mt-1 text-[13px] text-muted-fg">
+          共 {users} 位用户，{kbs} 个知识库
         </p>
-      </div>
+      </Panel>
 
       {/* 统计卡片 */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <MetricGrid>
         {stats.map((s) => (
-          <div
-            key={s.label}
-            className="group flex items-center gap-4 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:border-indigo-200 hover:shadow-lg dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-indigo-800"
-          >
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 text-2xl transition group-hover:scale-110 dark:bg-indigo-950">
-              {s.icon}
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
-                {s.value}
-              </p>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">{s.label}</p>
-            </div>
-          </div>
+          <Metric key={s.label} icon={s.icon} label={s.label} value={s.value} />
         ))}
-      </div>
+      </MetricGrid>
 
       {/* 最近注册用户 */}
-      <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-        <h2 className="text-sm font-semibold dark:text-zinc-100">最近注册用户</h2>
-        <ul className="mt-3 divide-y divide-zinc-100 dark:divide-zinc-800">
+      <Card pad>
+        <h2 className="text-sm font-semibold text-fg">最近注册用户</h2>
+        <ul className="mt-3 divide-y divide-border">
           {recentUsers.map((u) => (
             <li key={u.id} className="flex items-center gap-3 py-3 text-sm">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-sm font-bold text-white">
+              <IconBox className="text-sm font-bold">
                 {u.name.charAt(0).toUpperCase()}
-              </div>
+              </IconBox>
               <div className="min-w-0 flex-1">
-                <p className="flex items-center gap-2 font-medium dark:text-zinc-100">
+                <p className="flex items-center gap-2 font-medium text-fg">
                   {u.name}
-                  {u.role === "admin" && (
-                    <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-semibold text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400">
-                      管理员
-                    </span>
-                  )}
+                  {u.role === "admin" && <Chip tone="primary">管理员</Chip>}
                 </p>
-                <p className="truncate text-xs text-zinc-400 dark:text-zinc-500">
+                <p className="truncate text-xs text-muted-fg">
                   {u.email}
                 </p>
               </div>
-              <span className="shrink-0 text-xs text-zinc-400 dark:text-zinc-500">
+              <span className="shrink-0 text-xs text-muted-fg">
                 {u.createdAt.toLocaleDateString()}
               </span>
             </li>
           ))}
         </ul>
-      </div>
-    </div>
+      </Card>
+    </Stack>
   );
 }
