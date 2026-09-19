@@ -2,85 +2,78 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { LoginForm } from "./login-form";
 import { Logo } from "@/components/logo";
+import { ZxBackdrop } from "@/components/zx-scene";
 
 export const metadata: Metadata = {
   title: "登录 · 知行",
 };
 
-const FEATURES = [
-  { icon: "✨", text: "拖拽上传，自动解析分块" },
-  { icon: "🧠", text: "多角色 Agent 智能问答" },
-  { icon: "🗺️", text: "知识图谱 & 学习卡片" },
+const POINTS = [
+  { icon: "◈", text: "上传文档，自动解析、分块、向量化入库" },
+  { icon: "✦", text: "知识库 6 个角色 + 工作台 13 个 Agent" },
+  { icon: "≋", text: "回答标注引用来源，可一键核对原文" },
 ];
 
 export default function LoginPage() {
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-10">
-      {/* 背景装饰光斑 */}
-      <div className="pointer-events-none absolute -left-32 -top-32 h-96 w-96 rounded-full bg-indigo-500/25 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-violet-500/25 blur-3xl" />
+    <div className="zx-landing">
+      <ZxBackdrop />
 
-      <div className="relative grid w-full max-w-4xl overflow-hidden rounded-3xl border border-zinc-200/60 bg-white/75 shadow-2xl backdrop-blur-xl transition hover:shadow-indigo-500/10 dark:border-zinc-800 dark:bg-zinc-900/75 lg:grid-cols-2">
-        {/* 左侧品牌区（桌面端） */}
-        <div className="hidden flex-col justify-between bg-gradient-to-br from-indigo-600 via-indigo-500 to-violet-600 p-10 text-white lg:flex">
-          <div className="flex items-center gap-2 text-xl font-bold">
-            <Logo className="h-10 w-10" />
-            知行
-          </div>
+      <div className="zx-shell">
+        <div className="zx-auth-wrap">
+          <div className="zx-auth-card">
+            {/* 左：品牌区（桌面端） */}
+            <div className="zx-auth-brand">
+              <Link href="/" className="zx-brand">
+                <Logo className="h-8 w-8" />
+                知行
+              </Link>
 
-          <div>
-            <h1 className="text-3xl font-bold leading-tight">
-              让 AI 读懂
-              <br />
-              你的知识库
-            </h1>
-            <p className="mt-3 text-sm text-indigo-100">
-              上传文档，即刻拥有专属的 AI 问答助手
-            </p>
-            <ul className="mt-6 space-y-2.5">
-              {FEATURES.map((f) => (
-                <li key={f.text} className="flex items-center gap-2 text-sm text-indigo-100">
-                  <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-white/15">
-                    {f.icon}
-                  </span>
-                  {f.text}
-                </li>
-              ))}
-            </ul>
-          </div>
+              <div>
+                <h1 className="zx-auth-title">让 AI 读懂你的知识库</h1>
+                <p className="zx-auth-lead">
+                  上传文档，即刻拥有可溯源引用的 AI 问答助手。
+                </p>
+                <ul className="zx-auth-points">
+                  {POINTS.map((p) => (
+                    <li key={p.text}>
+                      <span
+                        className="zx-feat-icon"
+                        style={{ width: 28, height: 28, fontSize: 14 }}
+                        aria-hidden="true"
+                      >
+                        {p.icon}
+                      </span>
+                      {p.text}
+                    </li>
+                  ))}
+                </ul>
+              </div>
 
-          <p className="text-xs text-indigo-200">
-            © {new Date().getFullYear()} 知行 · AI 智能知识库
-          </p>
-        </div>
-
-        {/* 右侧表单 */}
-        <div className="p-8 sm:p-10">
-          <div className="mb-8 lg:hidden">
-            <div className="mb-3">
-              <Logo className="h-12 w-12" />
+              <p className="zx-auth-foot">© {new Date().getFullYear()} 知行 ZhiXing</p>
             </div>
-            <h1 className="text-2xl font-semibold dark:text-zinc-50">登录 知行</h1>
+
+            {/* 右：表单 */}
+            <div className="zx-auth-form">
+              <span className="zx-auth-logo-m">
+                <Link href="/" className="zx-brand">
+                  <Logo className="h-9 w-9" />
+                  知行
+                </Link>
+              </span>
+
+              <h2 className="zx-auth-head">欢迎回来</h2>
+              <p className="zx-auth-sub">继续使用你的 AI 知识库</p>
+
+              <div className="zx-auth-body">
+                <LoginForm />
+              </div>
+
+              <p className="zx-auth-alt">
+                还没有账号？<Link href="/register">提交申请</Link>
+              </p>
+            </div>
           </div>
-
-          <h2 className="text-xl font-semibold dark:text-zinc-50">欢迎回来 👋</h2>
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            继续使用你的 AI 知识库
-          </p>
-
-          <div className="mt-6">
-            <LoginForm />
-          </div>
-
-          <p className="mt-6 text-center text-sm text-zinc-500 dark:text-zinc-400">
-            还没有账号？{" "}
-            <Link
-              href="/register"
-              className="font-medium text-indigo-600 hover:underline dark:text-indigo-400"
-            >
-              立即注册
-            </Link>
-          </p>
         </div>
       </div>
     </div>

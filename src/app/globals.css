@@ -1327,3 +1327,183 @@ body:has(.zx-landing) {
   backdrop-filter: blur(20px) saturate(118%);
   -webkit-backdrop-filter: blur(20px) saturate(118%);
 }
+
+/* ============================================================
+   登录 / 注册页 · 与落地页同一套场景（A 面）
+   作用域：.zx-auth-*，只在 auth 页面使用
+   ============================================================ */
+.zx-auth-wrap {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 40px 20px;
+}
+.zx-auth-card {
+  display: grid;
+  width: 100%;
+  max-width: 940px;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--theme-border2);
+  background: var(--theme-surface2);
+  backdrop-filter: blur(24px) saturate(125%);
+  -webkit-backdrop-filter: blur(24px) saturate(125%);
+  box-shadow: 0 40px 80px -30px rgba(0, 0, 0, 0.65), 0 1px 0 rgba(255, 255, 255, 0.12) inset;
+}
+@media (min-width: 900px) {
+  .zx-auth-card {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.zx-auth-brand {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 30px;
+  padding: 40px;
+  background: linear-gradient(160deg, rgba(215, 239, 131, 0.1), transparent 55%),
+    var(--theme-surface);
+  border-right: 1px solid var(--theme-border);
+}
+@media (min-width: 900px) {
+  .zx-auth-brand {
+    display: flex;
+  }
+}
+.zx-auth-title {
+  margin: 26px 0 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1.22;
+  letter-spacing: -0.01em;
+  color: #fff;
+  text-wrap: balance;
+}
+.zx-auth-lead {
+  margin: 12px 0 0;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--theme-fg2);
+}
+.zx-auth-points {
+  list-style: none;
+  margin: 24px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+.zx-auth-points li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--theme-fg2);
+}
+.zx-auth-foot {
+  font-family: var(--zx-mono);
+  font-size: 11px;
+  color: var(--theme-muted-fg);
+}
+.zx-auth-form {
+  padding: 34px 26px;
+}
+@media (min-width: 640px) {
+  .zx-auth-form {
+    padding: 44px 40px;
+  }
+}
+.zx-auth-head {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--theme-fg);
+}
+.zx-auth-sub {
+  margin: 6px 0 0;
+  font-size: 13.5px;
+  color: var(--theme-fg2);
+}
+.zx-auth-body {
+  margin-top: 26px;
+}
+.zx-auth-alt {
+  margin: 22px 0 0;
+  text-align: center;
+  font-size: 13.5px;
+  color: var(--theme-fg2);
+}
+.zx-auth-alt a {
+  color: var(--theme-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+.zx-auth-alt a:hover {
+  text-decoration: underline;
+}
+.zx-auth-logo-m {
+  display: block;
+  margin-bottom: 22px;
+}
+@media (min-width: 900px) {
+  .zx-auth-logo-m {
+    display: none;
+  }
+}
+
+/* ---- 表单控件（深色玻璃场景）---- */
+.zx-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--theme-fg2);
+}
+.zx-field {
+  width: 100%;
+  border-radius: 9px;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--theme-fg);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--theme-border2);
+  outline: none;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease;
+}
+.zx-field::placeholder {
+  color: var(--theme-muted-fg);
+}
+.zx-field:focus {
+  border-color: var(--theme-primary);
+  box-shadow: 0 0 0 3px var(--theme-ring);
+  background: rgba(255, 255, 255, 0.06);
+}
+.zx-field:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.zx-err {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #ff9d92;
+}
+.zx-alert {
+  border-radius: 9px;
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.6;
+  background: rgba(232, 85, 85, 0.12);
+  border: 1px solid rgba(232, 85, 85, 0.35);
+  color: #ffb4a8;
+}
+.zx-note {
+  border-radius: 9px;
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.6;
+  background: color-mix(in srgb, var(--theme-primary) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--theme-primary) 35%, transparent);
+  color: var(--theme-primary);
+}
