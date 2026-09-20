@@ -4410,15 +4410,11 @@ html {
    所以卡片数量再多也只有一个监听器。
    ============================================================================ */
 
-.card,
-.panel,
-.glass {
+.card {
   position: relative;
 }
 
-.card::before,
-.panel::before,
-.glass::before {
+.card::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -4433,16 +4429,12 @@ html {
   );
 }
 
-.card:hover::before,
-.panel:hover::before,
-.glass:hover::before {
+.card:hover::before {
   opacity: 1;
 }
 
 @media (prefers-reduced-motion: reduce), (hover: none) {
-  .card::before,
-  .panel::before,
-  .glass::before {
+  .card::before {
     display: none;
   }
 }

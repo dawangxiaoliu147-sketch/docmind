@@ -105,7 +105,7 @@ export function RevealObserver() {
 
     const onMove = (e: PointerEvent) => {
       const target = e.target as HTMLElement | null;
-      const card = target?.closest?.(".card, .panel, .glass") as HTMLElement | null;
+      const card = target?.closest?.(".card") as HTMLElement | null;
       if (!card) return;
       pending = { el: card, x: e.clientX, y: e.clientY };
       if (raf) return;
