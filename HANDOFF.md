@@ -36,7 +36,12 @@
 - 技术栈：Next.js 16.3.3（Turbopack）+ React 19 + Tailwind v4 + Prisma 7 + pgvector
 - 目录：`D:\harness\docmind`
 - 远端：`https://github.com/dawangxiaoliu147-sketch/docmind.git`，分支 `main`
-- 部署：**自己的服务器 + Docker**（`http://39.105.158.60:3000`），push 后平台自动构建镜像并发布（约 4 分钟）
+- 部署：**自己的服务器 + Docker**（`http://39.105.158.60:3000`）
+- ⚠️ **push 不会自动发布**【已核实 2026-09-20】：`.github/workflows/deploy.yml` **只做「构建镜像 + 推送到 GHCR」**，
+  没有任何部署步骤（`ci.yml` 同理）。**Actions 成功 ≠ 线上更新。**
+  真正的发布要在**服务器上**执行 `git pull && docker compose up -d --build`（`scripts/deploy-ubuntu.sh:39` 干的就是这个）。
+  **这条解释了历史上「推了但界面没变」** —— 不是浏览器缓存，是根本没发布；发布后怎么确认见 §6。
+  （我先前的记载"push 后平台自动构建镜像并发布（约 4 分钟）"是**错的**，2026-09-20 用 GitHub API 查 workflow 内容与运行结论后更正。）
 
 **协作约定（很重要）**：一次改一处 → 改完**实测**（截图/量数据）→ 不留未验证的东西。这个项目的历史上，没实测的改动几乎都翻过车。
 
@@ -280,6 +285,23 @@ node --import ./.dsh-register.mjs ./.dsh-check.mjs
 
 关键：脚本要从**源码里提取**SQL / 表达式再求值，而不是另抄一份 —— 否则测的是副本不是真代码（坑 26）。
 
+### 发布与"线上到底是哪个构建"
+
+```bash
+# 1) 发布（在服务器上执行，不是在本地）—— 这一步没有任何自动化代劳
+ssh <user>@39.105.158.60
+cd <项目目录> && git pull && docker compose up -d --build && docker compose ps
+
+# 2) 确认新构建真的上线了（两个探针都要过；旧构建 = 404 / false）
+curl.exe -s -o NUL -w "%{http_code}" http://39.105.158.60:3000/api/kb/probe/health   # 新构建 → 401
+node -e "fetch('http://39.105.158.60:3000/ui').then(r=>r.text()).then(t=>console.log('含分享卡片:',t.includes('分享卡片')))"
+
+# 3) 查 GHCR 镜像是否构建成功（Actions 成功只代表镜像有了，不代表线上更新）
+#    https://api.github.com/repos/dawangxiaoliu147-sketch/docmind/actions/runs?per_page=5
+```
+
+`/api/kb/<任意id>/health` 未登录返回 **401** 是新构建的特征（鉴权在查库之前）；旧构建是 **404**。
+
 ---
 
 ## 7. 一句话总结当前的坑
@@ -305,3 +327,4 @@ node --import ./.dsh-register.mjs ./.dsh-check.mjs
 - 2026-09-20 环境澄清（坑 30）：`localhost:3000` 是 Docker 旧镜像、dev server 在 `localhost:3001`；本地库只有 2 个用户，唯一知识库属于 gmail 账号。
 - 2026-09-20 **已推送 `962a033`**（`cf9a3d4..962a033`）：三个特性上线。沙箱里 `git push` 报 `SEC_E_NO_CREDENTIALS`，提权后成功（坑 31）。
 - 2026-09-20 **本文件这两条改动尚未推送** —— 纯 markdown 单独推会多触发一次容器重建，按本文件自己的建议留给下一次代码推送。（`*.md` 在 `.dockerignore` 里，不影响镜像。）
+- 2026-09-20 ⚠️ **更正一条长期错误记载**：`push` 并不会自动发布。查 GitHub API 确认 `deploy.yml` 只构建镜像推 GHCR（run #53 success），服务器端没有任何自动拉取。**发布必须手动在服务器 `git pull && docker compose up -d --build`**。这条解释了「推了但界面没变」的历史困扰。
