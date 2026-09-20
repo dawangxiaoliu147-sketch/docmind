@@ -5,6 +5,7 @@ import { SceneSwitcher } from "@/components/scene-switcher";
 import { NavMenu, type NavGroup } from "@/components/nav-menu";
 import { AtomicNav, type AtomicNavItem } from "@/components/atomic-nav";
 import { CommandPalette } from "@/components/command-palette";
+import { NavShortcuts } from "@/components/nav-shortcuts";
 import { Logo } from "@/components/logo";
 
 export async function Navbar() {
@@ -64,6 +65,8 @@ export async function Navbar() {
 
         {/* 居中的图标导航：鼠标悬停自动展开文字，不用点 */}
         <AtomicNav items={primary} />
+        {/* Alt+1..9 跳到上面这些入口：列表就是这里这份 primary，不在别处再抄一遍 */}
+        <NavShortcuts items={primary} />
 
         <div className="flex shrink-0 items-center gap-2.5">
           <CommandPalette />

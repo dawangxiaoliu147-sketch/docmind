@@ -8,6 +8,7 @@ import { KbCover } from "@/components/kb-cover";
 import { CoverUpload } from "@/components/cover-upload";
 import { KbEditForm } from "@/components/kb-edit-form";
 import { KbSummary } from "@/components/kb-summary";
+import { KbHealth } from "@/components/kb-health";
 import { KbGraph } from "@/components/kb-graph";
 import { ShareLink } from "@/components/share-link";
 import { AiTools } from "@/components/ai-tools";
@@ -83,6 +84,16 @@ export default async function KbPage({
           </>
         }
       />
+
+      {/* 知识库体检：只读扫描全部文档与片段，按需触发（和摘要/图谱同一套折叠区写法） */}
+      <details className="card overflow-hidden">
+        <summary className="cursor-pointer select-none px-5 py-3 text-sm font-medium text-fg2 transition hover:bg-muted">
+          ⊕ 知识库体检（文档与片段健康度）
+        </summary>
+        <div className="border-t border-border p-5">
+          <KbHealth kbId={kb.id} />
+        </div>
+      </details>
 
       {/* AI 摘要 */}
       <details className="card overflow-hidden">

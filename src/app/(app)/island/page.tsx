@@ -102,7 +102,7 @@ export default async function IslandPage() {
 
       {/* 不套面板：岛直接浮在页面场景背景上（3D 的 Canvas 走 alpha 通道，没有自己的底板） */}
       <div data-tour="island-canvas">
-        <IslandView stats={stats} documents={documents} />
+        <IslandView stats={stats} documents={documents} userName={user.name} />
       </div>
 
       <MetricGrid>

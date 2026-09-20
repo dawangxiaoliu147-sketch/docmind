@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useShortcut } from "@/components/shortcuts";
+import { PALETTE_TOGGLE } from "@/lib/shortcuts";
 
 const LINKS = [
   { href: "/dashboard", label: "控制台", icon: "◈" },
@@ -16,17 +18,19 @@ export function CommandPalette() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
 
+  // Ctrl+K 改由快捷键中枢统一派发：键位和说明都定义在 lib/shortcuts.ts，
+  // `?` 面板会自动把它列出来，不会再出现「说明和实现各写一份」的漂移。
+  useShortcut(PALETTE_TOGGLE, () => setOpen((v) => !v));
+
+  // Esc 仍然归弹层自己管：要关的是「当前打开的这一层」，中枢不该替它决定关谁
   useEffect(() => {
+    if (!open) return;
     function onKey(e: KeyboardEvent) {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        setOpen((v) => !v);
-      }
       if (e.key === "Escape") setOpen(false);
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [open]);
 
   const filtered = LINKS.filter((l) => l.label.includes(query));
 

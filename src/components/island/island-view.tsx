@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import { KnowledgeIsland, type IslandDoc } from "./knowledge-island";
+import { IslandShareCard } from "./island-share-card";
 import { buildIsland, type IslandStats } from "./island-model";
 import type { IslandSkin, IslandWeather } from "./knowledge-island-3d";
 import { DEFAULT_SCENE } from "@/config/theme-defaults";
@@ -89,7 +90,16 @@ function useGlobalScene(): GlobalScene {
   return scene;
 }
 
-export function IslandView({ stats, documents }: { stats: IslandStats; documents: IslandDoc[] }) {
+export function IslandView({
+  stats,
+  documents,
+  userName,
+}: {
+  stats: IslandStats;
+  documents: IslandDoc[];
+  /** 分享卡片左上角的标题用（不传就写「我的知行岛」） */
+  userName?: string;
+}) {
   const [rotate, setRotate] = useState(0);
   const [mode, setMode] = useState<"2d" | "3d">("2d");
   const [skin, setSkin] = useState<IslandSkin>("auto");
@@ -167,6 +177,9 @@ export function IslandView({ stats, documents }: { stats: IslandStats; documents
             3D 体素
           </button>
         </div>
+
+        {/* 分享卡片：把当前这座岛在本地画成一张 PNG（配色跟随场景） */}
+        <IslandShareCard stats={stats} userName={userName} />
       </div>
 
       {mode === "2d" ? (

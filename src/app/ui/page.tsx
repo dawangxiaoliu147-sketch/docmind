@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { SceneSwitcher } from "@/components/scene-switcher";
+import { ShortcutProvider } from "@/components/shortcuts";
+import { IslandShareCard } from "@/components/island/island-share-card";
 import {
   Alert,
   Badge,
@@ -143,6 +145,12 @@ function Block({ title, hint, children }: { title: string; hint?: string; childr
 export default function UiSystemPage() {
   return (
     <PageShell grain scenic>
+      {/*
+        这一页也挂一份快捷键中枢：`/ui` 是公开的活样本页，没有账号也能按 `?` 验证面板
+        （见 HANDOFF 坑 23）。这里不注册任何绑定，所以只提供 `?` 本身 —— 面板会自动
+        只列出当前可用的键。
+      */}
+      <ShortcutProvider>{null}</ShortcutProvider>
       <PageBody size="wide">
         <PageHeader
           eyebrow="design system"
@@ -656,6 +664,23 @@ export default function UiSystemPage() {
                 这份活样本本身就在 <span className="num text-fg2">/ui</span>。
               </p>
             </Panel>
+          </Block>
+          {/* ── 分享卡片 ─────────────────────────────────────────── */}
+          <Block
+            title="15 · 知行岛分享卡片"
+            hint="同一份 island-model，在 canvas 上重画成一张 PNG（整张图不出浏览器）"
+          >
+            <IslandShareCard
+              stats={{ kb: 3, doc: 12, chunk: 420, conv: 8, resume: 2, job: 5, activeDays: 5 }}
+              userName="示例用户"
+            />
+            <p className="mt-3 text-[12px] leading-relaxed text-muted-fg">
+              点「⧉ 分享卡片」会按上面这组样机数据画一张 1200×675 的图。这一页是公开的，
+              所以**不用登录也能验证**它 —— 卡片的岛来自{" "}
+              <span className="num text-fg2">buildIsland()</span>，和岛页上那座岛是同一份确定性模型；
+              配色读当前的 <span className="num text-fg2">--theme-*</span> 与{" "}
+              <span className="num text-fg2">data-scene</span>，所以换场景换主色它跟着变。
+            </p>
           </Block>
         </Stack>
       </PageBody>
