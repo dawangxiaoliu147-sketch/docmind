@@ -79,7 +79,7 @@ function useGlobalScene(): GlobalScene {
   useEffect(() => {
     const read = () => {
       const v = document.documentElement.dataset.scene;
-      setScene(v === "snow" || v === "cloud" ? v : DEFAULT_SCENE);
+      setScene(v === "rain" || v === "snow" || v === "cloud" ? v : DEFAULT_SCENE);
     };
     read();
     const mo = new MutationObserver(read);
