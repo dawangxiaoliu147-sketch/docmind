@@ -232,7 +232,9 @@ hypot 当单轴范围用               → 粒子场比岛大一圈
 ### JS / Canvas（本轮新增）
 28. **JS 模板字面量里的 `\s` 会被吃掉**。写 `regexp_replace(…, '\s+', …)` 到 Prisma 的 `` $queryRaw`…` `` 模板里时，`\s` 不是合法转义 → **反斜杠被丢掉**，真正发给 Postgres 的是 `'s+'`（把连续的字母 s 换成空格）。类型检查、lint 全都不报，重复检测**静默算错**。正确写法是 `'\\s+'`（源码两个反斜杠 → 发出的 SQL 一个）。正则字面量 `/…\s…/` 不受影响。
 29. **canvas 的 `fillStyle` 不认 `var()` / `color-mix()`**。传进去会被**静默忽略**并保持上一个颜色（整块画成同色，且不报错）。要画到 canvas 的颜色必须自己把 CSS 变量解析成实色再混合；解析不出来就退回兜底色，**绝不把原样字符串塞进 fillStyle**。
+### 沙箱 / 环境（本轮新增）
 30. **本地有两个 docmind，别测错**。`localhost:3000` 是 Docker 里跑的**旧镜像**（`/api/health` 返回 `service:"docmind"`、`/ui` 404），dev server 在 `localhost:3001`（返回 `"知行"`）。判断依据就是 **`/api/health` 的 `service` 字段**。3000 端口被 Docker 长期占着，所以 `pnpm dev` 会自动选 3001 —— 看地址栏时先确认端口。
+31. **沙箱里 `git push` / `next build` 都要一次性提权**。`git push` 会报 `schannel: AcquireCredentialsHandle failed: SEC_E_NO_CREDENTIALS`（git 走 Windows 凭证库，被沙箱拒绝，和 Docker 命名管道、Chrome Mojo 同一类）；`next build` 报 `spawn EPERM`（TypeScript 阶段要 spawn 子进程）。**两者都是 `danger-full-access` 提权重试同一条命令即可**（已验证：提权后构建 37/37 页通过，推送 `cf9a3d4..962a033` 成功）。别把它们误判成代码问题。
 
 ---
 
@@ -301,3 +303,5 @@ node --import ./.dsh-register.mjs ./.dsh-check.mjs
   - 顺手修掉两处自己写出来的静默 bug：SQL 模板里的 `\s` 被 JS 吃掉（坑 28）、CSS 函数可能漏进 canvas `fillStyle`（坑 29）。
   - 待办 2（纯函数测试）的**手法已验证可行**：见 §6，但脚本是一次性的、跑完即删，仓库里仍**没有**常驻测试。
 - 2026-09-20 环境澄清（坑 30）：`localhost:3000` 是 Docker 旧镜像、dev server 在 `localhost:3001`；本地库只有 2 个用户，唯一知识库属于 gmail 账号。
+- 2026-09-20 **已推送 `962a033`**（`cf9a3d4..962a033`）：三个特性上线。沙箱里 `git push` 报 `SEC_E_NO_CREDENTIALS`，提权后成功（坑 31）。
+- 2026-09-20 **本文件这两条改动尚未推送** —— 纯 markdown 单独推会多触发一次容器重建，按本文件自己的建议留给下一次代码推送。（`*.md` 在 `.dockerignore` 里，不影响镜像。）
