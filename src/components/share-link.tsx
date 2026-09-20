@@ -3,6 +3,30 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui";
 
+/**
+ * 复制文本。
+ *
+ * `navigator.clipboard` **只在安全上下文**（HTTPS / localhost）可用 ——
+ * 用 IP + 明文 HTTP 部署时它是 undefined，复制按钮点了没有任何反应。
+ * 这里优先用原生实现，拿不到就退回「临时 textarea + execCommand」这套老办法。
+ */
+async function copyText(text: string): Promise<void> {
+  if (navigator.clipboard && window.isSecureContext) {
+    return navigator.clipboard.writeText(text);
+  }
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.position = "fixed";
+  ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand("copy");
+  } finally {
+    document.body.removeChild(ta);
+  }
+}
+
 export function ShareLink({ path }: { path: string }) {
   const [copied, setCopied] = useState(false);
   const [fullUrl, setFullUrl] = useState(path);
@@ -16,7 +40,7 @@ export function ShareLink({ path }: { path: string }) {
 
   function copy() {
     if (typeof navigator === "undefined") return;
-    navigator.clipboard.writeText(fullUrl).then(() => {
+    copyText(fullUrl).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });

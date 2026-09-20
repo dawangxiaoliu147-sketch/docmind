@@ -9,6 +9,23 @@ import { Button, Select, Tooltip } from "@/components/ui";
 
 type ConvSummary = { id: string; title: string; updatedAt: Date | string };
 
+/**
+ * 生成一个 UUID v4 形态的字符串。
+ *
+ * 不能用 `crypto.randomUUID()`：它**只在安全上下文**（HTTPS / localhost）可用，
+ * 用 IP + 明文 HTTP 部署时它是 undefined，点击「新建对话」会直接抛异常、按钮没反应。
+ * 这里优先用原生实现，拿不到再退回 Math.random 版本 —— 这个值只是 URL 上的占位标记，
+ * 真正的会话 id 由服务端 Prisma 生成，所以不需要密码学强度。
+ */
+function newConvId(): string {
+  const c = globalThis.crypto;
+  if (c && typeof c.randomUUID === "function") return c.randomUUID();
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (ch) => {
+    const r = (Math.random() * 16) | 0;
+    return (ch === "x" ? r : (r & 0x3) | 0x8).toString(16);
+  });
+}
+
 export function ChatShell({
   kbId,
   conversations,
@@ -33,7 +50,7 @@ export function ChatShell({
   ];
 
   function newChat() {
-    router.push(`?conv=${crypto.randomUUID()}&agent=${agentMode}`);
+    router.push(`?conv=${newConvId()}&agent=${agentMode}`);
   }
 
   function select(id: string) {
