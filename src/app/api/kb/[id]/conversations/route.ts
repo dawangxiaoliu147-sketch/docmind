@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/db";
 import { verifySession } from "@/lib/dal";
-import { revalidatePath } from "next/cache";
 
 // 列出某知识库下的对话列表
 export async function GET(
@@ -53,9 +52,6 @@ export async function POST(
   const conversation = await prisma.conversation.create({
     data: { kbId: id, userId: session.userId, title },
   });
-  // API 路由不会自动失效页面缓存，小岛与仪表盘要显式声明
-  revalidatePath("/dashboard");
-  revalidatePath("/island");
 
   return Response.json({ conversation });
 }
