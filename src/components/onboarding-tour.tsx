@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState, type CSSProperties } from "react";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Button } from "@/components/ui";
+import { Button, buttonClass } from "@/components/ui";
 
 /**
  * 引导系统：一条引擎 + 一份引导注册表。`main` 主线引导首次进入自动播一次，跨页把主要功能走一遍；
@@ -28,6 +29,13 @@ export type TourKey =
   | "achievements"
   | "island"
   | "settings";
+
+/**
+ * 引导中心里「去这个功能」的跳转目标：tour → 真实页面的 href。
+ * 详情页带 id（每份文档 / 每个职位都不一样），客户端算不出来，
+ * 只能由设置页在服务端用用户自己的真实数据解析后传进来。
+ */
+export type TourLinks = Partial<Record<TourKey, string>>;
 
 type Step = {
   /** 要框出来的元素选择器；不填则整屏暗场 + 居中卡片 */
@@ -197,7 +205,7 @@ const TOURS: Record<TourKey, { label: string; desc: string; steps: Step[] }> = {
       {
         target: '[data-tour="tour-hub"]',
         title: "功能引导都在这儿",
-        body: "想再看某个功能的引导，回这一页点对应按钮单独播。",
+        body: "想再看某个功能的引导，回这一页展开「功能引导」，点对应按钮单独播。",
       },
     ],
   },
@@ -295,9 +303,9 @@ const TOURS: Record<TourKey, { label: string; desc: string; steps: Step[] }> = {
     desc: "键盘走完全站，? 打开面板",
     steps: [
       {
-        target: "header.nav-bar",
+        target: '[data-tour="shortcut-help"]',
         title: "键盘也能走完全站",
-        body: "Alt+1~9 直接跳到上面这些主入口；按 ? 随时打开快捷键面板，Esc 关闭。在输入框里打字时不会抢你的键。",
+        body: "Alt+1~9 直接跳到主入口；点这个 ?（或随时按 ?）打开快捷键面板，Esc 关闭。在输入框里打字时不会抢你的键。",
       },
     ],
   },
@@ -622,51 +630,79 @@ export function TourButton({
   );
 }
 
-/** 引导中心：把每条引导列出来，各一个按钮，需要就点 */
-export function TourHub() {
+/**
+ * 引导中心：把每条引导列出来，各一个按钮，需要就点。
+ * @param links 详情页引导的跳转目标（tour → href），由设置页在服务端用真实 id 解析后传入
+ */
+export function TourHub({ links = {} }: { links?: TourLinks }) {
   // 从注册表派生，不再手抄第二份列表 —— 手抄的那份漏一条，新引导就不会出现在引导中心。
   const keys = Object.keys(TOURS) as TourKey[];
-  // 有 where 的引导锚在带 id 的详情页上（每份文档 / 每个职位都不一样），从这儿够不着。
-  // 与其给一个点了只弹空卡片的按钮，不如直接说清去哪儿看。
+  // 有 where 的引导锚在带 id 的详情页上（每份文档 / 每个职位都不一样），在设置页没法就地播。
+  // 所以这里不给「开始引导」按钮，改给一个跳到那个功能真实页面的链接。
   const here = keys.filter((k) => !TOUR_HOME[k]?.where);
   const elsewhere = keys.filter((k) => TOUR_HOME[k]?.where);
 
   return (
-    <div className="flex flex-col gap-2">
-      {here.map((k) => (
-        <div
-          key={k}
-          className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-surface px-4 py-3"
-        >
-          <span className="text-[13.5px] font-semibold text-fg">{TOURS[k].label}</span>
-          <span className="text-[12px] text-muted-fg">{TOURS[k].steps.length} 步</span>
-          <span className="min-w-0 flex-1 truncate text-[12.5px] text-muted-fg">{TOURS[k].desc}</span>
-          <TourButton tour={k} label="开始引导" />
-        </div>
-      ))}
+    // 整块折叠：十几条引导铺开会把设置页撑得很长，默认收起，点标题展开。
+    // 用原生 <details> —— 跟知识库详情页那几个折叠区同一套写法，不需要额外状态。
+    <details className="tour-hub">
+      <summary className="ui-section cursor-pointer select-none">
+        <span className="ui-section-title">功能引导</span>
+        <span className="flex items-center gap-2">
+          <span className="ui-section-extra">{keys.length} 条 · 每个功能一条，需要就点</span>
+          <span className="tour-hub-chev" aria-hidden="true">
+            ▾
+          </span>
+        </span>
+      </summary>
 
-      {elsewhere.length > 0 && (
-        <div className="mt-1 rounded-lg border border-dashed border-border px-4 py-3">
-          <p className="text-[13px] font-semibold text-fg2">这几条要去对应的功能页里播</p>
-          <p className="mt-1 text-[12px] leading-relaxed text-muted-fg">
-            它们讲的是某一份文档、某一个职位或某一个助手，从设置页够不着 ——
-            进到那个页面后，右上角的「本页引导」就是它们。
-          </p>
-          <ul className="mt-2 space-y-1">
-            {elsewhere.map((k) => (
-              <li key={k} className="text-[12px] leading-relaxed">
-                <span className="font-semibold text-fg2">{TOURS[k].label}</span>
-                <span className="text-muted-fg"> —— {TOUR_HOME[k]?.where}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      <div className="flex flex-col gap-2">
+        {here.map((k) => (
+          <div
+            key={k}
+            className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-surface px-4 py-3"
+          >
+            <span className="text-[13.5px] font-semibold text-fg">{TOURS[k].label}</span>
+            <span className="text-[12px] text-muted-fg">{TOURS[k].steps.length} 步</span>
+            <span className="min-w-0 flex-1 truncate text-[12.5px] text-muted-fg">{TOURS[k].desc}</span>
+            <TourButton tour={k} label="开始引导" />
+          </div>
+        ))}
 
-      <p className="mt-1 text-[12px] leading-relaxed text-muted-fg">
-        引导只做高亮说明，不会改动任何数据；「跳过」和走完都会记下来，不会再自动弹。
-        键盘也能用：← → 翻页、Esc 关闭。
-      </p>
-    </div>
+        {elsewhere.length > 0 && (
+          <div className="mt-1 rounded-lg border border-dashed border-border px-4 py-3">
+            <p className="text-[13px] font-semibold text-fg2">这几条先跳到对应页面再播</p>
+            <p className="mt-1 text-[12px] leading-relaxed text-muted-fg">
+              它们锚在某一份文档、某一个职位或某一个助手上，设置页里没有这些内容 ——
+              点右边跳过去，那个页面右上角的「本页引导」就是它。
+            </p>
+            <div className="mt-3 flex flex-col gap-2">
+              {elsewhere.map((k) => (
+                <div
+                  key={k}
+                  className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-surface px-4 py-3"
+                >
+                  <span className="text-[13.5px] font-semibold text-fg">{TOURS[k].label}</span>
+                  <span className="text-[12px] text-muted-fg">{TOURS[k].steps.length} 步</span>
+                  <span className="min-w-0 flex-1 truncate text-[12.5px] text-muted-fg">
+                    {TOUR_HOME[k]?.where}
+                  </span>
+                  {links[k] ? (
+                    <Link href={links[k]} className={buttonClass({ variant: "outline", size: "sm" })}>
+                      去这个功能 →
+                    </Link>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <p className="mt-1 text-[12px] leading-relaxed text-muted-fg">
+          引导只做高亮说明，不会改动任何数据；「跳过」和走完都会记下来，不会再自动弹。
+          键盘也能用：← → 翻页、Esc 关闭。
+        </p>
+      </div>
+    </details>
   );
 }

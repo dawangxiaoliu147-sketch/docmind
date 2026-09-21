@@ -3830,6 +3830,21 @@ html[data-scenic="off"] .scenic-veil {
   letter-spacing: 0.06em;
   color: var(--theme-muted-foreground);
 }
+/* 引导中心：整块折叠。summary 去掉浏览器默认的三角标记，用自带的 ▾ 表示开合 */
+.tour-hub > summary {
+  list-style: none;
+}
+.tour-hub > summary::-webkit-details-marker {
+  display: none;
+}
+.tour-hub-chev {
+  color: var(--text-heading-muted);
+  font-size: 0.7rem;
+  line-height: 1;
+}
+.tour-hub[open] .tour-hub-chev {
+  transform: rotate(180deg);
+}
 .tour-foot {
   display: flex;
   align-items: center;

@@ -5,6 +5,7 @@ import { SceneSwitcher } from "@/components/scene-switcher";
 import { NavMenu, type NavGroup } from "@/components/nav-menu";
 import { AtomicNav, type AtomicNavItem } from "@/components/atomic-nav";
 import { CommandPalette } from "@/components/command-palette";
+import { ShortcutHelpButton } from "@/components/shortcut-help-button";
 import { NavShortcuts } from "@/components/nav-shortcuts";
 import { Logo } from "@/components/logo";
 
@@ -69,6 +70,7 @@ export async function Navbar() {
         <NavShortcuts items={primary} />
 
         <div className="flex shrink-0 items-center gap-2.5">
+          <ShortcutHelpButton />
           <CommandPalette />
           <SceneSwitcher />
           <Link href="/settings" className="flex items-center transition hover:opacity-80" aria-label="个人设置">

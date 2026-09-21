@@ -117,6 +117,15 @@ export function ShortcutProvider({ children }: { children: ReactNode }) {
 }
 
 /**
+ * 取「打开 / 关闭快捷键面板」这个动作：给导航栏那个 ? 按钮用。
+ * 没有 Provider 时返回 undefined —— 调用方据此决定要不要渲染入口，
+ * 免得留一个点了没反应的键（同 HANDOFF 里「复制图片」那条的处理）。
+ */
+export function useShortcutHelp(): (() => void) | undefined {
+  return useContext(Ctx)?.toggleHelp;
+}
+
+/**
  * 绑定一条快捷键。组件卸载后自动失效。
  *
  * 没有 Provider 时退化成「自己挂一个监听」：这样即便某个页面忘了包 provider，

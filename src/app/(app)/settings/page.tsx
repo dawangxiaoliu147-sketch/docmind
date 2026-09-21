@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { requireUser } from "@/lib/dal";
+import { prisma } from "@/lib/db";
+import { WORK_AGENTS } from "@/lib/work-agents";
 import { Avatar } from "@/components/avatar";
 import { AvatarUpload } from "@/components/avatar-upload";
 import { AccentPicker } from "@/components/accent-picker";
 import { BackgroundPicker } from "@/components/background-picker";
 import { SceneBackdropPicker } from "@/components/scene-backdrop-picker";
-import { TourButton, TourHub } from "@/components/onboarding-tour";
+import { TourButton, TourHub, type TourLinks } from "@/components/onboarding-tour";
 import { KV, KVRow, PageHeader, Panel, Section, Stack } from "@/components/ui";
 
 export const metadata: Metadata = {
@@ -14,6 +16,34 @@ export const metadata: Metadata = {
 
 export default async function SettingsPage() {
   const user = await requireUser();
+
+  // 引导中心的「去这个功能」要跳到真实页面，而详情页路由都带 id ——
+  // 拿用户自己的第一条内容当目标：跳过去就是能操作的真实界面，不是一句文字说明。
+  const [kb, job] = await Promise.all([
+    prisma.knowledgeBase.findFirst({
+      where: { userId: user.id },
+      orderBy: { updatedAt: "desc" },
+      select: {
+        id: true,
+        documents: { orderBy: { createdAt: "desc" }, take: 1, select: { id: true } },
+      },
+    }),
+    // 这里直接用 prisma 而不是 getAllJobs()：那个会顺手把示例职位灌进库，
+    // 不该因为「打开设置页」这种只读行为触发写入。
+    prisma.job.findFirst({ orderBy: { createdAt: "asc" }, select: { id: true } }),
+  ]);
+
+  // 没有内容时退到索引页 —— 按钮始终可用，不会留下点了没反应的东西
+  const kbId = kb?.id;
+  const docId = kb?.documents[0]?.id;
+  const tourLinks: TourLinks = {
+    kbdetail: kbId ? `/kb/${kbId}` : "/dashboard",
+    kbchat: kbId ? `/kb/${kbId}/chat` : "/dashboard",
+    kbquiz: kbId ? `/kb/${kbId}/quiz` : "/dashboard",
+    kbdoc: kbId && docId ? `/kb/${kbId}/docs/${docId}` : "/dashboard",
+    jobdetail: job ? `/jobs/${job.id}` : "/jobs",
+    workagent: `/workbench/${WORK_AGENTS[0]?.id ?? "resume"}`,
+  };
 
   return (
     <Stack>
@@ -24,10 +54,9 @@ export default async function SettingsPage() {
         actions={<TourButton tour="settings" />}
       />
 
+      {/* 引导中心：整块可折叠（折叠头由 TourHub 自己渲染，默认收起） */}
       <Panel className="p-6" data-tour="tour-hub">
-        <Section title="功能引导" extra="每个功能一条，需要就点">
-          <TourHub />
-        </Section>
+        <TourHub links={tourLinks} />
       </Panel>
 
       <Panel className="p-6">
