@@ -84,7 +84,7 @@ export function ChatShell({
 
   return (
     <div className="flex flex-1 overflow-hidden">
-      <aside className="flex w-60 shrink-0 flex-col border-r border-border pr-3">
+      <aside className="flex w-60 shrink-0 flex-col border-r border-border pr-3" data-tour="chat-history">
         <Button onClick={newChat} className="w-full">
           ＋ 新建对话
         </Button>

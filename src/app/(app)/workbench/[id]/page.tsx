@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/dal";
 import { getWorkAgent } from "@/lib/work-agents";
 import { WorkChatPanel } from "@/components/work-chat-panel";
+import { TourButton } from "@/components/onboarding-tour";
 
 export default async function WorkbenchToolPage({
   params,
@@ -24,6 +25,7 @@ export default async function WorkbenchToolPage({
         >
           ← 返回工作台
         </Link>
+        <TourButton tour="workagent" className="ml-auto" />
       </div>
       <WorkChatPanel
         agentId={agent.id}

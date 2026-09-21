@@ -79,7 +79,7 @@ export function WorkChatPanel({
 
   return (
     <Panel className="flex h-[calc(100vh-9rem)] flex-col overflow-hidden">
-      <div className="flex items-center gap-2 border-b border-border px-5 py-3">
+      <div className="flex items-center gap-2 border-b border-border px-5 py-3" data-tour="workagent-head">
         <span className="text-xl">{agentIcon}</span>
         <span className="font-semibold text-fg">{agentName}</span>
       </div>
@@ -168,6 +168,7 @@ export function WorkChatPanel({
       <form
         onSubmit={onSubmit}
         className="flex items-center gap-2 border-t border-border p-4"
+        data-tour="workagent-input"
       >
         <Tooltip label="上传文件">
           <label className="btn btn-icon btn-outline shrink-0 cursor-pointer text-lg">

@@ -4,6 +4,7 @@ import { requireUser } from "@/lib/dal";
 import { getJob } from "@/lib/job-store";
 import { ResumeMatch } from "@/components/resume-match";
 import { JobInterview } from "@/components/job-interview";
+import { TourButton } from "@/components/onboarding-tour";
 import { buttonClass, Chip, PageHeader, Panel, Stack } from "@/components/ui";
 
 export default async function JobDetailPage({
@@ -29,9 +30,12 @@ export default async function JobDetailPage({
           </>
         }
         actions={
-          <Link href="/jobs" className={buttonClass({ variant: "ghost", size: "sm" })}>
-            ← 返回职位库
-          </Link>
+          <>
+            <TourButton tour="jobdetail" />
+            <Link href="/jobs" className={buttonClass({ variant: "ghost", size: "sm" })}>
+              ← 返回职位库
+            </Link>
+          </>
         }
       />
 

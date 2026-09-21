@@ -12,6 +12,7 @@ import { KbHealth } from "@/components/kb-health";
 import { KbGraph } from "@/components/kb-graph";
 import { ShareLink } from "@/components/share-link";
 import { AiTools } from "@/components/ai-tools";
+import { TourButton } from "@/components/onboarding-tour";
 import {
   Button,
   Chip,
@@ -68,6 +69,7 @@ export default async function KbPage({
         subtitle={kb.description ?? undefined}
         actions={
           <>
+            <TourButton tour="kbdetail" />
             <CoverUpload kbId={kb.id} hasCover={!!kb.coverImage} />
             <Link
               href={`/kb/${kb.id}/quiz`}
@@ -78,6 +80,7 @@ export default async function KbPage({
             <Link
               href={`/kb/${kb.id}/chat`}
               className={buttonClass({ pill: true })}
+              data-tour="kb-ask"
             >
               开始提问
             </Link>
@@ -86,7 +89,7 @@ export default async function KbPage({
       />
 
       {/* 知识库体检：只读扫描全部文档与片段，按需触发（和摘要/图谱同一套折叠区写法） */}
-      <details className="card overflow-hidden">
+      <details className="card overflow-hidden" data-tour="kb-health">
         <summary className="cursor-pointer select-none px-5 py-3 text-sm font-medium text-fg2 transition hover:bg-muted">
           ⊕ 知识库体检（文档与片段健康度）
         </summary>
@@ -165,7 +168,7 @@ export default async function KbPage({
 
       <UploadForm kbId={kb.id} />
 
-      <Section title="文档" extra={`${kb.documents.length} 个`}>
+      <Section title="文档" extra={`${kb.documents.length} 个`} data-tour="kb-docs">
         {kb.documents.length === 0 ? (
           <Empty
             icon="≣"

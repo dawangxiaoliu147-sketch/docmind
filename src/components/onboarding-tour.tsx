@@ -11,7 +11,23 @@ import { Button } from "@/components/ui";
  * React Context，是为了让服务端页面里的任意客户端小按钮都能启动它，不必把整棵树包进 Provider。
  */
 
-export type TourKey = "main" | "kb" | "workbench" | "jobs" | "resume" | "agent" | "settings" | "island";
+export type TourKey =
+  | "main"
+  | "kb"
+  | "kbdetail"
+  | "kbchat"
+  | "kbquiz"
+  | "kbdoc"
+  | "workbench"
+  | "workagent"
+  | "jobs"
+  | "jobdetail"
+  | "resume"
+  | "agent"
+  | "shortcuts"
+  | "achievements"
+  | "island"
+  | "settings";
 
 type Step = {
   /** 要框出来的元素选择器；不填则整屏暗场 + 居中卡片 */
@@ -98,7 +114,7 @@ const TOURS: Record<TourKey, { label: string; desc: string; steps: Step[] }> = {
       {
         target: '[data-tour="workbench-note"]',
         title: "每个助手都有自己的系统提示词",
-        body: "「简历优化」会按 STAR 法则改写并量化成果；「周报汇报」会替你分好本周完成 / 数据成果 / 问题 / 下周计划。",
+        body: "「简历优化」按「动作 + 方法 + 可量化结果」改写，并对照简历规范挑毛病；「周报汇报」会替你分好本周完成 / 数据成果 / 问题 / 下周计划。",
       },
     ],
   },
@@ -152,14 +168,14 @@ const TOURS: Record<TourKey, { label: string; desc: string; steps: Step[] }> = {
     desc: "自主调用工具完成任务",
     steps: [
       {
-        target: '[data-tour="agent-input"]',
-        title: "直接描述任务",
-        body: "跟它说你要什么，它会自己决定调用哪些工具：查知识库、搜职位、改简历……",
+        target: '[data-tour="agent-toolbar"]',
+        title: "它会自己决定用哪些工具",
+        body: "你只说目标，它自己判断该查知识库、搜职位还是改简历，再把结果写成回答 —— 不用你指定步骤。",
       },
       {
-        target: '[data-tour="agent-tools"]',
-        title: "工具调用过程可见",
-        body: "每次调用了什么工具、拿到什么结果都会列出来，不是黑盒。",
+        target: '[data-tour="agent-input"]',
+        title: "直接描述任务",
+        body: "在下面的输入框里说你要什么。还没聊过时，中间会给几条现成示例，点一下就发出去。",
       },
     ],
   },
@@ -193,12 +209,12 @@ const TOURS: Record<TourKey, { label: string; desc: string; steps: Step[] }> = {
       {
         target: '[data-tour="island-canvas"]',
         title: "这座岛是你的知识资产",
-        body: "地块数、地势高低、六座建筑的有无，全部由你的知识库 / 文档 / 片段 / 对话 / 简历决定。",
+        body: "地块数、地势高低、六座建筑的有无，全部由你的知识库 / 文档 / 片段 / 对话 / 简历 / 职位决定。",
       },
       {
         target: '[data-tour="island-progress"]',
         title: "成长分怎么算",
-        body: "知识库 ×10、文档 ×3、知识片段 ×0.15、对话 ×2、简历 ×8。分数越高，从中心往外长出的地块越多。",
+        body: "知识库 ×10、文档 ×3、知识片段 ×0.15、对话 ×2、简历 ×8、职位 ×0.6。分数越高，从中心往外长出的地块越多。",
       },
       {
         target: '[data-tour="island-buildings"]',
@@ -209,6 +225,137 @@ const TOURS: Record<TourKey, { label: string; desc: string; steps: Step[] }> = {
         target: '[data-tour="island-weather"]',
         title: "天气看活跃度",
         body: "最近 7 天里有 3 天以上有活动就是晴天，否则阴天。",
+      },
+      {
+        target: '[data-tour="island-share"]',
+        title: "把岛分享出去",
+        body: "点这里把当前这座岛画成一张 PNG 卡片，可以保存或复制。整张图在浏览器本地生成，不上传服务器。",
+      },
+    ],
+  },
+
+  kbdetail: {
+    label: "知识库详情",
+    desc: "提问、测验、体检、文档管理",
+    steps: [
+      {
+        target: '[data-tour="kb-ask"]',
+        title: "① 开始提问",
+        body: "只针对这一个库提问，回答会标注引用了哪几个片段。旁边的「知识测验」按文档自动出题，用来检验自己记住了多少。",
+      },
+      {
+        target: '[data-tour="kb-health"]',
+        title: "② 知识库体检",
+        body: "只读扫描全部文档与片段：解析失败、卡住太久、空文档、重复片段、长期未更新都会列出来，并给一个健康度评级。点开才会跑，不在后台常驻。",
+      },
+      {
+        target: '[data-tour="kb-docs"]',
+        title: "③ 文档列表",
+        body: "每个文档都能看解析状态、重新生成摘要与知识图谱，也可以单独分享或删除。",
+      },
+    ],
+  },
+
+  jobdetail: {
+    label: "职位详情",
+    desc: "匹配度分析、模拟面试",
+    steps: [
+      {
+        target: '[data-tour="job-match"]',
+        title: "① 我匹配这个岗位吗",
+        body: "上传简历，AI 给出与这个职位的匹配度、你的优势和差距，并给具体改进建议。",
+      },
+      {
+        target: '[data-tour="job-interview"]',
+        title: "② 练一遍再投",
+        body: "按这个职位生成高频面试题和参考答案，逐题点开看。",
+      },
+    ],
+  },
+
+  achievements: {
+    label: "成就",
+    desc: "里程碑与解锁进度",
+    steps: [
+      {
+        target: '[data-tour="achievements-header"]',
+        title: "这里记录你的进度",
+        body: "顶部是已解锁数量。成就不是摆设 —— 没解锁的那几条，就是接下来可以做的事。",
+      },
+      {
+        target: '[data-tour="achievements-grid"]',
+        title: "六枚成就，逐一解锁",
+        body: "分别对应知识库、上传文档数、发起对话数、累计知识片段。没解锁的是虚线卡片，它们是目标，不是失败。",
+      },
+    ],
+  },
+
+  shortcuts: {
+    label: "快捷键",
+    desc: "键盘走完全站，? 打开面板",
+    steps: [
+      {
+        target: "header.nav-bar",
+        title: "键盘也能走完全站",
+        body: "Alt+1~9 直接跳到上面这些主入口；按 ? 随时打开快捷键面板，Esc 关闭。在输入框里打字时不会抢你的键。",
+      },
+    ],
+  },
+
+  kbchat: {
+    label: "知识库问答",
+    desc: "按知识库提问，回答标出处",
+    steps: [
+      {
+        target: '[data-tour="chat-header"]',
+        title: "① 只问这一个知识库",
+        body: "回答基于这个库里的文档，并标出出处，可以点回去核对原文。",
+      },
+      {
+        target: '[data-tour="chat-history"]',
+        title: "② 左边是对话历史",
+        body: "每段对话单独存着，点「＋ 新建对话」开一段新的。换话题时建议新建，别在一段里越聊越偏。",
+      },
+    ],
+  },
+
+  kbquiz: {
+    label: "知识测验",
+    desc: "按文档自动出题，交卷看得分",
+    steps: [
+      {
+        target: '[data-tour="quiz-header"]',
+        title: "用测验检验自己记住了多少",
+        body: "进来就按这个知识库的文档自动出题；做完点「交卷」会算出得分 —— 答错的地方正好是要回文档补一遍的清单。",
+      },
+    ],
+  },
+
+  kbdoc: {
+    label: "文档详情",
+    desc: "看这份文档被切成了什么",
+    steps: [
+      {
+        target: '[data-tour="doc-header"]',
+        title: "这份文档被切成了多少片段",
+        body: "标题下面是文件名和片段数。检索命中时起作用的就是这些片段 —— 所以片段切得好不好，直接决定回答准不准。",
+      },
+    ],
+  },
+
+  workagent: {
+    label: "单个助手",
+    desc: "一个助手一套系统提示词",
+    steps: [
+      {
+        target: '[data-tour="workagent-head"]',
+        title: "这一页只跟它一个对话",
+        body: "每个助手的角色设定不同：提示词决定了它怎么问、怎么写、按什么结构给你结果。",
+      },
+      {
+        target: '[data-tour="workagent-input"]',
+        title: "说需求，或传文件",
+        body: "直接说你要什么；也可以点左边的 ⊞ 上传旧简历、报告这类文件，让它照着改。",
       },
     ],
   },
@@ -389,7 +536,8 @@ export function TourButton({
 
 /** 引导中心：把每条引导列出来，各一个按钮，需要就点 */
 export function TourHub() {
-  const keys: TourKey[] = ["main", "kb", "workbench", "jobs", "resume", "agent", "island", "settings"];
+  // 从注册表派生，不再手抄第二份列表 —— 手抄的那份漏一条，新引导就不会出现在引导中心。
+  const keys = Object.keys(TOURS) as TourKey[];
   return (
     <div className="flex flex-col gap-2">
       {keys.map((k) => (

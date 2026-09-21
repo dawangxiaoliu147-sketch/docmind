@@ -4,6 +4,7 @@ import { requireUser } from "@/lib/dal";
 import { prisma } from "@/lib/db";
 import { QuizPanel } from "@/components/quiz-panel";
 import { PageHeader, Stack, buttonClass } from "@/components/ui";
+import { TourButton } from "@/components/onboarding-tour";
 
 export default async function QuizPage({
   params,
@@ -29,7 +30,12 @@ export default async function QuizPage({
       >
         ← 返回
       </Link>
-      <PageHeader eyebrow="quiz" title={`「${kb.name}」知识测验`} />
+      <PageHeader
+        eyebrow="quiz"
+        title={`「${kb.name}」知识测验`}
+        data-tour="quiz-header"
+        actions={<TourButton tour="kbquiz" />}
+      />
       <QuizPanel kbId={id} />
     </Stack>
   );

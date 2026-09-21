@@ -4,6 +4,7 @@ import { requireUser } from "@/lib/dal";
 import { prisma } from "@/lib/db";
 import { getChunksByDoc } from "@/lib/vector";
 import { Card, Chip, Empty, PageHeader, Stack, buttonClass } from "@/components/ui";
+import { TourButton } from "@/components/onboarding-tour";
 
 export default async function DocPreviewPage({
   params,
@@ -41,6 +42,8 @@ export default async function DocPreviewPage({
         eyebrow="document"
         title={doc.title}
         subtitle={`${doc.fileName} · 共 ${chunks.length} 个知识片段`}
+        data-tour="doc-header"
+        actions={<TourButton tour="kbdoc" />}
       />
 
       {chunks.length === 0 ? (

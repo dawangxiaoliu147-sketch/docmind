@@ -5,6 +5,7 @@ import { requireUser } from "@/lib/dal";
 import { prisma } from "@/lib/db";
 import { ChatShell } from "@/components/chat-shell";
 import { PageHeader, buttonClass } from "@/components/ui";
+import { TourButton } from "@/components/onboarding-tour";
 
 export default async function ChatPage({
   params,
@@ -69,6 +70,8 @@ export default async function ChatPage({
         eyebrow="chat"
         title={`与「${kb.name}」对话`}
         className="shrink-0"
+        data-tour="chat-header"
+        actions={<TourButton tour="kbchat" />}
       />
       <ChatShell
         kbId={id}

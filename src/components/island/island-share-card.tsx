@@ -140,7 +140,7 @@ export function IslandShareCard({ stats, userName }: { stats: IslandStats; userN
 
   return (
     <>
-      <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
+      <Button variant="outline" size="sm" data-tour="island-share" onClick={() => setOpen(true)}>
         ⧉ 分享卡片
       </Button>
 

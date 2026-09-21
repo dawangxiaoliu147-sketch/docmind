@@ -25,7 +25,7 @@ export function JobInterview({ jobId }: { jobId: string }) {
   }
 
   return (
-    <div className="panel p-6">
+    <div className="panel p-6" data-tour="job-interview">
       <h2 className="text-lg font-semibold text-fg"> 模拟面试题</h2>
       <p className="mt-1 text-sm text-muted-fg">
         AI 针对这个职位生成高频面试题 + 参考答案

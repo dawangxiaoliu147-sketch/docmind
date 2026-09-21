@@ -35,7 +35,7 @@ export function AgentPanel() {
 
   return (
     <Panel className="flex h-[calc(100vh-10rem)] flex-col overflow-hidden">
-      <div className="border-b border-border px-5 py-3">
+      <div className="border-b border-border px-5 py-3" data-tour="agent-toolbar">
         <span className="flex items-center gap-2 text-sm font-semibold text-fg">
           <AgentMascot className="h-6 w-6" />
           知行智能体

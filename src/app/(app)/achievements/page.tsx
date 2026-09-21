@@ -1,6 +1,7 @@
 import { requireUser } from "@/lib/dal";
 import { prisma } from "@/lib/db";
 import { Badge, Card, CardGrid, IconBox, PageHeader, Stack } from "@/components/ui";
+import { TourButton } from "@/components/onboarding-tour";
 
 export default async function AchievementsPage() {
   const user = await requireUser();
@@ -28,15 +29,17 @@ export default async function AchievementsPage() {
       <PageHeader
         eyebrow="achievements"
         title="成就"
+        data-tour="achievements-header"
         subtitle={
           <>
             已解锁 <span className="num">{unlockedCount}</span> /{" "}
             <span className="num">{achievements.length}</span>
           </>
         }
+        actions={<TourButton tour="achievements" />}
       />
 
-      <CardGrid>
+      <CardGrid data-tour="achievements-grid">
         {achievements.map((a) => (
           <Card
             key={a.title}

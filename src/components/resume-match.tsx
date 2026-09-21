@@ -36,7 +36,7 @@ export function ResumeMatch({ jobId }: { jobId: string }) {
   }
 
   return (
-    <div className="panel p-6">
+    <div className="panel p-6" data-tour="job-match">
       <h2 className="text-lg font-semibold text-fg">
          匹配我的简历
       </h2>
