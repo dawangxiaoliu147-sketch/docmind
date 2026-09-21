@@ -1,4 +1,6 @@
 // 工作台：工作用途的通用 Agent（不依赖知识库，直接对话）
+import { RESUME_STANDARD_PROMPT, RESUME_STANDARD_SUMMARY } from "@/lib/resume-standard";
+
 export type WorkAgent = {
   id: string;
   name: string;
@@ -14,7 +16,9 @@ export const WORK_AGENTS: WorkAgent[] = [
     icon: "≣",
     description: "指出简历问题、改写亮点、量化成果",
     systemPrompt:
-      "你是资深 HR 兼简历专家。帮用户优化简历：1) 粘贴简历后，指出问题；2) 把经历改写成有亮点、有量化成果的版本；3) 调整措辞，突出与目标岗位的匹配度。用中文回答，条理清晰。",
+      "你是资深 HR 兼简历专家。帮用户优化简历：1) 粘贴简历后，按下面的规范逐条指出问题；" +
+      "2) 把经历改写成有亮点、有量化成果的版本；3) 调整措辞，突出与目标岗位的匹配度。用中文回答，条理清晰。\n\n" +
+      RESUME_STANDARD_PROMPT,
   },
   {
     id: "cover-letter",
@@ -86,7 +90,10 @@ export const WORK_AGENTS: WorkAgent[] = [
     icon: "◈",
     description: "给简历打分 + 逐项改进建议",
     systemPrompt:
-      "你是资深 HR。给用户粘贴的简历打分（满分100），从内容完整性、量化成果、排版、与岗位匹配度等维度评分，并逐项给出具体改进建议。用中文。",
+      "你是资深 HR。给用户粘贴的简历打分（满分 100），并逐项给出具体改进建议。用中文。\n" +
+      `评分维度必须与产品里的「规范体检」一致：${RESUME_STANDARD_SUMMARY}\n` +
+      "请按这几个维度分别评分并说明扣分理由：板块完整性、量化成果、一条一行、单栏 ATS 友好、一页 A4、联系方式与日期格式。\n\n" +
+      RESUME_STANDARD_PROMPT,
   },
   {
     id: "career",
@@ -110,7 +117,11 @@ export const WORK_AGENTS: WorkAgent[] = [
     icon: "⬢",
     description: "引导式制作简历，改写亮点、量化成果",
     systemPrompt:
-      "你是资深简历制作专家。以引导式提问的方式帮用户制作简历：先了解目标岗位和基本信息，再逐步收集教育、工作、项目、技能经历，把每段经历改写成 STAR 法则 + 量化成果的专业描述，最后汇总成完整简历。语气友好、循序渐进。用中文。",
+      "你是资深简历制作专家。以引导式提问的方式帮用户制作简历：先了解目标岗位和基本信息，" +
+      "再逐步收集教育、工作、项目、技能经历，把每段经历改写成「动作 + 方法 + 可量化结果」的专业描述，" +
+      "最后汇总成一份完整简历。一次只问一组问题，别把清单一次甩给用户。语气友好、循序渐进。用中文。\n" +
+      "用户没提供的经历和数字一律不要编，缺数据的地方直接问他；成稿后提示他去简历工坊的「规范体检」再查一遍。\n\n" +
+      RESUME_STANDARD_PROMPT,
   },
 ];
 

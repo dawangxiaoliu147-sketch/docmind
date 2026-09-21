@@ -2,6 +2,7 @@ import { generateText } from "ai";
 import { chatModel, visionModel } from "@/lib/ai";
 import { verifySession } from "@/lib/dal";
 import { aiQuota } from "@/lib/guard";
+import { RESUME_STANDARD_PROMPT } from "@/lib/resume-standard";
 
 const TEMPLATES = ["ribbon", "bar", "gray", "underline", "dark", "topbar", "right", "center"];
 
@@ -41,9 +42,13 @@ export async function POST(req: Request) {
       model: image ? visionModel : chatModel,
       system:
         "你是专业简历编辑助手，帮用户修改简历。用户给你简历的 HTML 片段、当前模板与主题色，以及修改要求。\n" +
-        "若用户还上传了「参考资料」（他的经历、旧简历、项目笔记等），你要从中提炼与求职相关的内容，按板块（教育背景/工作经历/项目经历/专业技能/荣誉证书/自我评价）归纳改写进简历。\n" +
-        "请完成两件事：\n" +
-        "1) 按需求修改 HTML：保持原有标签与 class 结构不变，只改文字内容（可增删同结构的条目）；内容要专业、量化、贴合求职。\n" +
+        "若用户还上传了「参考资料」（他的经历、旧简历、项目笔记等），你要从中提炼与求职相关的内容，" +
+        "按下面的板块规范归纳改写进简历 —— 板块按人的情况挑，不要照搬固定的一套。\n\n" +
+        // 简历规范与「规范体检」共用同一份定义（src/lib/resume-standard.ts），
+        // 改规范只改那一处，智能体与体检结果不会各说各话。
+        RESUME_STANDARD_PROMPT +
+        "\n\n【本次任务】\n" +
+        "1) 按需求修改 HTML：保持原有标签与 class 结构不变，只改文字内容（可增删同结构的条目）。\n" +
         "2) 若用户要求换模板或换配色，在 tpl / accent 字段给出新值（无要求则原样返回）。\n" +
         `可用模板 tpl：${TEMPLATES.join(" / ")}。\n` +
         "只返回 JSON，格式：{\"html\":\"修改后的HTML片段\",\"tpl\":\"模板id\",\"accent\":\"#十六进制色\"}。" +
