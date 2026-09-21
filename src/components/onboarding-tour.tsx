@@ -361,6 +361,33 @@ const TOURS: Record<TourKey, { label: string; desc: string; steps: Step[] }> = {
   },
 };
 
+/**
+ * 每条引导「住在哪一页」—— 引导中心靠它判断能不能在这儿直接播。
+ *  - `home`：静态路由，能直达；不在这一页时点按钮会先跳过去，再开播。
+ *  - `where`：锚点在带 id 的详情页上（每个知识库 / 职位都不一样），没法直达，
+ *    只给一句「去哪儿看」。这几条由各自页面右上角的「本页引导」按钮启动。
+ *  - 两个都没有：锚点在任何页面都存在（如顶部导航栏），随处可播。
+ *
+ * 放成独立一张表，而不是散进 16 条引导里 —— 加引导时忘填这里，最坏也只是
+ * 引导中心少列一条，不会把哪一步播坏。
+ */
+const TOUR_HOME: Partial<Record<TourKey, { home?: string; where?: string }>> = {
+  kb: { home: "/dashboard" },
+  workbench: { home: "/workbench" },
+  jobs: { home: "/jobs" },
+  resume: { home: "/resume" },
+  agent: { home: "/agent" },
+  settings: { home: "/settings" },
+  island: { home: "/island" },
+  achievements: { home: "/achievements" },
+  kbdetail: { where: "进入任意知识库 → 详情页" },
+  kbchat: { where: "进入任意知识库 → 点「开始提问」" },
+  kbquiz: { where: "进入任意知识库 → 点「知识测验」" },
+  kbdoc: { where: "进入任意知识库 → 文档列表 → 点开一份文档" },
+  jobdetail: { where: "职位库 → 点进任意一个职位" },
+  workagent: { where: "工作台 → 点进任意一个助手" },
+};
+
 const TOUR_KEY = "onboarded_v1";
 const CARD_W = 348;
 const CARD_H = 210;
@@ -382,6 +409,9 @@ export function OnboardingTour() {
   const [key, setKey] = useState<TourKey | null>(null);
   const [i, setI] = useState(0);
   const [rect, setRect] = useState<DOMRect | null>(null);
+  // 轮询用尽还是找不到目标：这一步确实没有可高亮的区域。
+  // 之前这种情况是静默的 —— 只弹一个没有高亮的卡片，用户分不清"坏了"还是"本来就这样"。
+  const [missing, setMissing] = useState(false);
 
   const steps = key ? TOURS[key].steps : [];
   const step = steps[i];
@@ -391,6 +421,7 @@ export function OnboardingTour() {
     setKey(k);
     setI(0);
     setRect(null);
+    setMissing(false);
   }, []);
 
   // 首次进入自动播主线；并监听所有启动事件
@@ -413,6 +444,44 @@ export function OnboardingTour() {
     localStorage.setItem(TOUR_KEY, "1");
   }, []);
 
+  const goPrev = useCallback(() => setI((v) => Math.max(0, v - 1)), []);
+
+  // 下一步：最后一步就收尾。用 [key, i] 而不是把 finish 塞进 setI 的更新函数里 ——
+  // 更新函数必须是纯的，React 在严格模式下会调用两次。
+  const advance = useCallback(() => {
+    if (!key) return;
+    if (i >= TOURS[key].steps.length - 1) finish();
+    else setI((v) => v + 1);
+  }, [key, i, finish]);
+
+  // 键盘操作：Esc 关闭、← → 翻页。这张卡片声明了 aria-modal="true"，
+  // 却只能用鼠标点按钮 —— 模态框按 Esc 没反应是不该的。
+  // 输入框 / 按钮有焦点时让给它们，别抢键。
+  useEffect(() => {
+    if (!key) return;
+    function onKey(e: KeyboardEvent) {
+      const t = e.target as HTMLElement | null;
+      if (
+        t &&
+        (t.isContentEditable || ["INPUT", "TEXTAREA", "SELECT", "BUTTON"].includes(t.tagName))
+      ) {
+        return;
+      }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        finish();
+      } else if (e.key === "ArrowRight" || e.key === "Enter") {
+        e.preventDefault();
+        advance();
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        goPrev();
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [key, finish, advance, goPrev]);
+
   // 定位目标：需要跳页的先跳，再轮询等它出现；滚动/缩放时跟着重算
   useEffect(() => {
     if (!key || !step) return;
@@ -430,6 +499,7 @@ export function OnboardingTour() {
 
     const waitForTarget = () => {
       if (cancelled) return;
+      setMissing(false); // 每次重试都先当作「还没失败」
       const el = step.target ? document.querySelector<HTMLElement>(step.target) : null;
       const r = el?.getBoundingClientRect();
       if (el && r && (r.width > 0 || r.height > 0)) {
@@ -438,11 +508,21 @@ export function OnboardingTour() {
         return;
       }
       setRect(null);
-      if (tries++ < 30) timer = window.setTimeout(waitForTarget, 120);
+      if (tries++ < 30) {
+        timer = window.setTimeout(waitForTarget, 120);
+      } else {
+        setMissing(true); // 轮询用尽：这一页确实没有要讲解的区域
+      }
     };
 
-    if (step.href && pathname !== step.href) {
-      router.push(step.href);
+    // 不在引导所属的功能页时先跳过去：整条引导的 home 优先，其次是这一步自带的 href。
+    // 之前只有 main 的步骤带 href，其余 15 条从引导中心点开时目标不在当前页，
+    // 结果就是一个什么都不高亮的居中卡片 —— 跨页引导等于坏的。
+    const home = i === 0 ? TOUR_HOME[key]?.home : undefined;
+    const to =
+      home && pathname !== home ? home : step.href && pathname !== step.href ? step.href : undefined;
+    if (to) {
+      router.push(to);
       timer = window.setTimeout(waitForTarget, 420);
     } else {
       waitForTarget();
@@ -481,6 +561,14 @@ export function OnboardingTour() {
         <h3 className="tour-title">{step.title}</h3>
         <p className="tour-body">{step.body}</p>
 
+        {missing && (
+          <p className="tour-note">
+            这一页没有要讲解的区域 —— 它属于别的功能页，或当前状态还没出现。
+            可以去对应页面右上角点「本页引导」，也可以直接跳过。
+          </p>
+        )}
+        <p className="tour-kbd">← → 翻页　Esc 关闭</p>
+
         <div className="tour-foot">
           <div className="tour-dots" aria-hidden="true">
             {steps.map((_, n) => (
@@ -492,11 +580,11 @@ export function OnboardingTour() {
               跳过
             </Button>
             {i > 0 ? (
-              <Button size="sm" variant="outline" onClick={() => setI((v) => Math.max(0, v - 1))}>
+              <Button size="sm" variant="outline" onClick={goPrev}>
                 上一步
               </Button>
             ) : null}
-            <Button size="sm" onClick={() => (isLast ? finish() : setI((v) => v + 1))}>
+            <Button size="sm" onClick={advance}>
               {isLast ? "知道了" : "下一步"}
             </Button>
           </div>
@@ -538,9 +626,14 @@ export function TourButton({
 export function TourHub() {
   // 从注册表派生，不再手抄第二份列表 —— 手抄的那份漏一条，新引导就不会出现在引导中心。
   const keys = Object.keys(TOURS) as TourKey[];
+  // 有 where 的引导锚在带 id 的详情页上（每份文档 / 每个职位都不一样），从这儿够不着。
+  // 与其给一个点了只弹空卡片的按钮，不如直接说清去哪儿看。
+  const here = keys.filter((k) => !TOUR_HOME[k]?.where);
+  const elsewhere = keys.filter((k) => TOUR_HOME[k]?.where);
+
   return (
     <div className="flex flex-col gap-2">
-      {keys.map((k) => (
+      {here.map((k) => (
         <div
           key={k}
           className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-surface px-4 py-3"
@@ -551,9 +644,28 @@ export function TourHub() {
           <TourButton tour={k} label="开始引导" />
         </div>
       ))}
+
+      {elsewhere.length > 0 && (
+        <div className="mt-1 rounded-lg border border-dashed border-border px-4 py-3">
+          <p className="text-[13px] font-semibold text-fg2">这几条要去对应的功能页里播</p>
+          <p className="mt-1 text-[12px] leading-relaxed text-muted-fg">
+            它们讲的是某一份文档、某一个职位或某一个助手，从设置页够不着 ——
+            进到那个页面后，右上角的「本页引导」就是它们。
+          </p>
+          <ul className="mt-2 space-y-1">
+            {elsewhere.map((k) => (
+              <li key={k} className="text-[12px] leading-relaxed">
+                <span className="font-semibold text-fg2">{TOURS[k].label}</span>
+                <span className="text-muted-fg"> —— {TOUR_HOME[k]?.where}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <p className="mt-1 text-[12px] leading-relaxed text-muted-fg">
-        引导只在当前页内高亮说明，不会改动任何数据；「跳过」和走完都会记下来，不会再自动弹。
-        除了这里，每个功能页右上角也都有一个「本页引导」按钮。
+        引导只做高亮说明，不会改动任何数据；「跳过」和走完都会记下来，不会再自动弹。
+        键盘也能用：← → 翻页、Esc 关闭。
       </p>
     </div>
   );

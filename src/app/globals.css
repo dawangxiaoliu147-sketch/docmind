@@ -3812,6 +3812,24 @@ html[data-scenic="off"] .scenic-veil {
   line-height: 1.72;
   color: var(--theme-secondary-foreground);
 }
+/* 找不到目标时的兜底提示：别让用户对着没有高亮的卡片猜是不是坏了 */
+.tour-note {
+  margin: 8px 0 0;
+  padding: 7px 9px;
+  border-radius: var(--ui-r-sm, 8px);
+  background: var(--theme-accent);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--theme-secondary-foreground);
+}
+/* 键盘提示：← → 翻页、Esc 关闭 */
+.tour-kbd {
+  margin: 8px 0 0;
+  font-family: var(--ui-font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  color: var(--theme-muted-foreground);
+}
 .tour-foot {
   display: flex;
   align-items: center;
