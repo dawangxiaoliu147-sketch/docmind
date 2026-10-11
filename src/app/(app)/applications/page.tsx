@@ -50,7 +50,7 @@ export default async function ApplicationsPage() {
       <PageHeader
         eyebrow="applications"
         title="投递跟进"
-        subtitle="投了哪些、到哪一步、什么时候该跟进 —— 平台上的提交由你完成，这里负责记录与提醒"
+        subtitle="记录投递状态，到点提醒跟进"
         actions={
           <>
             <Link href="/jobs" className={buttonClass({ variant: "ghost", size: "sm" })}>

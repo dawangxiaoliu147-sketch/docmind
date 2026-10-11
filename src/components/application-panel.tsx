@@ -86,7 +86,7 @@ export function ApplicationPanel({
       {!app ? (
         <div className="space-y-3">
           <p className="text-[13px] leading-relaxed text-fg2">
-            决定投这个岗位时，在这里记一笔 —— 之后能一眼看到投了哪些、到哪一步、什么时候该跟进。
+            投了这个岗位就在这里记一笔，之后可以更新状态和跟进时间。
           </p>
           <div className="grid gap-3 sm:grid-cols-3">
             <Field label="投递渠道">

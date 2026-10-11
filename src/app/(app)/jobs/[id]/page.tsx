@@ -17,10 +17,10 @@ import type { ChipTone } from "@/components/ui";
 import { buttonClass, Chip, PageHeader, Panel, Stack } from "@/components/ui";
 
 const CHANNEL: Record<string, { text: string; tone: ChipTone; hint: string }> = {
-  email: { text: "可邮件投递", tone: "success", hint: "帖子里直接给了邮箱，这是最可自动化、也最合规的渠道。" },
-  link: { text: "有投递链接", tone: "primary", hint: "原帖给了 ATS / 表单链接，需要你点进去提交。" },
-  wechat: { text: "微信联系", tone: "muted", hint: "只给了微信/TG，需要人工联系。" },
-  unknown: { text: "未注明投递方式", tone: "muted", hint: "原帖没有明确投递方式，建议点开原帖看看评论区。" },
+  email: { text: "可邮件投递", tone: "success", hint: "原帖留了邮箱，可以直接投。" },
+  link: { text: "有投递链接", tone: "primary", hint: "原帖给了投递链接。" },
+  wechat: { text: "微信联系", tone: "muted", hint: "原帖只留了微信或 TG。" },
+  unknown: { text: "未注明投递方式", tone: "muted", hint: "原帖没写投递方式。" },
 };
 
 function shanghai(iso: Date): string {
@@ -157,8 +157,7 @@ export default async function JobDetailPage({
         </div>
 
         <p className="mt-3 text-[12px] leading-relaxed text-muted-fg">
-          邮箱是从原帖正文里自动抽出来的，<strong className="text-fg2">投递前请点开原帖核对一遍</strong>。
-          本工具不代替你发信、也不登录任何招聘平台。
+          邮箱是从原帖正文里自动抽的，投递前点开原帖核对一下。
         </p>
       </Panel>
 
@@ -167,9 +166,8 @@ export default async function JobDetailPage({
         <Panel className="p-6">
           <h2 className="text-sm font-semibold text-fg">邮件投递助手</h2>
           <p className="mt-1 text-[12.5px] leading-relaxed text-muted-fg">
-            这条链路<strong className="text-fg2">不需要你把邮箱授权码交出来</strong>：这里按岗位和你的简历生成主题与正文（都可以改），
-            你在自己的邮箱里粘贴发送即可。
-            {resume ? ` 使用的简历：${resume.title}` : " 还没有简历，建议先去简历工坊建一份。"}
+            按岗位和简历生成主题与正文，复制到你自己的邮箱发送。
+            {resume ? ` 用的简历：${resume.title}` : " 还没有简历，建议先去简历工坊建一份。"}
           </p>
           <div className="mt-4">
             <EmailDraft

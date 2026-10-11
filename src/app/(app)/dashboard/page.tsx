@@ -116,9 +116,9 @@ export default async function DashboardPage() {
             <p className="ui-section-title">投递跟进</p>
             <p className="mt-1 text-[12.5px] leading-relaxed text-muted-fg">
               {appCount === 0
-                ? "还没有投递记录 —— 在职位详情页点「标记为已投递」或「记录投递」就开始跟踪了"
+                ? "还没有投递记录。在职位详情页点「标记为已投递」开始跟踪。"
                 : `已投 ${appCount} 个岗位${
-                    dueCount > 0 ? `，其中 ${dueCount} 个到了该跟进的时间` : "，目前没有待跟进"
+                    dueCount > 0 ? `，其中 ${dueCount} 个到了该跟进的时间` : "，没有待跟进"
                   }`}
             </p>
           </div>

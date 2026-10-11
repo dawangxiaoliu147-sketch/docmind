@@ -52,7 +52,7 @@ export const v2exSource: JobSource = {
   name: "V2EX 招聘",
   homepage: "https://www.v2ex.com/go/jobs",
   kind: "feed",
-  note: "V2EX 招聘节点的官方 Atom feed（公开、无需登录）。国内技术岗为主，实测约六成帖子直接给了邮箱 —— 这类可以真正自动化投递。一次最多 50 条。",
+  note: "V2EX 招聘节点官方 feed，公开、不用登录。国内技术岗为主，约四成帖子留了邮箱。每次最多 50 条。",
   enabledByDefault: true,
   async fetch(limit: number): Promise<RawJob[]> {
     const xml = await fetchText(FEED_URL);

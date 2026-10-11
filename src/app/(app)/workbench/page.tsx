@@ -40,7 +40,7 @@ export default async function WorkbenchPage() {
         <p className="text-[13px] font-semibold text-fg">每个助手都有自己的系统提示词</p>
         <p className="mt-1 text-[12.5px] leading-relaxed text-muted-fg">
           「简历优化」按 STAR 法则改写并量化成果；「周报汇报」替你分好本周完成 / 数据成果 / 问题 / 下周计划；
-          「面试模拟」一次只问一个问题并追问点评。这些助手**不依赖知识库**，点进去直接对话。
+          「面试模拟」一次只问一个问题并追问点评。这些助手不依赖知识库，点进去直接对话。
         </p>
       </Panel>
 

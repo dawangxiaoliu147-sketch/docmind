@@ -115,7 +115,7 @@ export default async function IslandPage() {
       <Section title="成长进度" extra={`${pct}%`} data-tour="island-progress">
         <Progress value={pct} label="岛屿解锁进度" />
         <p className="mt-2 text-[12px] leading-relaxed text-muted-fg">
-          岛的地块由**成长分**决定：知识库 ×10 / 文档 ×3 / 知识片段 ×0.15 / 对话 ×2 / 简历 ×8。
+          岛的地块由成长分决定：知识库 ×10 / 文档 ×3 / 知识片段 ×0.15 / 对话 ×2 / 简历 ×8。
           分数越高，从中心往外长出的地块越多，地势也越高。
         </p>
       </Section>
@@ -173,25 +173,13 @@ export default async function IslandPage() {
         </p>
       </Section>
 
-      <Section title="为什么做这个">
+      <Section title="说明">
         <Panel className="p-5">
-          <ul className="ml-4 list-disc space-y-2 text-[13px] leading-relaxed text-fg2">
-            <li>
-              **把抽象的积累变成看得见的成长**：知识库、文档、片段在列表里只是数字，在岛上是一座真的会变大、变高的岛。
-            </li>
-            <li>
-              **给首页一个情绪锚点**：每天进来先看到岛比昨天多了一格、天气放晴了 —— 这是持续使用它的理由。
-            </li>
-            <li>
-              **本身就是导航**：六座建筑各自对应一个模块，点建筑就是进功能，不用记路径。
-            </li>
-            <li>
-              **承接成就系统**：建筑解锁的节奏就是里程碑，和「成就」页是同一套语义。
-            </li>
-          </ul>
-          <p className="mt-4 text-[12px] leading-relaxed text-muted-fg">
-            天气的含义：最近 7 天里有 3 天以上有活动 → 晴；否则阴。
-            岛屿按场景换肤，切到雪境会变成冷色，切到暖云会偏暖 —— 和全站其它部分一致。
+          <p className="text-[12.5px] leading-relaxed text-fg2">
+            天气：最近 7 天有 3 天以上有活动就是晴天，否则阴天。
+          </p>
+          <p className="mt-2 text-[12px] leading-relaxed text-muted-fg">
+            岛跟着全站场景换配色，切到雪境偏冷，切到暖云偏暖。
           </p>
         </Panel>
       </Section>

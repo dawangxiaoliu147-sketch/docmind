@@ -95,8 +95,8 @@ export function ApplicationsBoard({ items, dueIds }: { items: BoardItem[]; dueId
   if (list.length === 0) {
     return (
       <p className="py-8 text-center text-sm text-muted-fg">
-        还没有投递记录。去 <Link href="/jobs" className="text-primary hover:underline">职位库</Link> 选一个岗位，
-        在详情页点「记录投递」即可开始跟进。
+        还没有投递记录。去 <Link href="/jobs" className="text-primary hover:underline">职位库</Link> 挑一个岗位，
+        在详情页点「记录投递」。
       </p>
     );
   }

@@ -76,10 +76,9 @@ export function JobImportForm() {
   return (
     <div className="space-y-5">
       <Alert tone="info" icon="i">
-        <p className="text-[13px] font-semibold text-fg">这是平台岗位（BOSS/智联/猎聘…）的入口</p>
+        <p className="text-[13px] font-semibold text-fg">平台岗位用这里手动存</p>
         <p className="mt-1 text-[12.5px] leading-relaxed text-fg2">
-          本工具**不自动爬招聘平台** —— 那需要挂你的登录态、绕过反爬，代价是你的账号和这台服务器 IP。
-          所以你正常浏览，用下面任一方式把岗位存进来：粘贴全文，或用书签脚本一键抓当前页。
+          在招聘平台看到合适的岗位，把页面内容粘进来，或用下面的书签抓当前页。不自动抓取平台数据。
         </p>
       </Alert>
 
@@ -92,7 +91,7 @@ export function JobImportForm() {
             placeholder="在 BOSS直聘 / 智联 / 猎聘 的岗位页按 Ctrl+A、Ctrl+C，然后粘到这里…"
           />
         </Field>
-        <Field label="职位链接（可选，但强烈建议填）" hint="填了就能一键点回原帖核对，也是去重键">
+        <Field label="职位链接（可选，建议填）" hint="填了能点回原帖核对，也用于去重">
           <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://www.zhipin.com/job_detail/…" />
         </Field>
       </div>
@@ -147,13 +146,11 @@ export function JobImportForm() {
             <Button onClick={save} disabled={saving || !v("title", parsed.title).trim()}>
               {saving ? "保存中…" : "存入职位库"}
             </Button>
-            <span className="text-[12px] text-muted-fg">
-              保存后可在职位详情页「记录投递」里跟进状态
-            </span>
+            <span className="text-[12px] text-muted-fg">保存后可在详情页记录投递</span>
           </div>
         </div>
       ) : (
-        <p className="text-[12.5px] text-muted-fg">粘进来内容后，这里会出现解析结果供你核对。</p>
+        <p className="text-[12.5px] text-muted-fg">粘贴后这里会显示解析结果，可以逐项修改。</p>
       )}
 
       {msg ? <p className="text-xs text-primary">{msg}</p> : null}
@@ -161,13 +158,12 @@ export function JobImportForm() {
 
       <details className="card overflow-hidden">
         <summary className="cursor-pointer select-none px-5 py-3 text-sm font-medium text-fg2 transition hover:bg-muted">
-          ⚡ 书签脚本：在岗位上点一下就把当前页抓进来（比手动复制更快）
+          ⚡ 书签脚本：在岗位上点一下就能抓当前页
         </summary>
         <div className="border-t border-border p-5">
           <p className="text-[12.5px] leading-relaxed text-fg2">
-            用浏览器书签栏新建一个书签，<strong className="text-fg">名称</strong>随便写（比如「存到 docmind」），
-            <strong className="text-fg">网址</strong>粘贴下面这段。之后在任何一个岗位页点这个书签，
-            它会把你正在看的整页内容抓下来、打开本页并<strong className="text-fg">提示你按 Ctrl+V</strong>。
+            新建一个浏览器书签，「网址」粘贴下面这段。以后在岗位页点它，会复制当前页内容并打开本页，
+            你按 Ctrl+V 就行。
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <CopyText text={bookmarklet} label="复制书签脚本" />
@@ -177,8 +173,7 @@ export function JobImportForm() {
             {bookmarklet}
           </pre>
           <p className="mt-3 text-[12px] leading-relaxed text-muted-fg">
-            原理：书签只在**你点的这一下**读取当前页文本并放进剪贴板，没有后台请求、不登录、不批量抓取。
-            平台看到的就是你正常浏览。
+            书签只在你点击时读取当前页，没有后台请求，不登录，不批量抓取。
           </p>
         </div>
       </details>

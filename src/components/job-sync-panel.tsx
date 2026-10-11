@@ -143,10 +143,10 @@ export function JobSyncPanel() {
       {demo && demo.total > 0 ? (
         <Alert tone="default" icon="!">
           <p className="text-[13px] font-semibold text-fg">
-            库里还有 {demo.total} 条内置示例职位（编的，不是真实招聘）
+            库里还有 {demo.total} 条示例职位，不是真实招聘
           </p>
           <p className="mt-1 text-[12.5px] leading-relaxed text-fg2">
-            它们默认不出现在列表里，但会占着「职位数」统计。清掉之后数据就全是真实来源了。
+            它们默认不显示，但会计入职位数。清掉后数据就都是真实的。
           </p>
           <div className="mt-2">
             <Button variant="outline" size="sm" onClick={clearDemo} disabled={busy !== null}>
@@ -204,13 +204,9 @@ export function JobSyncPanel() {
 
       {imported.length > 0 ? (
         <div className="rounded-lg border border-border bg-surface px-4 py-3">
-          <p className="text-[13px] font-semibold text-fg">你自己抓取 / 导入的岗位</p>
+          <p className="text-[13px] font-semibold text-fg">你抓取 / 导入的岗位</p>
           <p className="mt-1 text-[12px] leading-relaxed text-muted-fg">
-            {imported
-              .map((s) => `${jobSourceLabel(s.source)} ${s.total} 条（可邮件投递 ${s.email}）`)
-              .join(" · ")}
-            {" —— "}
-            这些来自「⚡ 抓取岗位」或 CSV 导入，不在上面这些公开源里。
+            {imported.map((s) => `${jobSourceLabel(s.source)} ${s.total} 条（可邮件投递 ${s.email}）`).join(" · ")}
           </p>
         </div>
       ) : null}
@@ -231,10 +227,8 @@ export function JobSyncPanel() {
       ) : null}
 
       <p className="text-[12px] leading-relaxed text-muted-fg">
-        <strong className="text-fg2">为什么没有 BOSS直聘 / 智联 / 猎聘？</strong>
-        它们不提供公开接口，抓取违反平台协议、有反爬与封号风险，也涉及数据合规 —— 所以这里只接
-        <strong className="text-fg2">公开可访问</strong>的源（官方 feed、你自己配置的 RSS）。
-        平台上的岗位请你自己操作，本工具负责生成材料、记录投递与跟进。
+        招聘平台（BOSS直聘、智联、猎聘等）没有公开接口，这里不抓取。
+        平台上的岗位请用「抓取岗位」手动存进来。
       </p>
     </div>
   );

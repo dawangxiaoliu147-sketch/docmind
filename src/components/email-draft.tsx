@@ -49,7 +49,7 @@ export function EmailDraft({
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? "记录失败");
-      setMsg("已记为「已投递」，可以在下面的跟进面板里更新进度");
+      setMsg("已记为已投递，可在下方更新进度");
       router.refresh();
     } catch (e) {
       setErr(e instanceof Error ? e.message : "记录失败");
@@ -66,9 +66,7 @@ export function EmailDraft({
         {applicant.email ? (
           <span className="text-[11.5px] text-muted-fg">你的回信邮箱：{applicant.email}</span>
         ) : (
-          <span className="text-[11.5px] text-muted-fg">
-            简历里没读到你的邮箱 —— 建议在简历工坊补上，HR 回信才不会丢
-          </span>
+          <span className="text-[11.5px] text-muted-fg">简历里没有邮箱，建议补上，方便 HR 回信</span>
         )}
       </div>
 
@@ -95,7 +93,7 @@ export function EmailDraft({
         <Button onClick={markSent} disabled={busy}>
           {busy ? "记录中…" : "标记为已投递"}
         </Button>
-        {hasApplication ? <span className="text-[11.5px] text-muted-fg">已有投递记录（重复点击只会更新状态）</span> : null}
+        {hasApplication ? <span className="text-[11.5px] text-muted-fg">已有记录，重复点击只更新状态</span> : null}
       </div>
 
       <ul className="space-y-1 text-[12px] leading-relaxed text-muted-fg">

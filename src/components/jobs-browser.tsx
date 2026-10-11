@@ -77,7 +77,7 @@ export function JobsBrowser({ jobs }: { jobs: Job[] }) {
           onClick={() => setOnlyEmail((v) => !v)}
           aria-pressed={onlyEmail}
           className="tab"
-          title="只显示帖子里直接给了邮箱的职位 —— 这类可以直接投递"
+          title="只看帖子给了邮箱的职位"
         >
           只看可邮件投递{emailCount > 0 ? `（${emailCount}）` : ""}
         </button>
@@ -89,7 +89,7 @@ export function JobsBrowser({ jobs }: { jobs: Job[] }) {
       {filtered.length === 0 ? (
         <p className="py-10 text-center text-sm text-muted-fg">
           {jobs.length === 0
-            ? "还没有真实职位 —— 去上面「职位同步」抓一批，或用「⚡ 抓取岗位」从平台上存一个"
+            ? "还没有职位。上面可以同步公开源，或用「⚡ 抓取岗位」手动存一个。"
             : "没有匹配的职位"}
         </p>
       ) : (

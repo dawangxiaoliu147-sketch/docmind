@@ -21,7 +21,7 @@ export default async function JobImportPage() {
       <PageHeader
         eyebrow="jobs / import"
         title="抓取当前岗位"
-        subtitle="把你在招聘平台上正在看的岗位，存进自己的库并跟进投递"
+        subtitle="把招聘平台上的岗位存进职位库"
         actions={
           <Link href="/jobs" className={buttonClass({ variant: "ghost", size: "sm" })}>
             ← 返回职位库

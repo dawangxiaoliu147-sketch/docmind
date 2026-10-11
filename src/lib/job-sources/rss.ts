@@ -57,7 +57,7 @@ export const rssSource: JobSource = {
   name: "自定义 RSS/Atom 源",
   homepage: "",
   kind: "feed",
-  note: "给你自己填的 feed 用（环境变量 JOB_RSS_FEEDS，逗号分隔）。高校就业网、企业招聘博客、技术社区节点的订阅都可以放这里；没配就什么都不抓。",
+  note: "抓你填在 JOB_RSS_FEEDS 里的 feed，用逗号分隔。没填就不抓。",
   enabledByDefault: false,
   async fetch(limit: number): Promise<RawJob[]> {
     const feeds = configuredRssFeeds();

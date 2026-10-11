@@ -135,10 +135,10 @@ export function buildApplicationEmail(
   const mailtoUrl = `mailto:${to}?subject=${encodeURIComponent(subject)}`;
 
   const tips = [
-    "先把简历导出成 PDF 当附件（简历工坊右上角可导出），正文里提到的技能要和简历对得上。",
-    "正文里的技能已按岗位描述筛过 —— 只留双方都提到的，避免堆砌无关关键词。",
-    "建议用自己常用的邮箱发出，别用一次性邮箱；主题里带岗位名，HR 归档时更好找。",
-    "发出后回到这里点「标记为已投递」，之后就能在投递跟进里记录面试进度。",
+    "发之前把简历导出成 PDF，当附件。",
+    "技术栈按岗位描述筛过，只留两边都提到的。",
+    "用常用邮箱发，主题里带岗位名。",
+    "发完点「标记为已投递」，方便后面跟进。",
   ];
 
   return { to, subject, body, tips, mailtoUrl };

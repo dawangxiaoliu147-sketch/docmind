@@ -676,7 +676,7 @@ export default function UiSystemPage() {
             />
             <p className="mt-3 text-[12px] leading-relaxed text-muted-fg">
               点「⧉ 分享卡片」会按上面这组样机数据画一张 1200×675 的图。这一页是公开的，
-              所以**不用登录也能验证**它 —— 卡片的岛来自{" "}
+              所以不用登录也能验证它 —— 卡片的岛来自{" "}
               <span className="num text-fg2">buildIsland()</span>，和岛页上那座岛是同一份确定性模型；
               配色读当前的 <span className="num text-fg2">--theme-*</span> 与{" "}
               <span className="num text-fg2">data-scene</span>，所以换场景换主色它跟着变。
