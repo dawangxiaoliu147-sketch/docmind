@@ -25,6 +25,12 @@ export default async function JobsPage() {
         actions={
           <>
             <TourButton tour="jobs" />
+            <Link href="/applications" className={buttonClass({ variant: "outline", size: "sm" })}>
+              投递跟进
+            </Link>
+            <Link href="/jobs/import" className={buttonClass({ variant: "outline", size: "sm" })}>
+              ⚡ 抓取岗位
+            </Link>
             <Link href="/jobs/new" className={buttonClass({ pill: true })}>
               ＋ 添加职位
             </Link>

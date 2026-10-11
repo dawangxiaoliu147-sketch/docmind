@@ -28,6 +28,7 @@ model User {
   createdAt      DateTime        @default(now()) @map("created_at")
   updatedAt      DateTime        @updatedAt @map("updated_at")
   knowledgeBases KnowledgeBase[]
+  applications   Application[]
 
   @@index([status])
   @@map("users")
@@ -143,7 +144,43 @@ model Job {
   @@unique([source, sourceId])
   @@index([source])
   @@index([postedAt])
+  applications Application[]
   @@map("jobs")
+}
+
+/**
+ * 投递记录：把"找工作"这件事真正闭环 —— 投了哪些、到哪一步、什么时候该跟进。
+ *
+ * 与 Job/User 都声明了真实外键（ON DELETE CASCADE），删岗位或删用户都不会留孤儿记录；
+ * 这一点比 Conversation/Resume 那两个"只有 userId 列、没外键"的老表更规范。
+ * resumeId 故意不加外键：简历是可替换的产物，删简历不该把投递历史一起删掉。
+ */
+model Application {
+  id           String    @id @default(cuid())
+  userId       String    @map("user_id")
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobId        String    @map("job_id")
+  job          Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  /** 用哪份简历投的（Resume.id，可空；不加外键，见上面的说明） */
+  resumeId     String?   @map("resume_id")
+  /** 渠道：boss | zhilian | liepin | email | refer | other */
+  channel      String    @default("other")
+  /** 状态：draft 准备中 | sent 已投递 | viewed 已读 | replied 有回复 | interview 面试中 | offer 已录用 | rejected 未通过 | closed 已关闭 */
+  status       String    @default("draft")
+  appliedAt    DateTime? @map("applied_at")
+  /** 下次跟进时间（界面上按它排"今天该跟进谁"） */
+  nextFollowUp DateTime? @map("next_follow_up")
+  /** 时间线：JSON 数组字符串 [{at, from, to, note}]，够用且不必再开一张表 */
+  timeline     String    @default("[]")
+  note         String?
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  // 同一个岗位对同一个人只记一条 —— 再投就更新状态，而不是插新行
+  @@unique([userId, jobId])
+  @@index([userId, status])
+  @@index([nextFollowUp])
+  @@map("applications")
 }
 
 model Resume {
