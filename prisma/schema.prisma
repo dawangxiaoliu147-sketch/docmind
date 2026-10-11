@@ -121,6 +121,28 @@ model Job {
   requirements String[]
   createdAt    DateTime @default(now()) @map("created_at")
 
+  // ── 真实来源（2026-10-11 新增：把"假职位库"换成可溯源的真实职位）──
+  // v2ex | eleduck | csv | manual | demo（demo = 早期内置的 12 条示例，UI 默认不显示）
+  source       String    @default("manual") @map("source")
+  /** 源内唯一 id（如 V2EX 的 topic id）；(source, sourceId) 唯一 → 重复同步不会产生副本 */
+  sourceId     String?   @map("source_id")
+  /** 原帖地址，供人工核对与投递时打开 */
+  url          String?   @map("url")
+  /** 原帖发布时间（不是入库时间），用于新鲜度排序与过滤 */
+  postedAt     DateTime? @map("posted_at")
+  fetchedAt    DateTime  @default(now()) @map("fetched_at")
+  /** 投递方式：email | link | wechat | unknown（国内现实中以 email 为主） */
+  applyChannel String?   @map("apply_channel")
+  applyEmail   String?   @map("apply_email")
+  applyUrl     String?   @map("apply_url")
+  /** 其他联系方式原文（微信 / TG 等），保留原样供人工使用 */
+  contact      String?   @map("contact")
+  /** 源里已下架/失效的标记；不物理删除，保留投递历史 */
+  active       Boolean   @default(true) @map("active")
+
+  @@unique([source, sourceId])
+  @@index([source])
+  @@index([postedAt])
   @@map("jobs")
 }
 

@@ -4,6 +4,7 @@ import { requireUser } from "@/lib/dal";
 import { getAllJobs } from "@/lib/job-store";
 import { ResumeRecommend } from "@/components/resume-recommend";
 import { JobsBrowser } from "@/components/jobs-browser";
+import { JobSyncPanel } from "@/components/job-sync-panel";
 import { TourButton } from "@/components/onboarding-tour";
 import { buttonClass, PageHeader, Section, Stack } from "@/components/ui";
 
@@ -30,6 +31,11 @@ export default async function JobsPage() {
           </>
         }
       />
+
+      {/* 真实职位同步：这一块负责"把假数据换成真岗位"，放在推荐与列表之前 */}
+      <Section title="职位同步（真实数据源）" extra="公开源 · 不爬招聘平台" data-tour="jobs-sync">
+        <JobSyncPanel />
+      </Section>
 
       <div data-tour="jobs-recommend">
         <ResumeRecommend />
