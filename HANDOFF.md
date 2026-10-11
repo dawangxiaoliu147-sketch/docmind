@@ -325,6 +325,11 @@ mailto 不含长正文、提示语不含编造统计数字）。
 45. **渲染期调 `Date.now()` 会被 `react-hooks/purity` 拦下**（页面组件必须可重入）。把不纯调用收进模型层（`applications.ts` 的 `appliedLastWeek()`），页面只调它、不自己算时间窗 —— 岛页当初也是这么绕的。
 46. **别用 mock 的类型标注真实数据**。职位列表页原先用 `@/lib/jobs`（那份假数据）的 `Job` 类型标注数据库真实行，能编译但语义是错的。客户端组件里用 **`import type { Job } from "@prisma/client"`** 是安全的：类型在编译期被擦除，不会把 Prisma 打进浏览器包。
 
+47. **AI 写的 markdown 会原样显示在界面上**（2026-10-11 用户指出）。AI 生成文案时习惯写 `**加粗**`，而 JSX 里那只是纯文本，用户看到的是星号。本项目已踩 4 次：岛页成长分说明、工作台说明、知识库体检的覆盖率说明、`/ui` 的分享卡片说明。
+    - 防复发：**`pnpm check:copy`**（`scripts/check-copy.mjs`）扫 `src` 里非注释行的 markdown 残留（加粗 / 行首 `**` / markdown 链接 / `##` 标题），有问题就退出码 1。改文案后跑一次。
+    - 注意：聊天回答走 react-markdown，显示 `**` 是正确的，不在检查范围内。
+    - 同一批清掉的"AI 味"还包括：界面里的长破折号链、在 UI 里解释"为什么这么设计"（岛页那段"为什么做这个"已删）、加粗滥用。
+
 ---
 
 ## 6. 常用命令
@@ -334,8 +339,7 @@ mailto 不含长正文、提示语不含编造统计数字）。
 cd D:\harness\docmind && pnpm dev     # http://localhost:3000
 
 # 三层检查，改完必跑
-node node_modules/typescript/bin/tsc --noEmit
-node node_modules/eslint/bin/eslint.js src
+node node_modules/typescript/bin/tsc --noEmitnode node_modules/eslint/bin/eslint.js src
 npx next build                        # 会 spawn 子进程，沙箱下需提权
 
 # 部署：push → GitHub Actions 构建镜像推 GHCR → 服务器 cron 每 5 分钟 pull + up -d

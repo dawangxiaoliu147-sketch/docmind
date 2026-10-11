@@ -1,7 +1,7 @@
 #!/bin/bash
 # 等本轮构建上线：判据 = 本地镜像创建时间变了 **且** app 容器是刚起来的
 set -uo pipefail
-PREV="2026-10-11T10:02:07.033552654Z"   # 上一版（b8981af 之前那个）
+PREV="2026-10-11T10:22:04.793203618Z"   # 上一版（9c8f9e8 之前那个）
 deadline=$(( $(date +%s) + 1800 ))
 i=0
 while [ "$(date +%s)" -lt "$deadline" ]; do
