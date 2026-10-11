@@ -21,6 +21,16 @@ set -uo pipefail
 
 cd /home/admin/docmind || exit 1
 
+# ── 互斥：上一次还没跑完就跳过这一轮 ─────────────────────────────
+# 为什么必须有：这个镜像有 1.7GB，在慢网络下拉一次可能要十几分钟。
+# 而 cron 每 5 分钟起一轮 —— 没有锁的话会堆出 6 个并发 pull 互相抢带宽，
+# 结果是**谁都拉不完**（2026-10-11 实测：堆了 6 个、跑了 30 分钟、负载 4.58，镜像一直没更新）。
+exec 9>/var/lock/docmind-update.lock
+if ! flock -n 9; then
+  echo "$(date -Is) 上一轮还没结束，本轮跳过（避免并发 pull 互相抢带宽）"
+  exit 0
+fi
+
 echo "===== $(date -Is) 开始更新 ====="
 
 echo "--- [1/3] 数据库栈 ---"

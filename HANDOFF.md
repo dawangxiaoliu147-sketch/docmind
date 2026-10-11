@@ -153,6 +153,41 @@ hypot 当单轴范围用               → 粒子场比岛大一圈
 
 ## 4. 已完成
 
+### 求职闭环：真实职位 + 一键抓当前页 + 投递跟进（2026-10-11，最新）
+
+**为什么做**：原来的职位库是**假的** —— `src/lib/jobs.ts` 第一行自己写着"Mock 职位库…非真实招聘数据"，
+而匹配、推荐、模拟面试全建立在这 12 条编造数据上（生产库里还被重复灌了 **114 条**），结论没有现实价值。
+
+1. **真实职位数据源**（`lib/job-sources/`）
+   - `v2ex`：V2EX 招聘节点官方 Atom feed（公开、无需登录）。实测**一次 50 条，19 条帖子里直接给了邮箱**。
+   - `rss`：通用源，填环境变量 `JOB_RSS_FEEDS` 即可接高校就业网/企业招聘博客；不填就不抓。
+   - **有意没有** BOSS直聘/智联/猎聘/前程无忧/拉勾：它们不提供公开接口，抓取违反平台协议、有反爬与封号风险，
+     还涉及个人信息合规。要覆盖这些渠道的正确做法是「你自己在平台上操作 + 本工具记录与跟进」（见第 2 条）。
+   - `lib/job-contact.ts`（纯函数）：抽邮箱（含 `name # domain.com`、`name (at) domain (dot) com` 这类防爬写法）、
+     投递链接、微信；判定投递方式 `email > link > wechat > unknown`。
+   - `lib/job-text.ts`（纯函数）：HTML 清洗、标题去噪、地点/薪资/公司/标签推断、要求列表抽取、稳定 `hashId`。
+   - `lib/job-sync.ts` + `/api/jobs/sync`：逐源隔离同步、按 `(source, sourceId)` 去重入库、统计"可直接邮件投递"的数量。
+2. **一键抓当前页**（平台岗位进入自己的库，见 `/jobs/import`）
+   - 粘贴平台岗位页全文 → **浏览器本地解析**（解析器是纯函数，原文不经过服务器）；解析结果**全部可编辑**，
+     显示置信度与缺失字段，**不确定就留空、绝不编公司名/薪资**。
+   - 书签脚本：在岗位页点一下 → 抓当前页文本进剪贴板 → 打开本页提示 Ctrl+V。
+     只在用户点击时读取当前页，无后台请求、不登录、不批量抓取。
+   - `lib/job-paste.ts`：平台识别（boss/zhilian/liepin/51job/lagou）、书签信封解析、稳定 `sourceId`（重复导入不产生副本）。
+3. **投递跟进**（`/applications`，把"找工作"闭环）
+   - `Application` 模型：`channel` / `status`（8 态漏斗）/ `appliedAt` / `nextFollowUp` / `timeline`(JSON) / `note`；
+     与 `users`、`jobs` 都建**真实外键**（ON DELETE CASCADE），比 `Conversation`/`Resume` 那两个"只有 userId 列没外键"的老表更规范。
+   - 看板：四个指标 + 待跟进区（已跟进/顺延 3 天）+ 按状态分组 + 即时改状态（失败回滚，不让界面骗人）。
+   - 职位详情页「投递跟进」面板：标记已投递、改状态、备注、跟进时间、时间线。
+   - **平台侧的点提交仍由用户完成**，本工具只记录与提醒 —— 这样既不碰平台账号，也不会因自动化投递把号搭进去。
+
+**怎么验的**：`tsc --noEmit` + `eslint` + `next build` 全过（新页面/新路由都在构建产物里）；
+**37 项**源解析断言（含用真代码抓真源的端到端实测：50 条真实岗位/19 条可邮件投递）+
+**33 项**粘贴解析与状态机断言（BOSS/智联/书签信封三种夹具、"信息缺失时不编造"、去重键、脏 JSON 容错）。
+断言一共抓出并修掉 5 个真 bug：多级 TLD 被截断（`com.cn`→`com`）、公司名吞掉后续字段、
+把"公司规模 300 人"误当薪资、标题里 `&amp;` 未解码、漏掉「1.5-2.5万」这种带小数的万位薪资。
+
+**未做**：邮件投递链路（SMTP 真发 + IMAP 收回信自动改状态）—— 需要用户提供发信邮箱与 SMTP 授权码。
+
 ### 本轮新增（代码完成，尚未推送）
 
 **A. 快捷键体系 + `?` 面板**
@@ -265,6 +300,20 @@ hypot 当单轴范围用               → 粒子场比岛大一圈
 37. **从服务器本机连自己的公网 IP，证明不了外网状态**：源地址会被 NAT 成内网地址，被"只允许环回"的规则挡住，看起来"封住了"，而外网未必。
 38. **容器名可能带序号后缀**（`docmind-app-1` 而不是 `docmind-app`）：写脚本按名字找容器时要 `grep -E '^docmind-app(-[0-9]+)?$'`，否则匹配不到、静默走兜底分支。
 
+39. **cron 拉镜像必须加互斥锁**（2026-10-11 实测，最严重的一条）。`update.sh` 每 5 分钟跑一轮，而应用镜像是 **1.7GB** —— 没有锁时会堆出 **6 个并发 `docker compose pull` 互相抢带宽**：跑了 30 分钟一个都没拉完（负载 4.58），镜像始终是旧的，现象是"推送了、CI 也绿了，但线上一直没更新"。修复：在 `update.sh` 开头加
+    ```bash
+    exec 9>/var/lock/docmind-update.lock
+    flock -n 9 || { echo "上一轮还没跑完，跳过"; exit 0; }
+    ```
+    排查手段：`pgrep -fc "compose -f deploy/03-app"` 数并发、`ps -eo pid,etime,cmd | grep [c]ompose` 看有没有跑了几十分钟的僵尸轮次。
+40. **中断 `docker pull` 会留下 containerd 陈旧 lease**。杀掉并发 pull 后重拉会报 `failed commit on ref "manifest-sha256:…": lease does not exist`，而且 **pull 会"4 秒内成功"却什么都没装上**（内容库已有层，但 manifest 提交失败）。修复顺序：`systemctl restart docker` → 等 `docker info` 可用 → 重拉（实测 77 秒完成）。应用有 `restart: unless-stopped`，重启守护进程会自己回来，不必手动 `up`。
+41. **Prisma 7 的 `migrate diff` 选项与旧版本不一样**：没有 `--shadow-database-url`，也没有 `--from-schema-datamodel`。生成迁移 SQL 的正确姿势是 **`migrate diff --from-config-datasource --to-schema prisma/schema.prisma --script`**（拿"当前库"跟"目标 schema"比，输出追加式 SQL，**不写库**）；校验库与 schema 是否一致用 `… --exit-code`（`0` = 一致，`2` = 有差异）。
+42. **`prisma generate` 在沙箱里会失败**（要写 `node_modules` + spawn schema-engine）：输出只是一个孤零零的 `Error:`，容易看漏。**不重新生成，TS 就看不到新模型/新字段**（`prisma.application` 不存在）。必须提权跑一次，并确认出现 `✔ Generated Prisma Client`。
+43. **`tsc --noEmit` 会被沙箱的写权限拦下**：报 `TS5033: Could not write file '…tsconfig.tsbuildinfo': EPERM`，看着像类型错误其实是**写增量缓存失败**。加 `--incremental false` 就跑得过（实测退出码 0）。
+44. **带 `import "server-only"` 的模块不能给客户端组件提供常量**。投递状态/渠道的标签一度想从 `lib/applications.ts` 导入，客户端组件会直接报错。拆法：常量与纯函数放纯模块（`lib/application-status.ts`），server-only 那边只留 Prisma 操作并复用同一份常量。
+45. **渲染期调 `Date.now()` 会被 `react-hooks/purity` 拦下**（页面组件必须可重入）。把不纯调用收进模型层（`applications.ts` 的 `appliedLastWeek()`），页面只调它、不自己算时间窗 —— 岛页当初也是这么绕的。
+46. **别用 mock 的类型标注真实数据**。职位列表页原先用 `@/lib/jobs`（那份假数据）的 `Job` 类型标注数据库真实行，能编译但语义是错的。客户端组件里用 **`import type { Job } from "@prisma/client"`** 是安全的：类型在编译期被擦除，不会把 Prisma 打进浏览器包。
+
 ---
 
 ## 6. 常用命令
@@ -366,3 +415,17 @@ node -e "fetch('http://39.105.158.60:3000/ui').then(r=>r.text()).then(t=>console
     坑 33（健康检查 localhost 走 IPv6 → 连续 17 万次误报 unhealthy）、坑 34（封 Docker 端口要两条链）。
   - **未核实**：外网是否真的连不上 5432/3000（需要别的机器验证）；`ufw` 仍 inactive（有意为之，避免把自己关在门外）。
   - 2026-09-20 那句"更正"已在上一条被再次纠正 —— 教训是：**查了 CI 不等于查了部署**。
+- 2026-10-11 **真实职位数据源上线**（`fa6a234`，22 文件 +1500/−92）
+  - Job 加 `source`/`sourceId`/`url`/`postedAt`/`fetchedAt`/`applyChannel`/`applyEmail`/`applyUrl`/`contact`/`active`
+    + `(source, sourceId)` 唯一约束（迁移 `20261011170000_real_job_sources`，追加式）；
+    迁移 `20261011171500_mark_demo_jobs` 把早期 12 条示例标记成 `source='demo'`（UI 默认不显示）。
+  - **生产库里实际有 114 条假职位**（自动灌种子的逻辑在某些时序下重复执行）—— 现已全部标记为 `demo` 并隐藏，
+    页面上有「清除示例职位」按钮可一次性删掉。
+  - 线上核验：镜像构建于当天、`/api/jobs/sync` → 401（新接口在）、jobs 表新列数 3。
+- 2026-10-11 **求职闭环 A+C 上线**（`543ee9a`，17 文件 +1482）：平台岗位「一键抓当前页」+ 投递跟进看板。
+  迁移 `20261011173000_add_applications`（新增 `applications` 表，与 users/jobs 建真实外键）。
+- 2026-10-11 **部署事故与修复（务必看坑 39/40）**：推送后线上一直是旧版本，查出
+  `update.sh` 每 5 分钟起一轮 pull、而镜像 1.7GB，**堆了 6 个并发 pull 互相抢带宽，30 分钟一个都没拉完**（负载 4.58）。
+  修法：给 `update.sh` 加 `flock` 互斥；清理中断留下的 containerd 陈旧 lease 用 `systemctl restart docker`。
+  **期间站点一直是好的**（旧版本在正常服务），不是宕机而是"没更新"。
+
