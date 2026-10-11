@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, Button, Chip, Skeleton } from "@/components/ui";
+import { jobSourceLabel } from "@/lib/job-labels";
 
 type SourceInfo = {
   id: string;
@@ -121,6 +122,8 @@ export function JobSyncPanel() {
   const totalEmail = real.reduce((n, s) => n + s.email, 0);
   const demo = stats.find((s) => s.source === "demo");
   const statOf = (id: string) => stats.find((s) => s.source === id);
+  // 不是注册源的那些 = 用户自己抓取/导入的（平台岗位、CSV、手动添加）
+  const imported = real.filter((s) => !sources.some((x) => x.id === s.source));
 
   return (
     <div className="space-y-4">
@@ -198,6 +201,19 @@ export function JobSyncPanel() {
           })}
         </div>
       )}
+
+      {imported.length > 0 ? (
+        <div className="rounded-lg border border-border bg-surface px-4 py-3">
+          <p className="text-[13px] font-semibold text-fg">你自己抓取 / 导入的岗位</p>
+          <p className="mt-1 text-[12px] leading-relaxed text-muted-fg">
+            {imported
+              .map((s) => `${jobSourceLabel(s.source)} ${s.total} 条（可邮件投递 ${s.email}）`)
+              .join(" · ")}
+            {" —— "}
+            这些来自「⚡ 抓取岗位」或 CSV 导入，不在上面这些公开源里。
+          </p>
+        </div>
+      ) : null}
 
       {results && results.length > 0 ? (
         <div className="rounded-lg border border-border bg-surface px-4 py-3">

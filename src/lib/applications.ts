@@ -49,6 +49,15 @@ export async function dueFollowUps(userId: string, now = new Date()) {
   });
 }
 
+/** 只数数量（控制台用，不必把整行查出来） */
+export async function dueFollowUpCount(userId: string, now = new Date()) {
+  return prisma.application.count({ where: { userId, nextFollowUp: { not: null, lte: now } } });
+}
+
+export async function applicationCount(userId: string) {
+  return prisma.application.count({ where: { userId } });
+}
+
 /** 记录/更新一条投递（同一岗位只留一条；重复"投递"其实是更新状态） */
 export async function saveApplication(
   userId: string,

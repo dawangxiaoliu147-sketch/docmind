@@ -1,25 +1,20 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/dal";
+import { prisma } from "@/lib/db";
 import { getJob } from "@/lib/job-store";
 import { getApplicationForJob } from "@/lib/applications";
 import type { Channel } from "@/lib/application-status";
+import { extractApplicant } from "@/lib/job-email";
+import { jobSourceLabel } from "@/lib/job-labels";
 import { ResumeMatch } from "@/components/resume-match";
 import { JobInterview } from "@/components/job-interview";
 import { CopyText } from "@/components/copy-text";
 import { ApplicationPanel } from "@/components/application-panel";
+import { EmailDraft } from "@/components/email-draft";
 import { TourButton } from "@/components/onboarding-tour";
 import type { ChipTone } from "@/components/ui";
 import { buttonClass, Chip, PageHeader, Panel, Stack } from "@/components/ui";
-
-const SOURCE_LABEL: Record<string, string> = {
-  v2ex: "V2EX 招聘节点",
-  eleduck: "电鸭社区",
-  rss: "自定义 RSS 源",
-  csv: "CSV 导入",
-  manual: "手动添加",
-  demo: "内置示例（假数据）",
-};
 
 const CHANNEL: Record<string, { text: string; tone: ChipTone; hint: string }> = {
   email: { text: "可邮件投递", tone: "success", hint: "帖子里直接给了邮箱，这是最可自动化、也最合规的渠道。" },
@@ -60,6 +55,16 @@ export default async function JobDetailPage({
     ? `mailto:${email}?subject=${encodeURIComponent(`应聘：${job.title}`)}`
     : null;
 
+  // 邮件投递助手：用最新一份简历生成主题与正文（没有简历就用账号名兜底）
+  const resume = email
+    ? await prisma.resume.findFirst({
+        where: { userId: user.id },
+        orderBy: { updatedAt: "desc" },
+        select: { title: true, html: true },
+      })
+    : null;
+  const applicant = email ? extractApplicant(resume?.html ?? null, user.name) : null;
+
   return (
     <Stack>
       <PageHeader
@@ -93,7 +98,7 @@ export default async function JobDetailPage({
           <div>
             <h2 className="text-sm font-semibold text-fg">怎么投递</h2>
             <p className="mt-1 text-[12.5px] text-muted-fg">
-              来源：{SOURCE_LABEL[job.source] ?? job.source}
+              来源：{jobSourceLabel(job.source)}
               {job.postedAt ? ` · 原帖发布于 ${shanghai(job.postedAt)}` : ""}
             </p>
           </div>
@@ -156,6 +161,35 @@ export default async function JobDetailPage({
           本工具不代替你发信、也不登录任何招聘平台。
         </p>
       </Panel>
+
+      {/* 邮件投递助手：无需交出邮箱授权码也能把"投递"走完 */}
+      {email && applicant ? (
+        <Panel className="p-6">
+          <h2 className="text-sm font-semibold text-fg">邮件投递助手</h2>
+          <p className="mt-1 text-[12.5px] leading-relaxed text-muted-fg">
+            这条链路<strong className="text-fg2">不需要你把邮箱授权码交出来</strong>：这里按岗位和你的简历生成主题与正文（都可以改），
+            你在自己的邮箱里粘贴发送即可。
+            {resume ? ` 使用的简历：${resume.title}` : " 还没有简历，建议先去简历工坊建一份。"}
+          </p>
+          <div className="mt-4">
+            <EmailDraft
+              jobId={job.id}
+              job={{
+                title: job.title,
+                company: job.company,
+                location: job.location,
+                salary: job.salary,
+                description: job.description,
+                applyEmail: email,
+                source: job.source,
+                url: job.url,
+              }}
+              applicant={applicant}
+              hasApplication={!!application}
+            />
+          </div>
+        </Panel>
+      ) : null}
 
       {/* 投递跟进：平台上的提交由你自己点，这里负责记录状态、提醒跟进 */}
       <Panel className="p-6">

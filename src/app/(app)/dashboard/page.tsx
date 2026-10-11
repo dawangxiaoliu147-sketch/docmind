@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/dal";
 import { prisma } from "@/lib/db";
+import { applicationCount, dueFollowUpCount } from "@/lib/applications";
 import { createKnowledgeBase, deleteKnowledgeBase } from "@/lib/actions/kb";
 import { KbCover } from "@/components/kb-cover";
 import { GlobalSearch } from "@/components/global-search";
@@ -38,24 +39,28 @@ const FEATURES = [
 export default async function DashboardPage() {
   const user = await requireUser();
 
-  const [kbs, docCount, chunkCount, convCount, resumeCount, jobCount, recent] = await Promise.all([
-    prisma.knowledgeBase.findMany({
-      where: { userId: user.id },
-      include: { _count: { select: { documents: true } } },
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.document.count({ where: { kb: { userId: user.id } } }),
-    prisma.chunk.count({ where: { document: { kb: { userId: user.id } } } }),
-    prisma.conversation.count({ where: { userId: user.id } }),
-    prisma.resume.count({ where: { userId: user.id } }),
-    prisma.job.count(),
-    prisma.conversation.findMany({
-      where: { userId: user.id },
-      orderBy: { createdAt: "desc" },
-      take: 30,
-      select: { createdAt: true },
-    }),
-  ]);
+  const [kbs, docCount, chunkCount, convCount, resumeCount, jobCount, recent, appCount, dueCount] =
+    await Promise.all([
+      prisma.knowledgeBase.findMany({
+        where: { userId: user.id },
+        include: { _count: { select: { documents: true } } },
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.document.count({ where: { kb: { userId: user.id } } }),
+      prisma.chunk.count({ where: { document: { kb: { userId: user.id } } } }),
+      prisma.conversation.count({ where: { userId: user.id } }),
+      prisma.resume.count({ where: { userId: user.id } }),
+      prisma.job.count(),
+      prisma.conversation.findMany({
+        where: { userId: user.id },
+        orderBy: { createdAt: "desc" },
+        take: 30,
+        select: { createdAt: true },
+      }),
+      // 求职：投递数与待跟进数（计数助手把 Date 的不纯调用收在模型层）
+      applicationCount(user.id),
+      dueFollowUpCount(user.id),
+    ]);
 
   // 最近 7 天活跃几天 → 岛的天气（不纯调用放在模型层）
   const activeDays = activeDaysFrom(recent.map((r) => r.createdAt));
@@ -102,6 +107,33 @@ export default async function DashboardPage() {
           </Link>
         </div>
         <KnowledgeIsland stats={islandStats} compact />
+      </Panel>
+
+      {/* 求职：投递跟进入口 */}
+      <Panel className="p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="ui-section-title">投递跟进</p>
+            <p className="mt-1 text-[12.5px] leading-relaxed text-muted-fg">
+              {appCount === 0
+                ? "还没有投递记录 —— 在职位详情页点「标记为已投递」或「记录投递」就开始跟踪了"
+                : `已投 ${appCount} 个岗位${
+                    dueCount > 0 ? `，其中 ${dueCount} 个到了该跟进的时间` : "，目前没有待跟进"
+                  }`}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/jobs" className={buttonClass({ variant: "outline", size: "sm" })}>
+              职位库
+            </Link>
+            <Link
+              href="/applications"
+              className={buttonClass({ size: "sm", variant: dueCount > 0 ? "primary" : "secondary" })}
+            >
+              {dueCount > 0 ? `去跟进（${dueCount}）` : "投递看板"}
+            </Link>
+          </div>
+        </div>
       </Panel>
 
       {/* 功能总览 */}
