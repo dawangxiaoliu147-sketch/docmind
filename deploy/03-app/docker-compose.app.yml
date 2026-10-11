@@ -1,0 +1,91 @@
+# ============================================================
+# DocMind · 应用栈（Next.js）—— 与数据库栈**完全分开**
+#
+# 和数据库的关系：只通过外部网络 `docmind_net` 相连，用网络别名 `db` 找数据库。
+# 两个栈各自 `up -d` / 各自重启，互不牵连。
+#
+# 相对原来的单文件 docker-compose.yml 改了三点：
+#   1) 删掉 db 服务（它搬到 ../01-db/ 了）
+#   2) 端口从 `3000:3000` 改成 `127.0.0.1:3000:3000` —— 只绑环回，公网进不来，
+#      只有本机 nginx 能反代到它（这是"网络配置"接手边界的地方）
+#   3) 接上外部网络 docmind_net，并复用现有数据卷
+#
+# 用法（在 deploy/03-app/ 目录下）：
+#   docker compose -f docker-compose.app.yml up -d --build
+# ============================================================
+
+name: docmind-app
+
+# 两个服务共用同一份构建配置：compose 只会构建一次镜像
+x-app: &app
+  # 服务器上**不本地构建**，直接拉 GitHub Actions 构建好的镜像：
+  #   push → .github/workflows/deploy.yml 构建 → ghcr.io/<repo>:latest
+  #   → 服务器 cron（/home/admin/update.sh，每 5 分钟）pull + up -d
+  # 为什么不在服务器上构建：这台机器只有 1.6G 内存，`next build` 很容易被 OOM 杀掉。
+  image: ghcr.io/dawangxiaoliu147-sketch/docmind:${DOCMIND_TAG:-latest}
+  # 想临时改成服务器本地构建（比如还没推代码），把上面 image 换成：
+  # build:
+  #   context: ${DOCMIND_ROOT:-../..}
+  #   dockerfile: Dockerfile
+  env_file:
+    # 应用的全部密钥与开关（AUTH_SECRET / AI_API_KEY / 嵌入模型…）
+    # ⚠️ 仓库根目录那份 .env；它不进 git，也**不会**被打进镜像
+    - ${DOCMIND_ROOT:-../..}/.env
+  environment:
+    # 容器里必须走 Docker 网络的服务名：`db`，不是宿主机上的 localhost。
+    # 数据库所在网络的别名就是 db，所以这行和改造前一模一样。
+    # 密码只在这里出现一次：改密码时设 POSTGRES_PASSWORD 环境变量即可。
+    DATABASE_URL: "postgresql://docmind:${POSTGRES_PASSWORD:-docmind}@db:5432/docmind?schema=public"
+  networks:
+    - docmind_net
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+services:
+  # 一次性迁移任务：跑 prisma migrate deploy（入口脚本内置 30×2s 重试等库就绪）
+  migrate:
+    <<: *app
+    container_name: docmind-migrate
+    command: ["migrate"]
+    restart: "no"
+
+  app:
+    <<: *app
+    container_name: docmind-app
+    command: ["server"]
+    restart: unless-stopped
+    ports:
+      # 只绑环回地址。公网无法直连 3000；nginx 在本机反代到 127.0.0.1:3000。
+      # 如果以后改成 nginx 也用容器跑，这里干脆整段删掉，让它只在 Docker 网络里可见。
+      - "127.0.0.1:3000:3000"
+    volumes:
+      # 用户上传的图片（头像/封面/背景图），复用现有卷，别新建
+      - uploads:/app/public/uploads
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      # ⚠️ 必须写 127.0.0.1，不能写 localhost：
+      #    容器内 /etc/hosts 里 localhost 同时指向 ::1，而 Next 只监听 IPv4，
+      #    `wget http://localhost:3000` 会走 IPv6 被拒 → 健康检查永远失败。
+      #    （线上实测：这个写法让 app 连续 unhealthy 17 万次，而应用本身一直是好的。）
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/api/health >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+networks:
+  docmind_net:
+    # 由数据库栈创建，这里只是接进来 —— 所以是 external，不能由本文件创建/删除
+    external: true
+    name: docmind_net
+
+volumes:
+  uploads:
+    # ⚠️ 填 recon 采到的真实 uploads 卷名（docker volume ls 里的 uploads 那条）
+    external: true
+    name: <FILL_ME_uploads 卷名>

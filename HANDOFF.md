@@ -2,14 +2,26 @@
 
 给下一个会话（或下一个人）看的接续说明。**先读第 0 节，再动代码。**
 
-- 最后核实：2026-09-20（本轮交付三个特性：快捷键体系 / 知识库体检 / 分享卡片）
+- 最后核实：2026-10-11（生产环境完成数据库独立 + 网络配置改造；详见 §0 与 `deploy/README.md`）
 - 标注约定：**【已核实】**＝逐条实测过，可当事实用；**【未核实】**＝仍是假设，别当结论；**【已过期】**＝别再照做
 
 ---
 
 ## 0. 现在该做什么（30 秒版）
 
-**上一轮交付了三个特性**（快捷键体系 / 知识库体检 / 知行岛分享卡片）。代码已完成并本地提交，**推送与否见 §8 变更记录**。
+**2026-10-11：生产环境已完成「数据库独立 + 网络配置」改造**（细节见 §4 与 `deploy/README.md`）。
+
+- 改造前：数据库与应用同一个 compose，**5432 发布在公网**（密码 `docmind/docmind`）；应用 `0.0.0.0:3000` 明文直连；
+  没有 nginx；`ufw` 从未启用；app 健康检查连续失败 17 万次（是**检查本身的 bug**，不是应用故障 —— 见坑 33）。
+- 改造后：数据库栈**不发布任何端口**；应用只在 `127.0.0.1:3000`；nginx 反代 80；两栈各自独立；
+  `update.sh` 已改为驱动两个新栈。数据逐项对账一致（10 用户 / 3 库 / 5 文档 / 38 片段）。
+- **访问地址变了**：`http://39.105.158.60:3000` → **`http://39.105.158.60/`**（走 nginx 80）。旧地址已关闭。
+- 【未核实】外网是否真的连不上 5432/3000：本沙箱的 TCP 探测**不可信**（坑 32），需在别的机器上确认。
+- 下一步建议：配域名 + Let's Encrypt（之后再把 `COOKIE_SECURE=true`），见 `deploy/README.md` §5。
+
+---
+
+**上一轮（2026-09-20）交付了三个特性**（快捷键体系 / 知识库体检 / 知行岛分享卡片），已随镜像自动上线。
 
 - 【已核实】三个特性都过了 `tsc` + `eslint`；纯逻辑与绘制逻辑另有 **34 + 53 项 node 断言**（手法见 §6）。
 - 【已核实】体检报告的数字与真实数据库**逐项对账**通过；`/api/kb/<id>/health` 在 dev server 上返回 401（路由已被接管、鉴权生效，不是 404）。
@@ -36,12 +48,15 @@
 - 技术栈：Next.js 16.3.3（Turbopack）+ React 19 + Tailwind v4 + Prisma 7 + pgvector
 - 目录：`D:\harness\docmind`
 - 远端：`https://github.com/dawangxiaoliu147-sketch/docmind.git`，分支 `main`
-- 部署：**自己的服务器 + Docker**（`http://39.105.158.60:3000`）
-- ⚠️ **push 不会自动发布**【已核实 2026-09-20】：`.github/workflows/deploy.yml` **只做「构建镜像 + 推送到 GHCR」**，
-  没有任何部署步骤（`ci.yml` 同理）。**Actions 成功 ≠ 线上更新。**
-  真正的发布要在**服务器上**执行 `git pull && docker compose up -d --build`（`scripts/deploy-ubuntu.sh:39` 干的就是这个）。
-  **这条解释了历史上「推了但界面没变」** —— 不是浏览器缓存，是根本没发布；发布后怎么确认见 §6。
-  （我先前的记载"push 后平台自动构建镜像并发布（约 4 分钟）"是**错的**，2026-09-20 用 GitHub API 查 workflow 内容与运行结论后更正。）
+- 部署：自己的**阿里云 ECS** + Docker（Ubuntu 24.04，`root@39.105.158.60`，主机名 `iZ2ze96etl10gbtlge7p0xZ`）
+  - **代码位置**：`/home/admin/docmind`（是 git 仓库，但**停在 `349b028`（2026-09-01），从不 `git pull`**）
+  - **自动上线机制**【已核实 2026-10-11】：`.github/workflows/deploy.yml` 把镜像推到
+    `ghcr.io/dawangxiaoliu147-sketch/docmind:latest`；服务器上 root cron
+    `*/5 * * * * /home/admin/update.sh` 每 5 分钟执行 `docker compose pull && up -d`。
+    → **push 后约 5~8 分钟自动上线**（CI 构建 + 下一轮 cron）。
+    ⚠️ 但它**只换镜像**：compose / `.env` / nginx 是服务器上的静态文件，改了要手动同步。
+  - **纠正一条我先前的错误记载**：2026-09-20 我写过"push 不会自动发布"——那只看了 workflow 内容、
+    没看服务器 cron，结论是错的。真相是**镜像确实会自动上线**；需要手动的只是 compose/env 层。
 
 **协作约定（很重要）**：一次改一处 → 改完**实测**（截图/量数据）→ 不留未验证的东西。这个项目的历史上，没实测的改动几乎都翻过车。
 
@@ -241,6 +256,15 @@ hypot 当单轴范围用               → 粒子场比岛大一圈
 30. **本地有两个 docmind，别测错**。`localhost:3000` 是 Docker 里跑的**旧镜像**（`/api/health` 返回 `service:"docmind"`、`/ui` 404），dev server 在 `localhost:3001`（返回 `"知行"`）。判断依据就是 **`/api/health` 的 `service` 字段**。3000 端口被 Docker 长期占着，所以 `pnpm dev` 会自动选 3001 —— 看地址栏时先确认端口。
 31. **沙箱里 `git push` / `next build` 都要一次性提权**。`git push` 会报 `schannel: AcquireCredentialsHandle failed: SEC_E_NO_CREDENTIALS`（git 走 Windows 凭证库，被沙箱拒绝，和 Docker 命名管道、Chrome Mojo 同一类）；`next build` 报 `spawn EPERM`（TypeScript 阶段要 spawn 子进程）。**两者都是 `danger-full-access` 提权重试同一条命令即可**（已验证：提权后构建 37/37 页通过，推送 `cf9a3d4..962a033` 成功）。别把它们误判成代码问题。
 
+### 远程运维 / 生产（2026-10-11 新增）
+32. **沙箱里做 TCP 端口探测是不可信的**。这台沙箱出去的连接会让**每一个**端口都"连得上" —— 实测对照组（端口 `9` / `12345`，必然关闭）**也报 "open"**。所以"能连上 ≠ 端口开着"。**探测必须带对照组**；判断外网可达性只能在**另一台机器**上做，或看服务器自身的 `docker port` / `ss -tlnp`。（HTTP 探测是准的：能拿到真实状态码与响应体。）
+33. **容器内 `localhost` 会走 IPv6，而 Next 只监听 IPv4** → `wget http://localhost:3000` 被拒，健康检查永远失败（线上连续 unhealthy **17 万次**，而应用本身一直是好的）。健康检查里一律写 `127.0.0.1`。
+34. **封 Docker 发布的端口，INPUT 与 DOCKER-USER 两条链都要加**：走用户态 `docker-proxy` 时连接由 host 进程接手，只经过 INPUT；走 DNAT 转发时只经过 FORWARD/DOCKER-USER；较新的 Docker（29.x + nftables 后端）甚至可能两条传统链都不受约束。**别把 iptables 当唯一防线 —— 根治是让容器根本不发布端口。**
+35. **PowerShell 会把远程命令里的双引号吃掉**（`docker inspect --format '{{index .Labels "x"}}'` 报 `function "x" not defined`；`tail` 会跑到本地执行）。**一律"写脚本 → scp → bash 脚本"**，不要内联复杂命令。中文脚本更不能走 stdin 管道（会被按 GBK 重编码并塞进 BOM，直接把脚本搞坏，报 `syntax error near unexpected token`）。
+36. **`cp -n` 在较新 coreutils 上会打警告**（`behavior of -n is non-portable`），会被 PowerShell 当成错误、污染自动化输出。改用 `[ -f x ] || cp a x`。
+37. **从服务器本机连自己的公网 IP，证明不了外网状态**：源地址会被 NAT 成内网地址，被"只允许环回"的规则挡住，看起来"封住了"，而外网未必。
+38. **容器名可能带序号后缀**（`docmind-app-1` 而不是 `docmind-app`）：写脚本按名字找容器时要 `grep -E '^docmind-app(-[0-9]+)?$'`，否则匹配不到、静默走兜底分支。
+
 ---
 
 ## 6. 常用命令
@@ -254,12 +278,14 @@ node node_modules/typescript/bin/tsc --noEmit
 node node_modules/eslint/bin/eslint.js src
 npx next build                        # 会 spawn 子进程，沙箱下需提权
 
-# 部署
-git push                              # 平台自动构建 Docker 镜像并发布（约 4 分钟）
+# 部署：push → GitHub Actions 构建镜像推 GHCR → 服务器 cron 每 5 分钟 pull + up -d
+#       （约 5~8 分钟自动上线；只换镜像，compose / .env / nginx 要手动同步）
+git push
+ssh root@39.105.158.60 'tail -20 /home/admin/update.log'    # 看有没有拉下来
 
-# 线上只读核查（不需要登录）
-curl.exe -s http://39.105.158.60:3000/api/health
-node -e "fetch('http://39.105.158.60:3000/api/health').then(r=>r.text()).then(console.log)"
+# 线上只读核查（改造后走 nginx 80；旧的 :3000 已关闭）
+curl.exe -s http://39.105.158.60/api/health
+node -e "fetch('http://39.105.158.60/api/health').then(r=>r.text()).then(console.log)"
 git rev-list --left-right --count origin/main...HEAD   # 0 0 = 已全部推送
 ```
 
@@ -327,4 +353,16 @@ node -e "fetch('http://39.105.158.60:3000/ui').then(r=>r.text()).then(t=>console
 - 2026-09-20 环境澄清（坑 30）：`localhost:3000` 是 Docker 旧镜像、dev server 在 `localhost:3001`；本地库只有 2 个用户，唯一知识库属于 gmail 账号。
 - 2026-09-20 **已推送 `962a033`**（`cf9a3d4..962a033`）：三个特性上线。沙箱里 `git push` 报 `SEC_E_NO_CREDENTIALS`，提权后成功（坑 31）。
 - 2026-09-20 **本文件这两条改动尚未推送** —— 纯 markdown 单独推会多触发一次容器重建，按本文件自己的建议留给下一次代码推送。（`*.md` 在 `.dockerignore` 里，不影响镜像。）
-- 2026-09-20 ⚠️ **更正一条长期错误记载**：`push` 并不会自动发布。查 GitHub API 确认 `deploy.yml` 只构建镜像推 GHCR（run #53 success），服务器端没有任何自动拉取。**发布必须手动在服务器 `git pull && docker compose up -d --build`**。这条解释了「推了但界面没变」的历史困扰。
+- 2026-09-20 **更正记录本身也是错的，2026-10-11 再纠正**：那天我写"`push` 并不会自动发布"，依据只是
+  `.github/workflows/deploy.yml` 里没有部署步骤（run #53 success）。但我没看服务器 —— 上面还有一个
+  root cron `*/5 * * * * /home/admin/update.sh` 在 `docker compose pull && up -d`。
+  **真相：镜像会自动上线（约 5~8 分钟）；只有 compose/.env/nginx 这些静态文件需要手动同步。**
+- 2026-10-11 **生产环境改造：数据库独立 + 网络配置**（`deploy/` 全套，服务器上已执行完毕）
+  - 做了什么：数据库从应用同一个 compose 里拆出来（**不再发布 5432**）、应用改为只绑 `127.0.0.1:3000`、
+    装 nginx 反代 80、`update.sh` 改为驱动两个新栈、修掉 app 健康检查的 IPv6 bug。
+  - 怎么验的：服务器端 `deploy/99-verify.sh` **22 项全 PASS**（含行数与备份清单逐项对照：10/3/5/38）；
+    外网 HTTP 实测 `http://39.105.158.60/api/health` → 200、首页 → 200（92546 字节）。
+  - **过程中发现并修掉的三个坑**：坑 32（沙箱 TCP 探测不可信，我一开始据此误判"封堵无效"）、
+    坑 33（健康检查 localhost 走 IPv6 → 连续 17 万次误报 unhealthy）、坑 34（封 Docker 端口要两条链）。
+  - **未核实**：外网是否真的连不上 5432/3000（需要别的机器验证）；`ufw` 仍 inactive（有意为之，避免把自己关在门外）。
+  - 2026-09-20 那句"更正"已在上一条被再次纠正 —— 教训是：**查了 CI 不等于查了部署**。

@@ -1,0 +1,83 @@
+# ============================================================
+# DocMind · 独立的数据库栈（PostgreSQL 16 + pgvector）
+#
+# 设计要点：
+#   1) **不发布任何端口** —— 公网、宿主机都连不到，只有同一个 Docker 网络里的
+#      应用容器能连。这是把 5432 从公网收回来的根治办法（止血见 ../00-urgent-block-5432.sh）。
+#   2) 网络名字写死 `docmind_net`，应用栈以 external 方式接进来 —— 两个栈彻底解耦，
+#      可以各自单独重启、升级、备份。
+#   3) 网络别名 `db`：应用里的 DATABASE_URL 仍是 `...@db:5432/...`，**一个字都不用改**。
+#   4) 数据卷用 external 指向**现有卷**，不新建 —— 否则新容器挂到空卷上，界面看就是数据没了。
+#
+# 用法（在 deploy/01-db/ 目录下）：
+#   docker compose -f docker-compose.db.yml up -d
+#   docker compose -f docker-compose.db.yml ps
+# ============================================================
+
+name: docmind-db
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: docmind-db
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: docmind
+      # ⚠️ 已有数据卷时这个变量**不生效**：密码是 initdb 那一刻定下的。
+      #    要改密码必须 ALTER USER（见 ../README.md 的「加固」一节），不是改这里。
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-docmind}
+      POSTGRES_DB: docmind
+
+    # ⚠️ 故意没有 ports: —— 数据库不对外发布端口。维护用：
+    #    docker exec -it docmind-db psql -U docmind -d docmind
+    # 如果你确实需要宿主机访问（比如用 pgAdmin 连），改成只绑环回：
+    #    ports: ["127.0.0.1:5432:5432"]
+
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # 首次初始化时启用 pgvector（幂等）。已有数据时不会重跑 —— 扩展早就装好了。
+      # 指向仓库里那份原始脚本，避免两处维护。
+      # 默认 `../..` 假设 deploy/ 在仓库里；放别处就 export DOCMIND_ROOT=<仓库目录>
+      - ${DOCMIND_ROOT:-../..}/docker/init:/docker-entrypoint-initdb.d:ro
+
+    networks:
+      docmind_net:
+        aliases:
+          - db
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U docmind -d docmind"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+    # 小内存机器（2C4G 之类）别让 PG 把内存吃光；按机器规格调
+    command:
+      - postgres
+      - -c
+      - max_connections=100
+      - -c
+      - shared_buffers=256MB
+      - -c
+      - effective_cache_size=768MB
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  docmind_net:
+    name: docmind_net          # 固定名字：应用栈要把它当 external 接进来
+    driver: bridge
+
+volumes:
+  pgdata:
+    # ⚠️⚠️ 必须填 recon 采到的**真实卷名**（docker volume ls 里的 pgdata 那条），
+    #       形如 docmind_pgdata / docmind-db_pgdata / 项目目录名_pgdata。
+    #       填错的后果：新容器挂到一个空卷上，看起来像"数据全丢了"（旧卷还在，别慌，改回来即可）。
+    external: true
+    name: <FILL_ME_pgdata 卷名>

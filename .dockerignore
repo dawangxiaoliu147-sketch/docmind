@@ -18,6 +18,7 @@ build
 Dockerfile
 .dockerignore
 docker-compose.yml
+deploy
 k8s
 scripts
 nginx
