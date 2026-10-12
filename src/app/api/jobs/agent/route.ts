@@ -87,6 +87,7 @@ export async function POST(req: Request) {
     title: string;
     url: string;
     snippet: string;
+    kind?: "job" | "list" | "company" | "other";
     platform: string | null;
     fromQuery: string;
   }[] = [];

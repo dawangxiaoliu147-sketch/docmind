@@ -56,6 +56,7 @@ type WebHitView = {
   title: string;
   url: string;
   snippet: string;
+  kind?: "job" | "list" | "company" | "other";
   platform: string | null;
   fromQuery: string;
 };
@@ -334,6 +335,11 @@ export function JobSearchAgent({ resumes }: { resumes: ResumeOption[] }) {
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-[13.5px] font-semibold text-fg">{h.title}</span>
                       {h.platform ? <Chip tone="outline">{h.platform}</Chip> : null}
+                      {h.kind && h.kind !== "job" ? (
+                        <Chip tone="muted">
+                          {h.kind === "list" ? "列表页" : h.kind === "company" ? "公司页" : "非岗位页"}
+                        </Chip>
+                      ) : null}
                       <span className="text-[11.5px] text-muted-fg">搜「{h.fromQuery}」时找到</span>
                     </div>
                     {h.snippet ? (

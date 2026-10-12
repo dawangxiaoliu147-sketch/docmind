@@ -14,7 +14,45 @@ import "server-only";
  * 一家都没配时 `webSearch()` 返回 { ok: false }，界面上就只说"没配搜索引擎" —— 绝不编造链接。
  */
 
-export type SearchHit = { title: string; url: string; snippet: string };
+/** 链接类型：岗位详情页 / 列表页 / 公司页 / 其他。搜索 API 会把这几类混着返回 */
+export type HitKind = "job" | "list" | "company" | "other";
+
+export type SearchHit = { title: string; url: string; snippet: string; kind?: HitKind };
+
+/**
+ * 认一下这条链接是"某个岗位"还是"一页列表"。
+ * 实测 Tavily 搜站点时，列表页和公司页会和具体岗位混在一起 —— 不区分的话用户白点。
+ */
+export function classifyHit(url: string): HitKind {
+  const u = url.toLowerCase();
+  if (/\/(company|companies)\//.test(u)) return "company";
+  // 岗位详情页的常见形态
+  if (
+    /\/job_detail\//.test(u) ||
+    /\/job\/[^/]*\d/.test(u) ||
+    /\/jobs?\/[a-z0-9-]+\.html/.test(u) ||
+    /\/position\//.test(u) ||
+    /jobid=/.test(u) ||
+    /\/job\/\d+/.test(u) ||
+    // 智联的真实岗位页长这样：jobs.zhaopin.com/CC120859660J40350176005.htm
+    /\/c{1,2}\d{6,}[a-z0-9]*\.html?/.test(u)
+  ) {
+    return "job";
+  }
+  // 列表/聚合页的常见形态
+  if (/\/zhaopin\//.test(u) || /\/city-/.test(u) || /\/career/.test(u) || /\/search/.test(u) || /\?query=|keyword=|kd=/.test(u)) {
+    return "list";
+  }
+  return "other";
+}
+
+/** 岗位详情页排最前，列表页与公司页排最后（只排序，不丢弃） */
+export function rankHits(hits: SearchHit[]): SearchHit[] {
+  const weight: Record<HitKind, number> = { job: 0, other: 1, list: 2, company: 3 };
+  return hits
+    .map((h) => ({ ...h, kind: h.kind ?? classifyHit(h.url) }))
+    .sort((a, b) => weight[a.kind ?? "other"] - weight[b.kind ?? "other"]);
+}
 
 export type SearchOutcome =
   | { ok: true; provider: string; hits: SearchHit[] }
@@ -147,7 +185,7 @@ export async function webSearch(query: string, limit = 8, timeoutMs = 12000): Pr
       raw = (data.items ?? []).map((r) => ({ title: r.title, url: r.link, snippet: r.snippet }));
     }
 
-    const hits = cleanHits(raw, limit);
+    const hits = rankHits(cleanHits(raw, limit));
     cache.set(cacheKey, { at: Date.now(), hits });
     return { ok: true, provider: provider.label, hits };
   } catch (e) {
