@@ -42,8 +42,22 @@ type AgentResponse = {
   plan: PlanView;
   queries: QueryView[];
   foundPosts: PostView[];
+  webSearch: {
+    configured: boolean;
+    provider: string | null;
+    error: string | null;
+    hits: WebHitView[];
+  };
   resumeTitle: string | null;
   publicSource: { ok: boolean; error?: string };
+};
+
+type WebHitView = {
+  title: string;
+  url: string;
+  snippet: string;
+  platform: string | null;
+  fromQuery: string;
 };
 
 function daysAgo(iso: string | null): string {
@@ -132,7 +146,7 @@ export function JobSearchAgent({ resumes }: { resumes: ResumeOption[] }) {
 
   return (
     <div className="space-y-5">
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div data-tour="job-agent-form" className="grid gap-4 sm:grid-cols-2">
         <Field label="用哪份简历" hint={resumes.length === 0 ? "还没有简历，去简历工坊建一份" : "AI 只读这份简历里的内容"}>
           {resumes.length > 0 ? (
             <Select value={resumeId} onChange={(e) => setResumeId(e.target.value)} disabled={pasted.trim().length > 0}>
@@ -236,7 +250,7 @@ export function JobSearchAgent({ resumes }: { resumes: ResumeOption[] }) {
             ) : null}
           </Panel>
 
-          <Panel className="p-5">
+          <Panel className="p-5" data-tour="job-agent-plan">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="text-[13px] font-semibold text-fg">搜索方案</p>
               <CopyText text={allKeywords} label="复制全部搜索词" />
@@ -293,6 +307,56 @@ export function JobSearchAgent({ resumes }: { resumes: ResumeOption[] }) {
           </Panel>
 
           <Panel className="p-5">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-[13px] font-semibold text-fg">搜到的具体岗位</p>
+              {data.webSearch.configured && data.webSearch.provider ? (
+                <span className="text-[11.5px] text-muted-fg">
+                  来自 {data.webSearch.provider} 的站内结果
+                </span>
+              ) : null}
+            </div>
+
+            {!data.webSearch.configured ? (
+              <p className="mt-2 text-[12.5px] leading-relaxed text-muted-fg">
+                没配搜索引擎，所以这里只有平台搜索页的链接。想直接拿到具体岗位的链接，
+                在服务器 .env 里配一家即可：<span className="mono">SEARCH_PROVIDER</span> 加
+                Brave / Tavily / Google CSE 任一的 key。
+              </p>
+            ) : data.webSearch.hits.length === 0 ? (
+              <p className="mt-2 text-[12.5px] text-muted-fg">
+                这次没搜到具体岗位链接
+                {data.webSearch.error ? `（${data.webSearch.error}）` : ""}，用上面的搜索链接自己看看。
+              </p>
+            ) : (
+              <ul className="mt-3 space-y-3">
+                {data.webSearch.hits.map((h) => (
+                  <li key={h.url} className="rounded-lg border border-border px-4 py-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-[13.5px] font-semibold text-fg">{h.title}</span>
+                      {h.platform ? <Chip tone="outline">{h.platform}</Chip> : null}
+                      <span className="text-[11.5px] text-muted-fg">搜「{h.fromQuery}」时找到</span>
+                    </div>
+                    {h.snippet ? (
+                      <p className="mt-1 text-[12.5px] leading-relaxed text-muted-fg">{h.snippet}</p>
+                    ) : null}
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <a
+                        href={h.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-sm btn-secondary"
+                      >
+                        打开岗位 ↗
+                      </a>
+                      <CopyText text={h.url} label="复制链接" />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Panel>
+
+          <Panel className="p-5" data-tour="job-agent-posts">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="text-[13px] font-semibold text-fg">已经搜到的岗位</p>
               <span className="text-[11.5px] text-muted-fg">来自公开源（V2EX 招聘），点开核对</span>

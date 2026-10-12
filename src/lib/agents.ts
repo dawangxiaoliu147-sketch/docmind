@@ -1,4 +1,4 @@
-﻿// Agent 角色定义：同一个知识库，可以用不同"人设"的 Agent 来对话。
+// Agent 角色定义：同一个知识库，可以用不同"人设"的 Agent 来对话。
 export type AgentMode = {
   id: string;
   name: string;
@@ -16,7 +16,7 @@ export const AGENT_MODES: AgentMode[] = [
 ];
 
 const TOOLS_HINT =
-  "可用工具：searchKnowledgeBase（检索）、listDocuments（列文档）、readDocument（读全文）、summarizeDocument（总结）、generateQuiz（出题）。可组合多个工具、多步推理。";
+  "可用工具：searchKnowledgeBase（检索）、listDocuments（列文档）、readDocument（读全文）、summarizeDocument（总结）、generateQuiz（出题）、searchJobs（生成招聘平台的搜索链接）。可组合多个工具、多步推理。";
 
 // 根据模式返回对应的系统提示词
 export function getAgentSystemPrompt(modeId: string): string {

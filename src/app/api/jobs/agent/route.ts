@@ -1,6 +1,9 @@
 import { verifySession } from "@/lib/dal";
 import { prisma } from "@/lib/db";
+import { aiQuota } from "@/lib/guard";
 import { classifyApply } from "@/lib/job-contact";
+import { PLATFORMS } from "@/lib/platform-search";
+import { buildPlatformSearchQuery, searchProvider, webSearch } from "@/lib/web-search";
 import { generateSearchPlan, planToQueryLinks, rankJobsByTerms, type SearchPrefs } from "@/lib/job-search-plan";
 import { v2exSource } from "@/lib/job-sources/v2ex";
 
@@ -19,6 +22,10 @@ import { v2exSource } from "@/lib/job-sources/v2ex";
 export async function POST(req: Request) {
   const session = await verifySession();
   if (!session) return Response.json({ error: "未登录" }, { status: 401 });
+
+  // 这里会调模型，跟其它 AI 接口一样过配额闸
+  const limited = aiQuota(session.userId);
+  if (limited) return limited;
 
   let body: Record<string, unknown> = {};
   try {
@@ -71,6 +78,47 @@ export async function POST(req: Request) {
   const plan = await generateSearchPlan(resumeText, prefs);
   const queries = planToQueryLinks(plan, prefs);
 
+  // 2b) 具体岗位链接：走搜索引擎的站内查询（site:zhipin.com …）。
+  //     没配搜索引擎就跳过 —— 界面会说明，绝不编造链接。
+  const provider = searchProvider();
+  const domains = PLATFORMS.map((p) => p.domain);
+  let searchError: string | null = null;
+  const collected: {
+    title: string;
+    url: string;
+    snippet: string;
+    platform: string | null;
+    fromQuery: string;
+  }[] = [];
+
+  if (provider) {
+    for (const q of plan.queries.slice(0, 3)) {
+      const out = await webSearch(buildPlatformSearchQuery(q.keyword, domains, prefs.city), 8);
+      if (!out.ok) {
+        searchError ??= out.reason;
+        continue;
+      }
+      for (const h of out.hits) {
+        collected.push({
+          ...h,
+          platform: PLATFORMS.find((p) => h.url.includes(p.domain))?.name ?? null,
+          fromQuery: q.keyword,
+        });
+      }
+    }
+  }
+
+  // 同一个链接只留一条，最多 12 条
+  const seenUrl = new Set<string>();
+  const webHits = collected
+    .filter((h) => {
+      const key = h.url.replace(/#.*$/, "");
+      if (seenUrl.has(key)) return false;
+      seenUrl.add(key);
+      return true;
+    })
+    .slice(0, 12);
+
   // 3) 公开源里已经搜到的具体帖子（V2EX 招聘 feed）。
   //    失败不影响主流程 —— 平台链接本来就能用。
   const terms = [...plan.queries.map((q) => q.keyword), ...plan.profile.skills].slice(0, 12);
@@ -109,6 +157,12 @@ export async function POST(req: Request) {
     plan,
     queries,
     foundPosts,
+    webSearch: {
+      configured: provider !== null,
+      provider: provider?.label ?? null,
+      error: searchError,
+      hits: webHits,
+    },
     resumeTitle,
     usedResumeId,
     publicSource: publicSourceError ? { ok: false, error: publicSourceError } : { ok: true },

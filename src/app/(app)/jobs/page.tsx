@@ -3,6 +3,7 @@ import Link from "next/link";
 import { requireUser } from "@/lib/dal";
 import { prisma } from "@/lib/db";
 import { JobSearchAgent } from "@/components/job-search-agent";
+import { TourButton } from "@/components/onboarding-tour";
 import { buttonClass, PageHeader, Section, Stack } from "@/components/ui";
 
 export const metadata: Metadata = {
@@ -25,14 +26,12 @@ export default async function JobsPage() {
         subtitle="给 AI 你的简历和目标，它把各平台的搜索链接准备好，你点开自己看"
         actions={
           <>
+            <TourButton tour="jobs" />
             <Link href="/applications" className={buttonClass({ variant: "outline", size: "sm" })}>
               投递跟进
             </Link>
             <Link href="/resume" className={buttonClass({ variant: "outline", size: "sm" })}>
               简历工坊
-            </Link>
-            <Link href="/jobs/library" className={buttonClass({ variant: "ghost", size: "sm" })}>
-              职位库（旧的）
             </Link>
           </>
         }

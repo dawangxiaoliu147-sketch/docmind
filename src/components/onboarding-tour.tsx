@@ -128,23 +128,23 @@ const TOURS: Record<TourKey, { label: string; desc: string; steps: Step[] }> = {
   },
 
   jobs: {
-    label: "职位库",
-    desc: "浏览、搜索、匹配、模拟面试",
+    label: "找岗位",
+    desc: "简历 → 搜索词 → 平台链接",
     steps: [
       {
-        target: '[data-tour="jobs-search"]',
-        title: "① 搜索与筛选",
-        body: "按标题、公司、标签筛选；也可以点右上角「添加职位」自己录入。",
+        target: '[data-tour="job-agent-form"]',
+        title: "① 选简历、填目标",
+        body: "选一份简历，或者直接把简历文本粘进来；再填城市、年限这些。填得越多，搜索词越准。",
       },
       {
-        target: '[data-tour="jobs-recommend"]',
-        title: "② 让 AI 按简历推荐",
-        body: "上传简历后，AI 会从职位库里挑出匹配度高的岗位，并说明理由。",
+        target: '[data-tour="job-agent-plan"]',
+        title: "② 拿搜索方案",
+        body: "AI 给出几组搜索词，每组都配好各平台的搜索链接。点开之后是你自己的账号在搜。",
       },
       {
-        target: '[data-tour="jobs-list"]',
-        title: "③ 点进职位详情",
-        body: "详情页可以看匹配度分析，还能直接生成针对这个岗位的模拟面试题。",
+        target: '[data-tour="job-agent-posts"]',
+        title: "③ 已经搜到的岗位",
+        body: "公开源里对得上的帖子直接列出来。带邮箱的可以复制邮箱，或者记一笔投递。",
       },
     ],
   },
@@ -382,8 +382,7 @@ const TOURS: Record<TourKey, { label: string; desc: string; steps: Step[] }> = {
 const TOUR_HOME: Partial<Record<TourKey, { home?: string; where?: string }>> = {
   kb: { home: "/dashboard" },
   workbench: { home: "/workbench" },
-  // 导览要高亮的元素都在旧的职位库页上（找岗位页已换成搜索 Agent）
-  jobs: { home: "/jobs/library" },
+  jobs: { home: "/jobs" },
   resume: { home: "/resume" },
   agent: { home: "/agent" },
   settings: { home: "/settings" },

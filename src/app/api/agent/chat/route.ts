@@ -5,7 +5,9 @@ import { chatModel } from "@/lib/ai";
 import { prisma } from "@/lib/db";
 import { verifySession } from "@/lib/dal";
 import { aiQuota } from "@/lib/guard";
-import { getAllJobs } from "@/lib/job-store";
+import { buildPlatformLinks } from "@/lib/platform-search";
+import { rankJobsByTerms } from "@/lib/job-search-plan";
+import { v2exSource } from "@/lib/job-sources/v2ex";
 
 // 「知行智能体」：一个通用 Agent Harness
 // 通过工具注册表把项目的各项能力暴露给模型，模型自主编排、多步推理。
@@ -66,25 +68,39 @@ export async function POST(req: Request) {
       },
     }),
 
-    listJobs: tool({
-      description: "查询职位库，可按关键词（职位名/技能）筛选",
-      inputSchema: z.object({ keyword: z.string().optional().describe("关键词，可留空") }),
-      execute: async ({ keyword }) => {
-        const jobs = await getAllJobs();
-        const kw = keyword?.trim();
-        const filtered = kw
-          ? jobs.filter(
-              (j) =>
-                j.title.includes(kw) ||
-                j.company.includes(kw) ||
-                j.tags.some((t) => t.includes(kw)),
-            )
-          : jobs;
-        if (filtered.length === 0) return "没有匹配的职位";
-        return filtered
-          .slice(0, 10)
-          .map((j) => `- ${j.title} @ ${j.company}｜${j.salary}｜${j.location}｜${j.tags.join("/")}`)
-          .join("\n");
+    searchJobs: tool({
+      description:
+        "给求职者准备招聘平台的搜索链接（BOSS直聘/智联/猎聘/前程无忧/拉勾/电鸭/V2EX），并附上公开源里已经搜到的帖子。输入岗位关键词",
+      inputSchema: z.object({
+        keyword: z.string().describe("岗位关键词，如 前端开发 / Java 后端 / 数据分析"),
+        city: z.string().optional().describe("城市，可留空"),
+      }),
+      execute: async ({ keyword, city }) => {
+        const kw = keyword.trim();
+        if (!kw) return "关键词为空";
+        const cityClean = city?.trim() || undefined;
+
+        // 平台搜索链接：只生成链接，不代用户登录、不抓平台数据
+        const links = buildPlatformLinks(kw, cityClean);
+        const head = links.map((l) => `- ${l.name}：${l.url}`).join("\n");
+
+        // 公开源（V2EX 招聘 feed）里真抓到的帖子
+        let posts = "";
+        try {
+          const raw = await v2exSource.fetch(60);
+          const hit = rankJobsByTerms(raw, [kw, ...kw.split(/\s+/)], 5);
+          if (hit.length > 0) {
+            posts =
+              "\n\n公开源里对得上的帖子：\n" +
+              hit
+                .map((p) => `- ${p.title}｜${p.company}｜${p.url ?? "（无链接）"}`)
+                .join("\n");
+          }
+        } catch {
+          // 公开源连不上不影响主结果
+        }
+
+        return `「${kw}」的平台搜索链接（点开是平台自己的结果页，用的是用户自己的账号）：\n${head}${posts}`;
       },
     }),
 
