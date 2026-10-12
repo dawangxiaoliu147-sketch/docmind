@@ -37,6 +37,16 @@ const RULES = [
   { name: "markdown 标题（## 这样）", re: /(?:^|\s)#{2,}\s+\S/ },
 ];
 
+/**
+ * 提示词里的 markdown 是正常的（发给模型，不显示给用户）。
+ * 这类段落用下面这对标记排除：
+ *   // @copy-check-ignore-start
+ *   ...
+ *   // @copy-check-ignore-end
+ */
+const IGNORE_START = /@copy-check-ignore-start/;
+const IGNORE_END = /@copy-check-ignore-end/;
+
 function walk(dir, out = []) {
   for (const entry of readdirSync(dir)) {
     const p = join(dir, entry);
@@ -48,20 +58,37 @@ function walk(dir, out = []) {
 }
 
 const bad = [];
-for (const file of walk(ROOT)) {
-  const text = stripComments(readFileSync(file, "utf8"));
-  text.split("\n").forEach((line, i) => {
+const files = walk(ROOT);
+for (const file of files) {
+  const original = readFileSync(file, "utf8");
+  // 标记要在**原始行**上认（它本身是注释，去注释后就被删掉了）
+  const originalLines = original.split("\n");
+  const strippedLines = stripComments(original).split("\n");
+
+  let ignoring = false;
+  for (let i = 0; i < originalLines.length; i++) {
+    if (IGNORE_START.test(originalLines[i])) {
+      ignoring = true;
+      continue;
+    }
+    if (IGNORE_END.test(originalLines[i])) {
+      ignoring = false;
+      continue;
+    }
+    if (ignoring) continue;
+
+    const line = strippedLines[i] ?? "";
     for (const rule of RULES) {
       if (rule.re.test(line)) {
         bad.push({ file, line: i + 1, rule: rule.name, text: line.trim().slice(0, 100) });
         break;
       }
     }
-  });
+  }
 }
 
 if (bad.length === 0) {
-  console.log(`✓ 没有发现写进界面的 markdown（检查了 ${walk(ROOT).length} 个文件）`);
+  console.log(`✓ 没有发现写进界面的 markdown（检查了 ${files.length} 个文件）`);
   process.exit(0);
 }
 

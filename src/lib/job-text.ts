@@ -167,6 +167,38 @@ export function toDescription(text: string, maxLines = 40): string {
   return lines.slice(0, maxLines).join("\n");
 }
 
+/** 工作年限：从「5 年工作经验」这类表述里取数字，取不到返回 null（不猜） */
+export function guessYears(text: string): string | null {
+  const m = text.match(/(\d{1,2})\s*年(?:以上)?(?:工作)?(?:经验|开发经验|经验者优先)/);
+  return m ? m[1] : null;
+}
+
+/** 手机号（中国大陆），取不到返回 null */
+export function guessPhone(text: string): string | null {
+  return text.match(/(?:\+?86[-\s]?)?1[3-9]\d{9}/)?.[0] ?? null;
+}
+
+/**
+ * 简历里那句自我描述：第一行长度合适、且不像联系方式或纯标题的行。
+ * 用途：邮件正文的"简要介绍"、以及搜索方案页上"我读到你是谁"。
+ */
+export function firstSummaryLine(text: string): string | null {
+  const lines = text
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+  return (
+    lines.find(
+      (l) =>
+        l.length >= 10 &&
+        l.length <= 80 &&
+        !guessPhone(l) &&
+        !/@/.test(l) &&
+        !/^(简历|个人简历|求职简历)$/.test(l),
+    ) ?? null
+  );
+}
+
 /**
  * 稳定短 id（FNV-1a 32 位 + 长度混合）。用于没有天然 id 的源（RSS），
  * 保证同一篇帖子每次同步算出同一个 sourceId → 不会重复入库。

@@ -29,7 +29,7 @@ export async function Navbar() {
     {
       title: "求职",
       items: [
-        { href: "/jobs", label: "职位库", hint: "真实职位与平台岗位" },
+        { href: "/jobs", label: "找岗位", hint: "AI 生成搜索链接，自己点开看" },
         { href: "/applications", label: "投递跟进", hint: "投递状态与跟进提醒" },
         { href: "/resume", label: "简历工坊", hint: "A4 模板 · 在线编辑 · 智能体改简历" },
         { href: "/agent", label: "智能体", hint: "描述任务，它自己决定调用哪些工具" },

@@ -10,7 +10,7 @@
  */
 
 import { extractEmails } from "./job-contact";
-import { guessTags, stripHtml } from "./job-text";
+import { firstSummaryLine, guessPhone, guessTags, guessYears, stripHtml } from "./job-text";
 
 export type Applicant = {
   name: string;
@@ -44,11 +44,7 @@ export type EmailDraft = {
   mailtoUrl: string;
 };
 
-const PHONE_RE = /(?:\+?86[-\s]?)?1[3-9]\d{9}/;
-const YEARS_RE = /(\d{1,2})\s*年(?:以上)?(?:工作)?(?:经验|开发经验|经验者优先)/;
-
-/**
- * 从简历 HTML 里抽投递邮件需要的信息。
+/** 从简历 HTML 里抽投递邮件需要的信息。
  * 抽不到就留 null/空数组 —— 邮件里少一行，好过凭空编一个电话号码。
  */
 export function extractApplicant(resumeHtml: string | null | undefined, fallbackName: string): Applicant {
@@ -59,20 +55,10 @@ export function extractApplicant(resumeHtml: string | null | undefined, fallback
     .filter(Boolean);
 
   const email = extractEmails(text)[0] ?? null;
-  const phone = text.match(PHONE_RE)?.[0] ?? null;
-  const years = text.match(YEARS_RE)?.[1] ?? null;
+  const phone = guessPhone(text);
+  const years = guessYears(text);
   const skills = guessTags(text);
-
-  // 自我描述：取第一行够长、且不像联系方式/标题的行
-  const summary =
-    lines.find(
-      (l) =>
-        l.length >= 10 &&
-        l.length <= 80 &&
-        !PHONE_RE.test(l) &&
-        !/@/.test(l) &&
-        !/^(简历|个人简历|求职简历)$/.test(l),
-    ) ?? null;
+  const summary = firstSummaryLine(text);
 
   const name = (lines[0] && lines[0].length <= 12 ? lines[0] : "") || fallbackName;
 

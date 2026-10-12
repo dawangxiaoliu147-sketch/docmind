@@ -382,7 +382,8 @@ const TOURS: Record<TourKey, { label: string; desc: string; steps: Step[] }> = {
 const TOUR_HOME: Partial<Record<TourKey, { home?: string; where?: string }>> = {
   kb: { home: "/dashboard" },
   workbench: { home: "/workbench" },
-  jobs: { home: "/jobs" },
+  // 导览要高亮的元素都在旧的职位库页上（找岗位页已换成搜索 Agent）
+  jobs: { home: "/jobs/library" },
   resume: { home: "/resume" },
   agent: { home: "/agent" },
   settings: { home: "/settings" },

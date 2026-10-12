@@ -30,7 +30,7 @@ import {
 const FEATURES = [
   { href: "/agent", icon: "✦", name: "智能体", desc: "自主调用工具完成任务" },
   { href: "/workbench", icon: "⊞", name: "工作台", desc: "13 个 AI 工作助手" },
-  { href: "/jobs", icon: "⬢", name: "职位库", desc: "职位匹配 · 模拟面试" },
+  { href: "/jobs", icon: "⬢", name: "找岗位", desc: "AI 生成搜索链接" },
   { href: "/resume", icon: "⊡", name: "简历工坊", desc: "8 套模板 · 智能体改简历" },
   { href: "/achievements", icon: "◆", name: "成就", desc: "查看你的使用成就" },
   { href: "/settings", icon: "⊙", name: "设置", desc: "个性化与 AI 偏好" },
