@@ -1,6 +1,5 @@
 import "server-only";
-import { generateText } from "ai";
-import { chatModel } from "./ai";
+import { generateTextResilient } from "./ai";
 import { firstSummaryLine, guessTags, guessYears, stripHtml } from "./job-text";
 import { buildPlatformLinks, type PlatformLink } from "./platform-search";
 
@@ -288,8 +287,7 @@ export async function generateSearchPlan(
   }
 
   try {
-    const result = await generateText({
-      model: chatModel,
+    const result = await generateTextResilient({
       system: "你是求职搜索助手，只输出 JSON。",
       prompt: buildPrompt(text, prefs),
     });
@@ -297,7 +295,11 @@ export async function generateSearchPlan(
     if (!parsed) {
       return { ...fallbackPlan(text, prefs), warning: "AI 返回的内容没法解析，已改用规则生成。" };
     }
-    return { ...parsed, aiUsed: true };
+    return {
+      ...parsed,
+      aiUsed: true,
+      ...(result.usedFallback ? { warning: "主用模型额度用完，这次用的是备用模型。" } : {}),
+    };
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     return {
