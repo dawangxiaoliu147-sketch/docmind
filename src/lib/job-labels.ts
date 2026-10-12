@@ -28,9 +28,6 @@ export function jobSourceLabel(source: string): string {
   return JOB_SOURCE_LABEL[source] ?? source;
 }
 
-/** 内置示例职位的来源标记，UI 默认不显示 */
-export const DEMO_SOURCE = "demo";
-
 export type ChannelTone = "success" | "primary" | "muted";
 
 export const APPLY_CHANNEL_META: Record<string, { label: string; tone: ChannelTone }> = {
