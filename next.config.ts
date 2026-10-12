@@ -1,6 +1,16 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // 产物只包含运行真正用到的依赖（standalone）。
+  //
+  // 为什么开：运行层原来把整个 node_modules 拷进去，而大头是 three.js / @react-three
+  // 这些**只在浏览器用**的包（纯生产依赖就有 764MB）。standalone 按依赖追踪挑文件，
+  // 这些不会进运行层，镜像能小一个量级 —— 服务器从 GHCR 拉镜像太慢，镜像小才拉得动。
+  //
+  // ⚠️ 代价：standalone 漏文件不会在构建期报错，而是容器起来 500。
+  //    所以 CI 里加了「构建 → 真跑容器 curl → 通过了才推送」这道闸（见 .github/workflows/deploy.yml）。
+  output: "standalone",
+
   // Prisma + pg 属于 Node 原生依赖，交给运行时而非打包器处理，
   // 避免 webpack/turbopack 打包它们时报错。
   serverExternalPackages: ["@prisma/client", "@prisma/adapter-pg", "pg"],
