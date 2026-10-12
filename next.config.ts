@@ -1,15 +1,18 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // 产物只包含运行真正用到的依赖（standalone）。
-  //
-  // 为什么开：运行层原来把整个 node_modules 拷进去，而大头是 three.js / @react-three
-  // 这些**只在浏览器用**的包（纯生产依赖就有 764MB）。standalone 按依赖追踪挑文件，
-  // 这些不会进运行层，镜像能小一个量级 —— 服务器从 GHCR 拉镜像太慢，镜像小才拉得动。
-  //
-  // ⚠️ 代价：standalone 漏文件不会在构建期报错，而是容器起来 500。
-  //    所以 CI 里加了「构建 → 真跑容器 curl → 通过了才推送」这道闸（见 .github/workflows/deploy.yml）。
-  output: "standalone",
+  // 关于镜像瘦身（output: "standalone"）的现状 —— 2026-10-12
+  //   试过一次，配置写在下面这几行注释里：output: "standalone" + 入口改 node server.js
+  //   + Dockerfile 只拷 .next/standalone（three.js / @react-three 这些只在浏览器用的包
+  //   就不会进运行层，镜像是 1.7GB → 预计几百 MB）。
+  //   但两件事挡住了：
+  //     1. 我在 Windows 本机**验不了**：Next 要建 pnpm 符号链接，被权限拒绝 EPERM，
+  //        产出的 standalone 是残的（连 server.js、@prisma 都没有）。
+  //     2. CI 的冒烟测试没过（sha 标签 40 分钟没出现），而 GitHub Actions 的日志我拿不到
+  //        （本机 DNS 把 github 解析到非公开 IP）。工作流又是"测试通过才推送"，
+  //        所以发布通道被卡住了 —— 只能先退回。
+  //   要再试的话：先用 node-linker=hoisted 安装（绕开符号链接）在本地把 standalone
+  //   真正构建出来、跑起来确认不缺点西，再改回来。见 HANDOFF 坑清单。
 
   // Prisma + pg 属于 Node 原生依赖，交给运行时而非打包器处理，
   // 避免 webpack/turbopack 打包它们时报错。

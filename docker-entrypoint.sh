@@ -7,8 +7,7 @@ set -e
 
 if [ "$1" = "migrate" ]; then
   echo "[docmind] 执行数据库迁移..."
-  # prisma CLI 单独放在 migrate-tools（standalone 运行层不含 devDependencies）
-  PRISMA=./migrate-tools/node_modules/.bin/prisma
+  PRISMA=./node_modules/.bin/prisma
   # 等待数据库就绪：失败则重试，最多 30 次、每次间隔 2 秒
   n=0
   until $PRISMA migrate deploy; do
@@ -25,5 +24,4 @@ if [ "$1" = "migrate" ]; then
 fi
 
 echo "[docmind] 启动服务 (port ${PORT:-3000})..."
-# standalone 产物自带 server.js，不再需要 next CLI（镜像是精简的，也没装 next CLI）
-exec node server.js
+exec ./node_modules/.bin/next start -H 0.0.0.0 -p "${PORT:-3000}"

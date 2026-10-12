@@ -17,6 +17,23 @@ export function isSupported(mimeType: string): boolean {
   return (SUPPORTED_MIME as readonly string[]).includes(mimeType);
 }
 
+/**
+ * 按文件名猜 MIME。
+ * 为什么需要：浏览器对 .md / .docx 有时给空 type，只看 file.type 会被误判成"不支持"。
+ */
+export function mimeFromFileName(fileName: string): string {
+  const name = fileName.toLowerCase();
+  if (name.endsWith(".pdf")) return "application/pdf";
+  if (name.endsWith(".docx")) {
+    return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+  }
+  if (name.endsWith(".md") || name.endsWith(".markdown")) return "text/markdown";
+  if (name.endsWith(".html") || name.endsWith(".htm")) return "text/html";
+  if (name.endsWith(".csv")) return "text/csv";
+  if (name.endsWith(".txt")) return "text/plain";
+  return "";
+}
+
 export function getExtension(mimeType: string): string {
   switch (mimeType) {
     case "application/pdf":

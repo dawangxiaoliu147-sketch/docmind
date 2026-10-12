@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ChangeEvent } from "react";
 import Link from "next/link";
-import { Alert, Button, Chip, Field, Input, Panel, Select, Textarea } from "@/components/ui";
+import { Alert, Button, Chip, Field, Input, Panel, Select } from "@/components/ui";
 import { CopyText } from "@/components/copy-text";
 
 /**
@@ -72,7 +72,12 @@ function daysAgo(iso: string | null): string {
 
 export function JobSearchAgent({ resumes }: { resumes: ResumeOption[] }) {
   const [resumeId, setResumeId] = useState(resumes[0]?.id ?? "");
-  const [pasted, setPasted] = useState("");
+  // 上传的简历附件：只把文字读进来用，文件不落盘
+  const [uploaded, setUploaded] = useState<{ fileName: string; text: string; chars: number } | null>(
+    null,
+  );
+  const [uploading, setUploading] = useState(false);
+  const [uploadErr, setUploadErr] = useState<string | null>(null);
   const [city, setCity] = useState("");
   const [remote, setRemote] = useState(false);
   const [years, setYears] = useState("");
@@ -86,9 +91,32 @@ export function JobSearchAgent({ resumes }: { resumes: ResumeOption[] }) {
   const [recording, setRecording] = useState<string | null>(null);
   const [recorded, setRecorded] = useState<string[]>([]);
 
+  async function onFile(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // 清掉，允许重复选同一个文件
+    if (!file) return;
+
+    setUploading(true);
+    setUploadErr(null);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const res = await fetch("/api/jobs/agent/upload", { method: "POST", body: form });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "读取失败");
+      setUploaded({ fileName: json.fileName, text: json.text, chars: json.chars });
+      setData(null);
+    } catch (err) {
+      setUploaded(null);
+      setUploadErr(err instanceof Error ? err.message : "读取失败");
+    } finally {
+      setUploading(false);
+    }
+  }
+
   async function run() {
-    if (!pasted.trim() && !resumeId) {
-      setErr("先选一份简历，或把简历内容粘进来。");
+    if (!uploaded && !resumeId) {
+      setErr("先选一份简历，或者上传一份简历附件。");
       return;
     }
     setBusy(true);
@@ -98,8 +126,8 @@ export function JobSearchAgent({ resumes }: { resumes: ResumeOption[] }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          resumeId: pasted.trim() ? undefined : resumeId,
-          text: pasted.trim() || undefined,
+          resumeId: uploaded ? undefined : resumeId,
+          text: uploaded?.text,
           prefs: { city, remote, years, salary, extra, exclude },
         }),
       });
@@ -148,9 +176,18 @@ export function JobSearchAgent({ resumes }: { resumes: ResumeOption[] }) {
   return (
     <div className="space-y-5">
       <div data-tour="job-agent-form" className="grid gap-4 sm:grid-cols-2">
-        <Field label="用哪份简历" hint={resumes.length === 0 ? "还没有简历，去简历工坊建一份" : "AI 只读这份简历里的内容"}>
+        <Field
+          label="用哪份简历"
+          hint={
+            uploaded
+              ? "已上传附件，以附件为准"
+              : resumes.length === 0
+                ? "还没有简历，可以上传附件，或去简历工坊建一份"
+                : "AI 只读这份简历里的内容"
+          }
+        >
           {resumes.length > 0 ? (
-            <Select value={resumeId} onChange={(e) => setResumeId(e.target.value)} disabled={pasted.trim().length > 0}>
+            <Select value={resumeId} onChange={(e) => setResumeId(e.target.value)} disabled={!!uploaded}>
               {resumes.map((r) => (
                 <option key={r.id} value={r.id}>
                   {r.title}
@@ -169,19 +206,30 @@ export function JobSearchAgent({ resumes }: { resumes: ResumeOption[] }) {
         </Field>
       </div>
 
-      <details className="rounded-lg border border-border bg-surface px-4 py-3">
-        <summary className="cursor-pointer select-none text-[13px] text-fg2">
-          或者：直接粘一份简历文本（会盖过上面的选择）
-        </summary>
-        <div className="mt-3">
-          <Textarea
-            value={pasted}
-            onChange={(e) => setPasted(e.target.value)}
-            rows={6}
-            placeholder="把简历内容粘进来…"
+      <Field label="上传简历附件" hint="支持 PDF / Word(.docx) / txt / md；只读文字，不保存文件">
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            type="file"
+            accept=".pdf,.docx,.txt,.md,.html,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/markdown"
+            onChange={onFile}
+            disabled={uploading}
+            className="ui-field max-w-md"
+            aria-label="上传简历附件"
           />
+          {uploading ? <span className="text-[12px] text-muted-fg">正在读取…</span> : null}
+          {uploaded ? (
+            <>
+              <Chip tone="success">
+                已读取 {uploaded.fileName}（{uploaded.chars} 字）
+              </Chip>
+              <Button size="sm" variant="ghost" onClick={() => setUploaded(null)}>
+                清除
+              </Button>
+            </>
+          ) : null}
         </div>
-      </details>
+      </Field>
+      {uploadErr ? <p className="text-xs text-destructive-fg">{uploadErr}</p> : null}
 
       <div className="grid gap-4 sm:grid-cols-4">
         <Field label="经验年限">

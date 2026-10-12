@@ -13,11 +13,11 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write # 失败时要把诊断信息推到 ci-debug 分支
       packages: write
 
-    # 冒烟测试要真连一个数据库：运行层的 @prisma/client 是 standalone 追踪出来的，
-    # 少了它只会在"登录之后的页面"报 500 —— 不接数据库根本测不出来。
+    # 冒烟测试要真连一个数据库：要验证的不只是"容器能起来"，
+    # 还有"运行时的 Prisma 客户端真的能查库"（少了它只会在登录之后的页面 500）。
     services:
       postgres:
         image: pgvector/pgvector:pg16
@@ -47,10 +47,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # 先构建到本机、不推送 —— 镜像得真的跑起来，才允许发布。
-      # 为什么必须加：运行层从「整包 node_modules」换成了 standalone 产物，
-      # 而 standalone 靠依赖追踪挑文件，漏一个就是容器起来 500；
-      # 线上从 GHCR 拉一次镜像要十几分钟，用线上试错的代价太高。
       - name: 构建（不推送）
         uses: docker/build-push-action@v5
         with:
@@ -60,12 +56,13 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: 跑一次数据库迁移（验证 prisma CLI + schema + 连通性）
+      - name: 跑一次数据库迁移
         run: |
           set -e
-          docker run --rm --network host \
+          docker run --name migrate-smoke --network host \
             -e DATABASE_URL="${{ env.DATABASE_URL }}" \
             docmind-smoke:latest migrate
+          docker rm migrate-smoke
 
       - name: 冒烟测试（容器能起来 + 数据库真的能用）
         run: |
@@ -87,7 +84,7 @@ jobs:
           docker logs smoke 2>&1 | tail -30 || true
 
           if [ "$ok" != "1" ]; then
-            echo "::error::容器没能正常响应 /login（standalone 产物可能缺文件）"
+            echo "::error::容器没能正常响应 /login"
             exit 1
           fi
 
@@ -95,16 +92,54 @@ jobs:
           curl -s -o /dev/null -w '  /api/health -> %{http_code}\n' --max-time 10 http://127.0.0.1:3000/api/health
 
           echo "=== 数据库探针 ==="
-          echo "  /s/<不存在> 是公开页面但要走 Prisma：404=客户端正常，500=standalone 漏了 @prisma/client"
+          echo "  /s/<不存在> 是公开页面但要走 Prisma：404=客户端正常，500=运行时缺 @prisma/client"
           s=$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 http://127.0.0.1:3000/s/smoke-not-exist || true)
           echo "  /s/smoke-not-exist -> $s"
           if [ "$s" != "404" ]; then
             echo "::error::运行时 Prisma 客户端不工作（期望 404，实到 $s）"
-            docker logs smoke 2>&1 | tail -40 || true
             exit 1
           fi
 
           docker rm -f smoke
+
+      # 本机访问不了 GitHub 的 Actions 页面，所以失败时把诊断信息推到分支上，
+      # 这样在本地 `git fetch origin ci-debug` 就能看到到底哪里挂了。
+      - name: 失败时把诊断信息推到 ci-debug 分支
+        if: failure()
+        run: |
+          set +e
+          mkdir -p ci-debug
+          {
+            echo "# 冒烟测试/构建失败诊断"
+            echo
+            echo "时间：$(date -u +%FT%TZ)  提交：${{ github.sha }}"
+            echo
+            echo "## 容器状态"
+            docker ps -a
+            echo
+            echo "## 应用容器日志（最后 200 行）"
+            docker logs smoke 2>&1 | tail -200
+            echo
+            echo "## 迁移容器日志（最后 120 行）"
+            docker logs migrate-smoke 2>&1 | tail -120
+            echo
+            echo "## 镜像里的顶层结构（判断产物是否完整）"
+            docker create --name layout docmind-smoke:latest true >/dev/null 2>&1
+            docker export layout 2>/dev/null | tar -t 2>/dev/null | head -60
+            docker rm -f layout >/dev/null 2>&1
+            echo
+            echo "## 有没有 server.js / node_modules/next / @prisma"
+            docker create --name probe docmind-smoke:latest true >/dev/null 2>&1
+            docker export probe 2>/dev/null | tar -t 2>/dev/null | grep -E '^(server\.js|node_modules/next/package\.json|node_modules/@prisma/client/package\.json|app/server\.js)$' | head -20
+            docker rm -f probe >/dev/null 2>&1
+          } > ci-debug/smoke-failure.md 2>&1 || true
+
+          git config user.name "ci-diagnostics"
+          git config user.email "ci@users.noreply.github.com"
+          git checkout -B ci-debug
+          git add -f ci-debug
+          git commit -m "ci: 冒烟测试失败诊断 $(date -u +%FT%TZ)" || echo "没有可提交的内容"
+          git push -f origin ci-debug || echo "推送诊断分支失败"
 
       - name: 推送（冒烟测试通过后才允许）
         uses: docker/build-push-action@v5
