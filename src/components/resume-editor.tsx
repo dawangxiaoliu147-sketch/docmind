@@ -47,42 +47,6 @@ function fmtChars(n: number): string {
   return `${n} 字`;
 }
 
-/* ---------- 图片缩放（照片 / 参考资料配图共用） ---------- */
-// 为什么必须在浏览器里缩：手机照片原图动辄 3~10MB，转成 data URL 还要再涨约 1/3。
-// 一份 9.5MB 的照片内联进简历 HTML 后会同时拖垮四处：DOM 渲染、撤回历史
-// （每一步存一份整段 innerHTML，默认留 50 步）、保存请求、以及发给智能体的请求体
-// （服务端 20MB 上限，超了直接 413）。而它在简历里显示宽度不过 3cm。
-function shrinkImage(file: File, maxW: number, maxH: number, quality = 0.85): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(file);
-    const img = new Image();
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      const scale = Math.min(1, maxW / img.width, maxH / img.height);
-      const w = Math.max(1, Math.round(img.width * scale));
-      const h = Math.max(1, Math.round(img.height * scale));
-      const canvas = document.createElement("canvas");
-      canvas.width = w;
-      canvas.height = h;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) {
-        reject(new Error("no 2d context"));
-        return;
-      }
-      // 透明 PNG 直接转 JPEG 会变黑底，先铺一层白
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, w, h);
-      ctx.drawImage(img, 0, 0, w, h);
-      resolve(canvas.toDataURL("image/jpeg", quality));
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("image decode failed"));
-    };
-    img.src = url;
-  });
-}
-
 /* ---------- 撤回 / 恢复的快照 ---------- */
 // 简历内容以 DOM 为准（contentEditable），所以历史记录直接存 innerHTML。
 // 同时把模板、主题色、缩放一并存下来 —— 这样「换了个模板/颜色」也能撤回。
@@ -229,33 +193,28 @@ export function ResumeEditor() {
   const canUndo = pastRef.current.length > 0;
   const canRedo = futureRef.current.length > 0;
 
-  // 点照片框 → 选图 → 缩小后内联到简历里
+  // 点照片框 → 选图 → 内联到简历里
   function onPageClick(e: React.MouseEvent<HTMLElement>) {
     const hit = (e.target as HTMLElement).closest(".rh-photo");
     if (hit) photoRef.current?.click();
   }
 
-  async function onPhoto(e: React.ChangeEvent<HTMLInputElement>) {
+  function onPhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    e.target.value = ""; // 先清空，同一张图再选一次也能触发
     if (!file) return;
-    try {
-      // 必须缩小：手机照片原图 3~10MB，base64 还再涨 1/3。
-      // 直接内联会把三处一起拖垮 —— 撤回历史（每一步存一份整段 innerHTML，留 50 步）、
-      // 保存请求、以及发给智能体的请求体（服务端 20MB 上限，超了直接 413）。
-      // 简历里照片显示宽度不过 3cm，缩到 480×640 肉眼看不出差别。
-      const data = await shrinkImage(file, 480, 640);
+    const reader = new FileReader();
+    reader.onload = () => {
       const photo = bodyRef.current?.querySelector<HTMLElement>(".rh-photo");
       if (!photo) return;
       pushHistory(); // 记录插入照片前的状态
       // 用 <img> 而不是背景图：打印/导出 PDF 更可靠
-      photo.innerHTML = `<img src="${data}" alt="照片" style="width:100%;height:100%;object-fit:cover;display:block;" />`;
+      photo.innerHTML = `<img src="${reader.result}" alt="照片" style="width:100%;height:100%;object-fit:cover;display:block;" />`;
       photo.style.padding = "0";
       photo.style.borderColor = "transparent";
       photo.style.background = "none";
-    } catch {
-      setMsg("照片读取失败，换一张图片试试（支持 JPG / PNG）");
-    }
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
   }
 
   function exportHtml() {
@@ -415,21 +374,17 @@ export function ResumeEditor() {
     abortRef.current?.abort();
   }
 
-  async function onImage(e: React.ChangeEvent<HTMLInputElement>) {
+  function onImage(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    e.target.value = ""; // 先清空，同一张图再选一次也能触发
     if (!file) return;
-    try {
-      // 同样是原图直传的问题：这张图会以 base64 随每次「让智能体改」的请求发到服务端，
-      // 10MB 的原图 = 13MB 请求体，服务端 nginx 在 20MB 上直接 413。
-      // 参考图只需要看清主体，缩到长边 1400 足够。
-      const data = await shrinkImage(file, 1400, 1400);
-      setImageData(data);
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImageData(reader.result as string);
       setImageName(file.name);
-      setMsg(`图片已读入（${Math.max(1, Math.round(data.length / 1024))} KB，已自动压缩），说说你要从中提炼什么`);
-    } catch {
-      setMsg("图片读取失败，换一张图片试试（支持 JPG / PNG / WebP）");
-    }
+      setMsg("图片已读入，说说你要从中提炼什么");
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
   }
 
   /* ---------- 简历库 ---------- */
