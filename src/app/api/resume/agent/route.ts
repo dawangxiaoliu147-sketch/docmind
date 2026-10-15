@@ -6,6 +6,12 @@ import { RESUME_STANDARD_PROMPT } from "@/lib/resume-standard";
 
 const TEMPLATES = ["ribbon", "bar", "gray", "underline", "dark", "topbar", "right", "center"];
 
+// 简历里可能内嵌照片（data:image/png;base64,AAAA…），一串 base64 动辄几万字符。
+// 下面截断 html 时必须先把它换成占位符，否则 14000 字全被 base64 占满、还砍在半截，
+// 模型收到一屏乱码 —— 表现就是「智能体看不到我的简历」。
+// base64 里可能有换行，字符集里带上 \s。
+const INLINE_IMAGE_RE = /data:image\/[a-z0-9.+-]+;base64,[A-Za-z0-9+/=\s]+/gi;
+
 function extractJson(text: string): string {
   const fence = text.match(/```(?:json)?\s*([\s\S]*?)```/);
   if (fence) return fence[1].trim();
@@ -26,12 +32,23 @@ export async function POST(req: Request) {
   if (limited) return limited;
 
   const body = await req.json();
-  const html = String(body?.html ?? "").slice(0, 14000);
+  // 先摘掉内联照片再截断（原因见 INLINE_IMAGE_RE 的注释）
+  const html = String(body?.html ?? "")
+    .replace(INLINE_IMAGE_RE, "[照片]")
+    .slice(0, 14000);
   const tpl = String(body?.tpl ?? "ribbon");
   const accent = String(body?.accent ?? "#1f4e79");
   const prompt = String(body?.prompt ?? "").trim();
   const source = String(body?.source ?? "").slice(0, 100000);
   const image = typeof body?.image === "string" && body.image.startsWith("data:image") ? body.image : "";
+  // 客户端已经把参考图缩到长边 1400（0.3~0.8MB 量级），超过 8MB 只可能是绕过前端直接调的。
+  // 与其让 nginx 在 20MB 上限上甩一个裸 413，不如在这里给一句人能看懂的话。
+  if (image.length > 8 * 1024 * 1024) {
+    return Response.json(
+      { error: "参考图太大，请重新选一张（会自动压缩到 1MB 以内）" },
+      { status: 413 },
+    );
+  }
   if (!prompt) {
     return Response.json({ error: "请输入你的要求" }, { status: 400 });
   }
