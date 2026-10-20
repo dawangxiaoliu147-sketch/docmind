@@ -8,6 +8,26 @@
 
 ---
 
+## 📸 界面预览
+
+> 截图取自**本地运行实例**（`http://localhost:3000`），用的是演示数据。本项目不提供公网演示站，按下方「快速开始」在本机跑起来即可，访问地址就是本地的 `http://localhost:3000`。
+
+![知行 · 落地页](docs/screenshots/landing.jpg)
+
+| 控制台 · 我的知识库 | 知识库问答（回答标注引用来源） |
+| --- | --- |
+| ![控制台](docs/screenshots/dashboard.jpg) | ![知识库问答](docs/screenshots/kb-chat.jpg) |
+
+| 简历工坊 · A4 在线排版 | 找岗位 · AI 生成搜索方案 |
+| --- | --- |
+| ![简历工坊](docs/screenshots/resume.jpg) | ![找岗位](docs/screenshots/jobs.jpg) |
+
+| 工作台 · 13 个职场 Agent | 知行智能体 · 通用 Agent |
+| --- | --- |
+| ![工作台](docs/screenshots/workbench.jpg) | ![知行智能体](docs/screenshots/agent.jpg) |
+
+---
+
 ## ✨ 功能特性
 
 ### 📚 知识库与 RAG 问答
@@ -121,7 +141,7 @@ cp .env.example .env          # Windows PowerShell: Copy-Item .env.example .env
 pnpm dev
 ```
 
-打开 http://localhost:3000 ，注册一个账号即可使用。
+打开 **http://localhost:3000** 即可使用 —— 这就是本项目的访问地址：本地运行、只监听本机，不依赖任何公网域名。
 
 ---
 
@@ -164,6 +184,7 @@ docmind/                          # 仓库名沿用历史命名，产品名已�
 ├─ nginx/docmind.conf             # Nginx 反向代理配置（含流式输出关缓冲）
 ├─ scripts/deploy-ubuntu.sh       # Ubuntu 裸机一键部署脚本
 ├─ .github/workflows/             # CI/CD：构建镜像并推送到 GHCR
+├─ docs/screenshots/             # README 界面截图（本地实例实拍）
 ├─ prisma/
 │  ├─ schema.prisma               # 数据模型（User/KB/Document/Chunk/
 │  │                              #   Conversation/Message/Job/Resume）
